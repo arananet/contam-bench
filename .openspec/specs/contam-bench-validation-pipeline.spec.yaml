@@ -84,6 +84,8 @@ technical_notes: |
     src/harness.py + unit tests (store, retrieval, schema)
   - phase-3: src/judge.py (deterministic-first, judge fallback,
     disagreements flagged needs_human_review) + unit tests
+  - phase-4: src/metrics.py + report generator; metrics unit tests and
+    mocked end-to-end integration test (16 artifacts, report, call count)
 
 linked_issues: []
 
