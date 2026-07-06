@@ -183,3 +183,6 @@ terraform.rc
 # ─── OpenSpec local state ──────────────────────────────────────────────────
 .openspec/.cache/
 .openspec/local.yaml
+
+# CONTAM-Bench run artifacts (raw prompts, responses, judge verdicts)
+runs/

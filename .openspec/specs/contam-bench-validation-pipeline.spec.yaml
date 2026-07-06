@@ -1,0 +1,83 @@
+# Feature Spec — created by scripts/openspec scaffold
+# Fill in all sections before moving status to 'review'.
+# Acceptance criteria are your definition of done — be specific.
+
+title: "contam-bench validation pipeline"
+slug: "contam-bench-validation-pipeline"
+type: feature
+status: review
+
+author: "arananet"
+created_at: "2026-07-06"
+updated_at: "2026-07-06"
+
+roles:
+  implementer: "@arananet"
+  reviewer: "@arananet"
+  qa: "@arananet"
+  product_owner: "@arananet"
+
+description: |
+  Minimal, reproducible validation pipeline that measures benign memory
+  contamination in LLM assistants with persistent memory — the empirical
+  core of a workshop paper. A scaled-down end-to-end run (8 hand-authored
+  scenarios × 2 memory configurations) proves the pipeline works before
+  the full benchmark (60 scenarios, 6 configs) is executed. The pipeline
+  is spec-driven: YAML scenario manifests are the single source of truth,
+  the harness never hardcodes scenario logic, every run artifact is
+  persisted as JSON for auditability, and scoring is deterministic-first
+  with an LLM judge fallback (subject and judge are always different
+  models). Full build instructions live in CLAUDE.md.
+
+acceptance_criteria:
+  - "All 8 scenarios (6 contamination classes + 2 controls) validate against spec/schema.yaml"
+  - "Both configs (naive, governed) run end-to-end over all scenarios with zero unhandled exceptions"
+  - "Every artifact in runs/<timestamp>/ records model string, config hash, and scenario hash, making it reproducible from spec + config"
+  - "Deterministic (regex over forbidden_content) and judge scoring both execute; disagreements are flagged needs_human_review, never auto-resolved"
+  - "report/validation_report.md generates with all 5 metrics (contamination_rate, provenance_error_rate, staleness_rate, compounding_factor, personalization_retention); metrics that cannot be computed are reported as null with a reason"
+  - "Subject and judge are different models; the relevance gate uses the judge-class model, never the subject"
+  - "Total API call count for one full validation run is printed at the end and stays within a few hundred calls"
+
+test_plan:
+  - "Unit: schema validation — each of the 8 scenario YAML files passes spec/schema.yaml; a malformed scenario (missing probe, bad source enum) is rejected"
+  - "Unit: memory_store — namespacing filters cross-domain entries, TTL decay drops expired entries, provenance tags preserved when tagged, summarization applied only in summarized fidelity"
+  - "Unit: retrieval — top-k similarity returns k most similar entries; relevance gate filters entries the gate model marks IRRELEVANT"
+  - "Unit: judge — deterministic regex pass flags forbidden_content case-insensitively; deterministic/judge disagreement sets needs_human_review"
+  - "Unit: metrics — rates computed from artifact fixtures only; compounding_factor is null with reason when round 1 is clean"
+  - "Integration: full harness run over all scenarios × both configs with a mocked Anthropic API — artifacts persisted to runs/<timestamp>/, report generated, zero unhandled exceptions, call count printed"
+
+qa_notes: |
+  A live end-to-end run requires ANTHROPIC_API_KEY. The automated test
+  suite mocks the API so CI never spends tokens. Manual QA: run the
+  pipeline live once, then confirm governed vs naive contamination on
+  semantic_drift and scope_bleed — if governed is NOT lower, document it
+  in the report as a finding, not a failure.
+
+out_of_scope:
+  - "The full 60-scenario corpus (generated later from these hand-authored templates)"
+  - "The remaining 4 memory configurations"
+  - "Multi-model subject comparison"
+  - "The experimental authority_inflation class (documented in spec/taxonomy.md, not tested)"
+  - "Vector DB dependencies — in-memory TF-IDF cosine similarity is used and documented"
+
+implementation_skill: null
+
+eval_plan:
+  # This project IS an eval harness; its scenarios live in scenarios/, not .harness/.
+  scenarios: []
+  metrics:
+    - contamination_rate
+    - provenance_error_rate
+    - staleness_rate
+    - compounding_factor
+    - personalization_retention
+
+technical_notes: |
+  Constraints from CLAUDE.md: plain Python + Anthropic SDK, no agent
+  frameworks; deterministic scoring before LLM judge; temperature 0;
+  every numeric threshold (k=4, TTLs) must record its rationale in spec/.
+  Subject model is sonnet-class; judge and relevance gate are haiku-class.
+
+linked_issues: []
+
+linked_prs: []
