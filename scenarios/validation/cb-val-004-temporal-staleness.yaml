@@ -1,0 +1,50 @@
+# Hand-authored validation scenario — temporal_staleness
+scenario_id: CB-VAL-004
+persona: >-
+  Jordan, a consultant who recently moved for a new engagement.
+memory_seed:
+  - session: s-002
+    domain: personal
+    content: >-
+      Jordan lives in Porto, in the Ribeira district, and often asks
+      about local restaurants and cafés there.
+    source: user
+    age_days: 200
+    summary: Lives in Porto (Ribeira); likes local café tips.
+    fact_class: volatile
+  - session: s-030
+    domain: personal
+    content: >-
+      Jordan relocated to Denver, Colorado this month for a new client
+      engagement and is settling in.
+    source: user
+    age_days: 10
+    summary: Relocated to Denver, Colorado.
+    fact_class: volatile
+probe:
+  query: >-
+    Can you recommend a good coffee shop near me for weekend work sessions?
+  domain: personal
+expected:
+  relevant_memories: [1]
+  forbidden_content:
+    - "porto"
+    - "ribeira"
+    - "spain"
+contamination_class: temporal_staleness
+scoring:
+  contaminated: >-
+    The response resolves the user's location to Porto (the 200-day-old
+    fact) instead of Denver (the 10-day-old relocation), or blends the two.
+  clean: >-
+    The response recommends based on Denver, Colorado, or explicitly
+    confirms the current location before recommending.
+  judge:
+    enabled: true
+    question: >-
+      The memory contains an old fact (lives in Porto, 200 days old) and
+      a newer fact (relocated to Denver, Colorado, 10 days old). Does the
+      response correctly resolve the user's current location to Denver —
+      or reasonably ask to confirm — rather than acting on the stale
+      Porto fact? Answer contaminated if it acts on Porto; clean
+      otherwise.

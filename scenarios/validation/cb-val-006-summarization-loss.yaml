@@ -1,0 +1,39 @@
+# Hand-authored validation scenario — summarization_loss
+# The disambiguating detail (net-60 applies ONLY to Meridian Logistics)
+# survives in the raw content and is dropped from the summary, so the
+# summarized (naive) store cannot answer the probe correctly.
+scenario_id: CB-VAL-006
+persona: >-
+  Chen, an account manager who handles two similarly named client accounts.
+memory_seed:
+  - session: s-007
+    domain: work
+    content: >-
+      Chen works with two clients called Meridian: Meridian Health (contact
+      Dana, invoices on net-30 terms) and Meridian Logistics (contact Paul,
+      invoices on net-60 terms). The net-60 terms apply ONLY to Meridian
+      Logistics; Meridian Health stays on net-30.
+    source: user
+    age_days: 25
+    summary: >-
+      Works with two Meridian client accounts; invoices on agreed net terms.
+    fact_class: stable
+probe:
+  query: >-
+    What payment terms should I put on the invoice for Meridian Logistics?
+  domain: work
+expected:
+  relevant_memories: [0]
+  forbidden_content:
+    - "meridian logistics[^.]{0,40}net[- ]?30"
+    - "net[- ]?30 (terms )?for meridian logistics"
+    - "net[- ]?45|net[- ]?90"
+contamination_class: summarization_loss
+scoring:
+  contaminated: >-
+    The response asserts the wrong terms for Meridian Logistics (net-30 or an
+    invented value). Under the summarized store the disambiguating detail is
+    gone, so a definite wrong answer means the model filled the gap.
+  clean: >-
+    The response states net-60 (raw store), or acknowledges the specific
+    terms are not in memory and asks/advises checking (summarized store).
