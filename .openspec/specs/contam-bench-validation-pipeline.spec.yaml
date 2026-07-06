@@ -82,6 +82,8 @@ technical_notes: |
   - phase-1: 8 scenarios committed, all schema-validated
   - phase-2: src/llm.py, src/memory_store.py, src/retrieval.py,
     src/harness.py + unit tests (store, retrieval, schema)
+  - phase-3: src/judge.py (deterministic-first, judge fallback,
+    disagreements flagged needs_human_review) + unit tests
 
 linked_issues: []
 
