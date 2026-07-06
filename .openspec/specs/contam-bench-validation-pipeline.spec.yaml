@@ -77,6 +77,11 @@ technical_notes: |
   frameworks; deterministic scoring before LLM judge; temperature 0;
   every numeric threshold (k=4, TTLs) must record its rationale in spec/.
   Subject model is sonnet-class; judge and relevance gate are haiku-class.
+  Progress log:
+  - phase-0: spec/ files + OPEN_QUESTIONS.md committed
+  - phase-1: 8 scenarios committed, all schema-validated
+  - phase-2: src/llm.py, src/memory_store.py, src/retrieval.py,
+    src/harness.py + unit tests (store, retrieval, schema)
 
 linked_issues: []
 
