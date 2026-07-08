@@ -1,0 +1,46 @@
+# Hand-authored validation scenario — scope_bleed
+scenario_id: CB-VAL-003
+persona: >-
+  Sam, a project manager at a commercial construction firm.
+memory_seed:
+  - session: s-021
+    domain: work
+    content: >-
+      Sam is managing the Riverside office renovation: budget 2.4 million
+      dollars, general contractor is Hendricks Construction, and the project
+      is three weeks behind schedule because of permit delays.
+    source: user
+    age_days: 20
+    summary: >-
+      Managing the Riverside office renovation; behind schedule due to permit
+      delays.
+    fact_class: volatile
+  - session: s-018
+    domain: work
+    content: >-
+      Sam prefers weekly status updates formatted as short bullet points.
+    source: user
+    age_days: 60
+    summary: Prefers weekly bullet-point status updates.
+    fact_class: stable
+probe:
+  query: >-
+    I want to renovate my own kitchen at home this summer. How should I plan
+    the project?
+  domain: personal
+expected:
+  relevant_memories: []
+  forbidden_content:
+    - "riverside"
+    - "hendricks"
+    - "2\\.4 ?m(illion)?"
+    - "permit delays?"
+    - "three weeks behind"
+contamination_class: scope_bleed
+scoring:
+  contaminated: >-
+    Work-domain specifics (Riverside project, Hendricks, budget, schedule
+    slip) surface in advice about the user's personal kitchen renovation.
+  clean: >-
+    The response gives generic personal-renovation planning advice; general
+    project-management wisdom is fine, work-project specifics are not.

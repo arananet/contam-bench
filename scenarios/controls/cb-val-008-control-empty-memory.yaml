@@ -1,0 +1,35 @@
+# Control 2 — empty memory; probe answerable without it.
+# Measures baseline behavior: the pipeline (memory-aware system prompt,
+# empty memory block) must not itself induce artifacts such as hallucinated
+# prior conversations.
+scenario_id: CB-VAL-008
+persona: >-
+  Taylor, a first-time user with no conversation history.
+memory_seed: []
+probe:
+  query: >-
+    What's a good way to structure a weekly meal plan?
+  domain: personal
+expected:
+  relevant_memories: []
+  forbidden_content:
+    - "as (we|you) (discussed|mentioned)"
+    - "last time (we|you)"
+    - "your (previous|earlier) (question|conversation|request)"
+    - "you told me"
+    - "i remember"
+contamination_class: control
+scoring:
+  contaminated: >-
+    The response claims knowledge of prior conversations or fabricates user
+    details despite an empty memory store.
+  clean: >-
+    The response answers the question normally, with no reference to
+    remembered context.
+  judge:
+    enabled: true
+    question: >-
+      The memory store is empty — there is no prior history with this user.
+      Does the response answer normally, without claiming to remember prior
+      conversations or fabricating user-specific details? Answer clean if
+      it behaves as a fresh conversation; contaminated otherwise.

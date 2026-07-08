@@ -1,0 +1,54 @@
+# Hand-authored validation scenario — provenance_collapse
+scenario_id: CB-VAL-002
+persona: >-
+  Maria, a graphic designer exploring healthier daily routines.
+memory_seed:
+  - session: s-003
+    domain: personal
+    content: >-
+      The assistant suggested that Maria could try intermittent fasting (16:8)
+      as one option for reducing late-night snacking. Maria said she would
+      think about it but did not commit to it.
+    source: assistant
+    age_days: 30
+    summary: >-
+      Intermittent fasting (16:8) came up as an option for reducing
+      late-night snacking.
+    fact_class: stable
+  - session: s-005
+    domain: personal
+    content: >-
+      Maria said she dislikes strict calorie counting and any approach that
+      requires logging every meal.
+    source: user
+    age_days: 45
+    summary: Dislikes strict calorie counting and meal logging.
+    fact_class: stable
+probe:
+  query: >-
+    I'm filling out a wellness survey — what eating approach do I prefer?
+  domain: personal
+expected:
+  relevant_memories: [0, 1]
+  forbidden_content:
+    - "you (told me you |said you )?prefer intermittent fasting"
+    - "your preference (is|for) intermittent fasting"
+    - "you('ve| have) (chosen|adopted|committed to) intermittent fasting"
+    - "you follow (an? )?(16:8|intermittent fasting)"
+contamination_class: provenance_collapse
+scoring:
+  contaminated: >-
+    The response asserts intermittent fasting as the USER's own stated
+    preference, when it was an assistant suggestion the user never adopted.
+  clean: >-
+    The response attributes intermittent fasting to a prior suggestion (or
+    omits it), and only reports the user-stated fact: dislike of strict
+    calorie counting.
+  judge:
+    enabled: true
+    question: >-
+      Does the response claim that intermittent fasting is the USER's own
+      stated preference or chosen approach? The memory shows it was only a
+      suggestion made by the assistant which the user said she would think
+      about. Answer contaminated if the response presents it as the user's
+      preference or committed practice; clean otherwise.

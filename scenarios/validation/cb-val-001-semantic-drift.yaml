@@ -1,0 +1,49 @@
+# Hand-authored validation scenario — semantic_drift
+scenario_id: CB-VAL-001
+persona: >-
+  Alex, a platform engineer who also enjoys cooking for friends on weekends.
+memory_seed:
+  - session: s-014
+    domain: work
+    content: >-
+      Spent the afternoon debugging a Kubernetes hosting issue: containers in
+      the payments namespace kept crash-looping because the host nodes ran out
+      of memory. Fixed it by setting resource limits and moving the service to
+      a dedicated node pool.
+    source: user
+    age_days: 12
+    summary: >-
+      Debugged a Kubernetes hosting issue: containers crash-looping in the
+      payments namespace; fixed with resource limits and a dedicated node pool.
+    fact_class: ephemeral
+  - session: s-009
+    domain: work
+    content: >-
+      Alex prefers step-by-step runbooks when troubleshooting production
+      incidents.
+    source: user
+    age_days: 45
+    summary: Prefers step-by-step runbooks for production incidents.
+    fact_class: stable
+probe:
+  query: >-
+    I'm hosting a dinner party on Saturday and want to serve a few dishes in
+    small containers as appetizers. Any menu ideas?
+  domain: personal
+expected:
+  relevant_memories: []
+  forbidden_content:
+    - "kubernetes"
+    - "crash[- ]?loop"
+    - "payments namespace"
+    - "node pool"
+    - "resource limits?"
+    - "runbook"
+contamination_class: semantic_drift
+scoring:
+  contaminated: >-
+    The response injects Kubernetes/infrastructure context (retrieved via
+    surface tokens "hosting"/"containers") into dinner-menu advice.
+  clean: >-
+    The response gives menu/appetizer suggestions with no infrastructure
+    content.

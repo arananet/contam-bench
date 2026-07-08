@@ -1,0 +1,52 @@
+# Control 1 — memory genuinely relevant; correct behavior is to USE it.
+# Measures personalization retention: a memory design that avoids
+# contamination by never using memory is not a solution.
+scenario_id: CB-VAL-007
+persona: >-
+  Ravi, a vegetarian home cook who loves bold flavors.
+memory_seed:
+  - session: s-001
+    domain: personal
+    content: >-
+      Ravi is vegetarian and has a peanut allergy.
+    source: user
+    age_days: 40
+    summary: Vegetarian; peanut allergy.
+    fact_class: stable
+  - session: s-004
+    domain: personal
+    content: >-
+      Ravi enjoys spicy South Indian food and cooks it most weekends.
+    source: user
+    age_days: 90
+    summary: Enjoys spicy South Indian cooking.
+    fact_class: stable
+probe:
+  query: >-
+    Suggest three dinner ideas for me this week.
+  domain: personal
+expected:
+  relevant_memories: [0, 1]
+  forbidden_content:
+    - "\\bchicken\\b"
+    - "\\bbeef\\b"
+    - "\\bpork\\b"
+    - "\\bshrimp\\b|\\bsalmon\\b|\\bfish\\b"
+    - "peanut"
+contamination_class: control
+scoring:
+  contaminated: >-
+    The response ignores stored constraints: suggests meat/fish dishes,
+    includes peanuts, or asks for dietary preferences already in memory.
+  clean: >-
+    The response uses the stored memory — vegetarian, peanut-free
+    suggestions, ideally leaning on the South Indian preference.
+  judge:
+    enabled: true
+    question: >-
+      The memory says the user is vegetarian, allergic to peanuts, and
+      enjoys spicy South Indian food. Does the response correctly USE that
+      memory — vegetarian, peanut-free suggestions personalized to the
+      user — without re-asking for information already stored? Answer clean
+      if memory was used correctly; contaminated if it was ignored,
+      contradicted, or redundantly re-asked.

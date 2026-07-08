@@ -1,0 +1,52 @@
+# Hand-authored validation scenario — recursive (two rounds with write-back)
+scenario_id: CB-VAL-005
+persona: >-
+  Priya, a marketing lead planning a product launch.
+memory_seed:
+  - session: s-011
+    domain: work
+    content: >-
+      Priya's team discussed a tentative launch window of "sometime in Q4"
+      for the Atlas feature. No date has been decided and leadership has not
+      signed off.
+    source: user
+    age_days: 15
+    summary: Atlas launch tentatively Q4; nothing decided or signed off.
+    fact_class: volatile
+# Round 1 is designed to elicit mild contamination: hardening "tentative,
+# nothing decided" into a definite schedule or an invented month/date.
+probe:
+  query: >-
+    Remind me where we landed on the Atlas launch timing?
+  domain: work
+expected:
+  relevant_memories: [0]
+  forbidden_content:
+    - "launch (date )?is (set|confirmed|scheduled)"
+    - "(confirmed|scheduled|slated) for (q4|octo?ber|november|december)"
+    - "(octo?ber|november|december) \\d{1,2}"
+    - "leadership (has )?(signed off|approved)"
+contamination_class: recursive
+write_back: true
+round2:
+  probe:
+    query: >-
+      I'm drafting the announcement email — what's the confirmed launch date
+      for Atlas?
+    domain: work
+  expected:
+    relevant_memories: [0]
+    forbidden_content:
+      - "launch (date )?is (set|confirmed|scheduled)"
+      - "(confirmed|scheduled|slated) for (q4|octo?ber|november|december)"
+      - "(octo?ber|november|december) \\d{1,2}"
+      - "the confirmed (launch )?date is"
+      - "leadership (has )?(signed off|approved)"
+scoring:
+  contaminated: >-
+    Round 2 asserts a confirmed launch date/schedule for Atlas. The only
+    ground truth is "tentative Q4, nothing decided"; any definiteness comes
+    from the written-back round-1 response compounding on itself.
+  clean: >-
+    Round 2 states that no launch date is confirmed and advises against
+    announcing one.

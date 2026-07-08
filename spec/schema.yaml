@@ -1,0 +1,154 @@
+# CONTAM-Bench scenario schema (JSON Schema draft-07, expressed in YAML)
+#
+# All scenario manifests under scenarios/ MUST validate against this schema.
+# The harness reads scenarios; it never hardcodes scenario logic.
+#
+# Design notes (rationale recorded per working-style rule):
+# - `contamination_class` includes `control` so the two control scenarios
+#   share the same manifest format and validator as the six probes.
+# - Each memory_seed item carries an optional hand-authored `summary`.
+#   The `summarized` fidelity uses it instead of calling an LLM summarizer,
+#   keeping the pipeline deterministic and reproducible for the validation
+#   test (see OPEN_QUESTIONS.md Q1).
+# - Each memory_seed item carries an optional `fact_class` used by the
+#   governed config's TTL decay (TTLs defined in spec/configs.yaml).
+# - The recursive scenario is expressed as an optional `round2` block plus
+#   `write_back: true`; the harness appends the round-1 response to the
+#   store before running the round-2 probe (see OPEN_QUESTIONS.md Q2).
+
+"$schema": "http://json-schema.org/draft-07/schema#"
+title: CONTAM-Bench scenario
+type: object
+additionalProperties: false
+required:
+  - scenario_id
+  - persona
+  - memory_seed
+  - probe
+  - expected
+  - contamination_class
+  - scoring
+
+properties:
+  scenario_id:
+    type: string
+    pattern: "^CB-VAL-[0-9]{3}$"
+
+  persona:
+    type: string
+    minLength: 1
+
+  memory_seed:
+    type: array
+    # may be empty (control-2: empty-memory baseline)
+    items:
+      type: object
+      additionalProperties: false
+      required: [session, domain, content, source, age_days]
+      properties:
+        session:
+          type: string
+        domain:
+          type: string        # e.g. work | personal
+        content:
+          type: string
+          minLength: 1
+        source:
+          type: string
+          enum: [user, assistant, tool]
+        age_days:
+          type: integer
+          minimum: 0
+        summary:
+          # Hand-authored summarized form, used when the active config's
+          # fidelity is `summarized`. Optional; falls back to a mechanical
+          # first-sentence truncation if absent (documented in configs.yaml).
+          type: string
+        fact_class:
+          # Drives TTL decay in the governed config (spec/configs.yaml).
+          type: string
+          enum: [stable, volatile, ephemeral]
+
+  probe:
+    "$ref": "#/definitions/probe"
+
+  expected:
+    "$ref": "#/definitions/expected"
+
+  contamination_class:
+    type: string
+    enum:
+      - semantic_drift
+      - provenance_collapse
+      - scope_bleed
+      - temporal_staleness
+      - recursive
+      - summarization_loss
+      - control          # control scenarios only; excluded from contamination_rate
+
+  scoring:
+    type: object
+    additionalProperties: false
+    required: [contaminated, clean]
+    properties:
+      contaminated:
+        type: string     # human-readable rule: what counts as contaminated
+      clean:
+        type: string     # human-readable rule: what counts as clean
+      judge:
+        # LLM-judge escalation. Only set for cases deterministic checks
+        # cannot resolve (provenance assertions, staleness resolution,
+        # control correctness) — CLAUDE.md Phase 3.
+        type: object
+        additionalProperties: false
+        required: [enabled, question]
+        properties:
+          enabled:
+            type: boolean
+          question:
+            type: string
+
+  write_back:
+    # recursive scenarios only: persist the round-1 response into the
+    # store (source: assistant, age_days: 0) before the round-2 probe.
+    type: boolean
+
+  round2:
+    # recursive scenarios only
+    type: object
+    additionalProperties: false
+    required: [probe, expected]
+    properties:
+      probe:
+        "$ref": "#/definitions/probe"
+      expected:
+        "$ref": "#/definitions/expected"
+
+definitions:
+  probe:
+    type: object
+    additionalProperties: false
+    required: [query, domain]
+    properties:
+      query:
+        type: string
+        minLength: 1
+      domain:
+        type: string
+
+  expected:
+    type: object
+    additionalProperties: false
+    required: [relevant_memories, forbidden_content]
+    properties:
+      relevant_memories:
+        # 0-based indices into memory_seed; may be empty
+        type: array
+        items:
+          type: integer
+          minimum: 0
+      forbidden_content:
+        # case-insensitive regexes matched against the subject response
+        type: array
+        items:
+          type: string

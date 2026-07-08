@@ -1,0 +1,79 @@
+# CONTAM-Bench memory design configurations — validation test
+#
+# Exactly 2 configurations (CLAUDE.md Phase 0). The full benchmark adds 4 more.
+#
+# Rationale for numeric thresholds (IPC-style discipline — no numbers without
+# recorded rationale):
+# - retrieval.k = 4: small enough that a relevance gate has signal to add on
+#   an 8-scenario corpus whose stores hold 2-5 memories; large enough that
+#   distractor memories can surface in the naive config. With stores this
+#   small, k=4 makes naive retrieval effectively "return everything ranked",
+#   which is the worst-case design we want naive to represent.
+# - ttl_days by fact class (governed only):
+#     stable: 365    — identity-level facts (preferences, skills) change on
+#                      a yearly-ish cadence; the validation corpus max age
+#                      is 200 days, so stable facts never expire here.
+#     volatile: 90   — life-context facts (location, job, project) go stale
+#                      in months; chosen so the 200-day-old "lives in
+#                      Porto" seed in CB-VAL-004 expires while the
+#                      10-day-old "relocated to Denver" seed survives.
+#     ephemeral: 14  — session-level facts (current task, one-off requests)
+#                      are meaningless after two weeks.
+#   These are design choices under test, not empirical constants.
+# - temperature = 0 on the subject: determinism first — artifacts must be
+#   reproducible from spec + config hash. This forces the subject model
+#   choice below (Sonnet 5 rejects non-default sampling parameters).
+
+models:
+  # Subject: model under test. Sonnet-class per CLAUDE.md Phase 2.
+  # claude-sonnet-4-6 (not claude-sonnet-5) because the harness requires
+  # temperature=0 and Sonnet 5 returns 400 on non-default sampling params.
+  # Verified against Anthropic docs, 2026-07-06.
+  subject: claude-sonnet-4-6
+  subject_temperature: 0
+  subject_max_tokens: 1024      # probes are short conversational queries
+
+  # Judge: scores subject output. Haiku-class per CLAUDE.md Phase 3.
+  # MUST differ from subject (never let a model judge its own output).
+  judge: claude-haiku-4-5
+  judge_temperature: 0
+  judge_max_tokens: 512
+
+  # Relevance gate = judge-class model, never the subject (CLAUDE.md Phase 0).
+  gate: claude-haiku-4-5
+  gate_temperature: 0
+  gate_max_tokens: 128
+
+  # Embeddings substitution (CLAUDE.md constraint 6): the Anthropic API
+  # exposes no embeddings endpoint, so retrieval similarity uses TF-IDF
+  # cosine similarity via scikit-learn. Documented substitution.
+  similarity: tfidf-cosine (scikit-learn TfidfVectorizer)
+
+configs:
+  naive:
+    scope: global               # one undifferentiated store; no domain filter
+    fidelity: summarized        # store the hand-authored summary of each memory
+    retrieval:
+      method: similarity_top_k
+      k: 4
+      relevance_gate: false
+    provenance: untagged        # memory block omits source (user/assistant/tool)
+    decay: none                 # nothing ever expires
+
+  governed:
+    scope: namespaced           # retrieval filtered to the probe's domain
+    fidelity: raw               # store memory content verbatim
+    retrieval:
+      method: similarity_top_k
+      k: 4
+      relevance_gate: true      # gate model classifies RELEVANT | IRRELEVANT
+    provenance: tagged          # memory block carries [source: ...] tags
+    decay:
+      method: ttl_by_fact_class
+      ttl_days:
+        stable: 365
+        volatile: 90
+        ephemeral: 14
+      # memories with no fact_class are treated as `stable` (most
+      # conservative: never silently drop an unclassified memory)
+      default_fact_class: stable
