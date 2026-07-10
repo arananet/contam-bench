@@ -1,0 +1,58 @@
+{
+  "scenario_id": "CB-VAL-006",
+  "scenario_path": "scenarios/validation/cb-val-006-summarization-loss.yaml",
+  "contamination_class": "summarization_loss",
+  "config_name": "governed",
+  "config_hash": "1b1a45e22eee370d",
+  "scenario_hash": "5997bff11c127b59",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-10T14:38:09.337976+00:00",
+  "scoring": {
+    "contaminated": "The response asserts the wrong terms for Meridian Logistics (net-30 or an invented value). Under the summarized store the disambiguating detail is gone, so a definite wrong answer means the model filled the gap.",
+    "clean": "The response states net-60 (raw store), or acknowledges the specific terms are not in memory and asks/advises checking (summarized store)."
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "What payment terms should I put on the invoice for Meridian Logistics?",
+        "domain": "work"
+      },
+      "candidates": [
+        "Chen works with two clients called Meridian: Meridian Health (contact Dana, invoices on net-30 terms) and Meridian Logistics (contact Paul, invoices on net-60 terms). The net-60 terms apply ONLY to Meridian Logistics; Meridian Health stays on net-30."
+      ],
+      "retrieved": [
+        {
+          "content": "Chen works with two clients called Meridian: Meridian Health (contact Dana, invoices on net-30 terms) and Meridian Logistics (contact Paul, invoices on net-60 terms). The net-60 terms apply ONLY to Meridian Logistics; Meridian Health stays on net-30.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 25,
+          "seed_index": 0
+        }
+      ],
+      "gate_decisions": [
+        {
+          "memory": "Chen works with two clients called Meridian: Meridian Health (contact Dana, invoices on net-30 terms) and Meridian Logistics (contact Paul, invoices on net-60 terms). The net-60 terms apply ONLY to Meridian Logistics; Meridian Health stays on net-30.",
+          "reply": "RELEVANT - The memory directly specifies that Meridian Logistics invoices should be on net-60 terms, which directly answers the query about payment terms for this client.",
+          "kept": true
+        }
+      ],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- [source: user | age: 25d | domain: work] Chen works with two clients called Meridian: Meridian Health (contact Dana, invoices on net-30 terms) and Meridian Logistics (contact Paul, invoices on net-60 terms). The net-60 terms apply ONLY to Meridian Logistics; Meridian Health stays on net-30.\n</memories>",
+        "user": "What payment terms should I put on the invoice for Meridian Logistics?"
+      },
+      "response": "Based on your client records, **Meridian Logistics** (contact: Paul) is on **net-60** payment terms. Make sure to put **Net-60** on that invoice.",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          0
+        ],
+        "forbidden_content": [
+          "meridian logistics[^.]{0,40}net[- ]?30",
+          "net[- ]?30 (terms )?for meridian logistics",
+          "net[- ]?45|net[- ]?90"
+        ]
+      }
+    }
+  ]
+}

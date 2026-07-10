@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import truststore
+truststore.inject_into_ssl()
 
 @dataclass
 class CountingClient:

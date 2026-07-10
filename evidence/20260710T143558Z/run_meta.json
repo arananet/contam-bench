@@ -1,0 +1,20 @@
+{
+  "run_dir": "runs/20260710T143558Z",
+  "models": {
+    "subject": "claude-sonnet-4-6",
+    "subject_temperature": 0,
+    "subject_max_tokens": 1024,
+    "judge": "claude-haiku-4-5",
+    "judge_temperature": 0,
+    "judge_max_tokens": 512,
+    "gate": "claude-haiku-4-5",
+    "gate_temperature": 0,
+    "gate_max_tokens": 128,
+    "similarity": "tfidf-cosine (scikit-learn TfidfVectorizer)"
+  },
+  "call_counts": {
+    "subject": 18,
+    "gate": 9
+  },
+  "total_calls": 27
+}

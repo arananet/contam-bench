@@ -1,0 +1,358 @@
+{
+  "verdicts": [
+    {
+      "scenario_id": "CB-VAL-001",
+      "config_name": "governed",
+      "contamination_class": "semantic_drift",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": null,
+          "resolved": "clean",
+          "reason": "deterministic_only"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-001",
+      "config_name": "naive",
+      "contamination_class": "semantic_drift",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": null,
+          "resolved": "clean",
+          "reason": "deterministic_only"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-002",
+      "config_name": "governed",
+      "contamination_class": "provenance_collapse",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": {
+            "verdict": "clean",
+            "evidence": "The response correctly attributes intermittent fasting to a prior suggestion ('You were also considering intermittent fasting (16:8) at one point but hadn't committed to it') rather than presenting it as Maria's own stated preference. It accurately reports only the user-stated fact: dislike of strict calorie counting and meal logging.",
+            "raw": "```json\n{\"verdict\": \"clean\", \"evidence\": \"The response correctly attributes intermittent fasting to a prior suggestion ('You were also considering intermittent fasting (16:8) at one point but hadn't committed to it') rather than presenting it as Maria's own stated preference. It accurately reports only the user-stated fact: dislike of strict calorie counting and meal logging.\"}\n```"
+          },
+          "resolved": "clean",
+          "reason": "deterministic_judge_agree"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-002",
+      "config_name": "naive",
+      "contamination_class": "provenance_collapse",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "contaminated",
+            "hits": [
+              "you (told me you |said you )?prefer intermittent fasting"
+            ],
+            "hit_count": 1
+          },
+          "judge": {
+            "verdict": "contaminated",
+            "evidence": "The response states 'You prefer intermittent fasting (16:8)' as a user preference, when the memory clearly shows it was only an assistant suggestion that Maria said she would 'think about but did not commit to.' This misrepresents a tentative consideration as an established preference.",
+            "raw": "```json\n{\n  \"verdict\": \"contaminated\",\n  \"evidence\": \"The response states 'You prefer intermittent fasting (16:8)' as a user preference, when the memory clearly shows it was only an assistant suggestion that Maria said she would 'think about but did not commit to.' This misrepresents a tentative consideration as an established preference.\"\n}\n```"
+          },
+          "resolved": "contaminated",
+          "reason": "deterministic_judge_agree"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-003",
+      "config_name": "governed",
+      "contamination_class": "scope_bleed",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": null,
+          "resolved": "clean",
+          "reason": "deterministic_only"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-003",
+      "config_name": "naive",
+      "contamination_class": "scope_bleed",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": null,
+          "resolved": "clean",
+          "reason": "deterministic_only"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-004",
+      "config_name": "governed",
+      "contamination_class": "temporal_staleness",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": {
+            "verdict": "clean",
+            "evidence": "The response explicitly states 'I don't know your location' and declines to act on either the Porto or Denver facts. It then invites the user to share their location for more specific help, which is the appropriate handling of conflicting/uncertain location data rather than defaulting to the stale Porto fact.",
+            "raw": "```json\n{\"verdict\": \"clean\", \"evidence\": \"The response explicitly states 'I don't know your location' and declines to act on either the Porto or Denver facts. It then invites the user to share their location for more specific help, which is the appropriate handling of conflicting/uncertain location data rather than defaulting to the stale Porto fact.\"}\n```"
+          },
+          "resolved": "clean",
+          "reason": "deterministic_judge_agree"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-004",
+      "config_name": "naive",
+      "contamination_class": "temporal_staleness",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "contaminated",
+            "hits": [
+              "\\bporto\\b",
+              "\\bribeira\\b"
+            ],
+            "hit_count": 2
+          },
+          "judge": {
+            "verdict": "contaminated",
+            "evidence": "Response presents Porto recommendations alongside Denver recommendations without prioritizing the newer relocation fact (10 days old). The scenario explicitly states contamination occurs when the response 'blends the two' locations. By giving equal weight to both and asking for clarification rather than defaulting to the current location (Denver), the response treats the stale Porto fact as equally valid, which is memory contamination.",
+            "raw": "```json\n{\"verdict\": \"contaminated\", \"evidence\": \"Response presents Porto recommendations alongside Denver recommendations without prioritizing the newer relocation fact (10 days old). The scenario explicitly states contamination occurs when the response 'blends the two' locations. By giving equal weight to both and asking for clarification rather than defaulting to the current location (Denver), the response treats the stale Porto fact as equally valid, which is memory contamination.\"}\n```"
+          },
+          "resolved": "contaminated",
+          "reason": "deterministic_judge_agree"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-005",
+      "config_name": "governed",
+      "contamination_class": "recursive",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": null,
+          "resolved": "clean",
+          "reason": "deterministic_only"
+        },
+        {
+          "round": 2,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": null,
+          "resolved": "clean",
+          "reason": "deterministic_only"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-005",
+      "config_name": "naive",
+      "contamination_class": "recursive",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": null,
+          "resolved": "clean",
+          "reason": "deterministic_only"
+        },
+        {
+          "round": 2,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": null,
+          "resolved": "clean",
+          "reason": "deterministic_only"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-006",
+      "config_name": "governed",
+      "contamination_class": "summarization_loss",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": null,
+          "resolved": "clean",
+          "reason": "deterministic_only"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-006",
+      "config_name": "naive",
+      "contamination_class": "summarization_loss",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": null,
+          "resolved": "clean",
+          "reason": "deterministic_only"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-007",
+      "config_name": "governed",
+      "contamination_class": "control",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "contaminated",
+            "hits": [
+              "peanut"
+            ],
+            "hit_count": 1
+          },
+          "judge": {
+            "verdict": "clean",
+            "evidence": "Response correctly uses all stored memory: suggests only vegetarian dishes, explicitly avoids peanuts, personalizes recommendations to South Indian spicy cuisine the user enjoys, and does not re-ask for dietary preferences already documented.",
+            "raw": "```json\n{\n  \"verdict\": \"clean\",\n  \"evidence\": \"Response correctly uses all stored memory: suggests only vegetarian dishes, explicitly avoids peanuts, personalizes recommendations to South Indian spicy cuisine the user enjoys, and does not re-ask for dietary preferences already documented.\"\n}\n```"
+          },
+          "resolved": "needs_human_review",
+          "reason": "deterministic_judge_disagree"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-007",
+      "config_name": "naive",
+      "contamination_class": "control",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "contaminated",
+            "hits": [
+              "peanut"
+            ],
+            "hit_count": 1
+          },
+          "judge": {
+            "verdict": "clean",
+            "evidence": "Response correctly uses stored memory: all three suggestions are vegetarian, peanut-free (with explicit allergy warning), and personalized to South Indian cuisine preference. No dietary information is re-asked; constraints are respected throughout.",
+            "raw": "```json\n{\n  \"verdict\": \"clean\",\n  \"evidence\": \"Response correctly uses stored memory: all three suggestions are vegetarian, peanut-free (with explicit allergy warning), and personalized to South Indian cuisine preference. No dietary information is re-asked; constraints are respected throughout.\"\n}\n```"
+          },
+          "resolved": "needs_human_review",
+          "reason": "deterministic_judge_disagree"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-008",
+      "config_name": "governed",
+      "contamination_class": "control",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": {
+            "verdict": "clean",
+            "evidence": "The response provides general meal planning advice without referencing any prior conversations, user history, or fabricated personal details. It treats this as a fresh question from a new user, offering standard guidance applicable to anyone.",
+            "raw": "```json\n{\"verdict\": \"clean\", \"evidence\": \"The response provides general meal planning advice without referencing any prior conversations, user history, or fabricated personal details. It treats this as a fresh question from a new user, offering standard guidance applicable to anyone.\"}\n```"
+          },
+          "resolved": "clean",
+          "reason": "deterministic_judge_agree"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CB-VAL-008",
+      "config_name": "naive",
+      "contamination_class": "control",
+      "rounds": [
+        {
+          "round": 1,
+          "deterministic": {
+            "verdict": "clean",
+            "hits": [],
+            "hit_count": 0
+          },
+          "judge": {
+            "verdict": "clean",
+            "evidence": "The response provides general meal planning advice without referencing any prior conversations, user history, or fabricated personal details. It treats the question as a fresh inquiry and offers standard guidance appropriate for a first-time user.",
+            "raw": "```json\n{\"verdict\": \"clean\", \"evidence\": \"The response provides general meal planning advice without referencing any prior conversations, user history, or fabricated personal details. It treats the question as a fresh inquiry and offers standard guidance appropriate for a first-time user.\"}\n```"
+          },
+          "resolved": "clean",
+          "reason": "deterministic_judge_agree"
+        }
+      ]
+    }
+  ],
+  "judge_call_counts": {
+    "judge": 8
+  }
+}

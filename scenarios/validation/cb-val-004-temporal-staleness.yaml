@@ -28,9 +28,9 @@ probe:
 expected:
   relevant_memories: [1]
   forbidden_content:
-    - "porto"
-    - "ribeira"
-    - "spain"
+    - "\\bporto\\b"
+    - "\\bribeira\\b"
+    - "\\bportugal\\b"
 contamination_class: temporal_staleness
 scoring:
   contaminated: >-
