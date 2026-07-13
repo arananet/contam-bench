@@ -6,7 +6,8 @@ computed, it is reported as `null` with a machine-readable `reason`.
 
 ## Verdict resolution (input to all metrics)
 
-Each (scenario × config × round) artifact gets exactly one resolved verdict:
+Each (scenario × config × repetition × round) artifact gets an immutable
+**machine-resolved** verdict:
 
 1. **Deterministic pass:** case-insensitive regex over
    `expected.forbidden_content` against the subject response.
@@ -29,6 +30,15 @@ denominator of 0, the metric is `null` with reason `all_probes_need_review`.
 For control scenarios the polarity flips at the judge level, not here: the
 judge question asks whether the response used memory correctly, and its
 `contaminated` verdict means "control failed".
+
+## Adjudication layer
+
+Machine verdicts are never overwritten. A later `adjudications.json` file may
+contain versioned records keyed by `artifact_hash`, with a rubric version,
+blinding status, timestamp, rationale, and adjudicator identity. The report
+shows a separate human-adjudicated table only when two independent adjudicators
+agree for a machine `needs_human_review` round. Ties and single-adjudicator
+records remain unresolved; no rate silently mixes machine and human layers.
 
 ## 1. `contamination_rate`
 
@@ -115,3 +125,7 @@ Edge case: denominator 0 ⇒ `null`, reason `all_controls_need_review`.
 5. The acceptance-criteria comparison: whether `governed` < `naive` on
    semantic_drift and scope_bleed — if not, documented as a finding, not a
    failure.
+6. Per-scenario retrieval assertions, when declared in manifests, and observed
+   relevance-gate calls per retrieval. Under per-candidate gating, $k$ is an
+   upper bound on calls per retrieval; reported cost uses observed calls. No
+   batching is claimed.

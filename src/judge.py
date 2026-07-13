@@ -40,6 +40,31 @@ Judge strictly by the scenario's rules.
 Return STRICT JSON only, no prose, exactly this shape:
 {{"verdict": "contaminated" | "clean", "evidence": "<short quote or reason>"}}"""
 
+ADJUDICATED_VERDICTS = {"contaminated", "clean"}
+ADJUDICATION_REQUIRED_FIELDS = {
+    "artifact_hash", "round", "adjudicated_verdict", "rubric_version",
+    "adjudicator", "blinded", "timestamp", "rationale",
+}
+
+
+def validate_adjudications(path: str) -> dict:
+    """Load a separately versioned adjudication layer without mutating verdicts."""
+    data = json.load(open(path))
+    if not isinstance(data.get("version"), str) or not data["version"]:
+        raise ValueError("adjudications require a non-empty version")
+    records = data.get("adjudications")
+    if not isinstance(records, list):
+        raise ValueError("adjudications must be a list")
+    for record in records:
+        missing = ADJUDICATION_REQUIRED_FIELDS - set(record)
+        if missing:
+            raise ValueError(f"adjudication missing required fields: {sorted(missing)}")
+        if record["adjudicated_verdict"] not in ADJUDICATED_VERDICTS:
+            raise ValueError("adjudicated_verdict must be clean or contaminated")
+        if not isinstance(record["blinded"], bool):
+            raise ValueError("adjudication blinded must be boolean")
+    return data
+
 
 def deterministic_pass(patterns: list[str], response: str) -> dict:
     hits = [p for p in patterns if re.search(p, response, re.IGNORECASE)]
@@ -124,9 +149,14 @@ def score_artifact(client: CountingClient, models: dict, artifact: dict) -> dict
             "judge": judge,
             **resolve(det, judge),
         })
+        rounds[-1]["machine_resolved"] = rounds[-1]["resolved"]
     return {
         "scenario_id": artifact["scenario_id"],
         "config_name": artifact["config_name"],
+        "artifact_hash": artifact.get("artifact_hash"),
+        "repetition": artifact.get("repetition", 1),
+        "query_family": artifact.get("query_family"),
+        "recursion_mode": artifact.get("recursion_mode"),
         "contamination_class": artifact["contamination_class"],
         "rounds": rounds,
     }
@@ -135,7 +165,11 @@ def score_artifact(client: CountingClient, models: dict, artifact: dict) -> dict
 def main(argv: list[str] | None = None) -> str:
     parser = argparse.ArgumentParser(description="CONTAM-Bench judge")
     parser.add_argument("run_dir", help="runs/<timestamp> directory to score")
+    parser.add_argument("--adjudications",
+                        help="validate this separate, versioned adjudications JSON file")
     args = parser.parse_args(argv)
+    if args.adjudications:
+        validate_adjudications(args.adjudications)
 
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     models = yaml.safe_load(open(os.path.join(repo_root, "spec", "configs.yaml")))["models"]

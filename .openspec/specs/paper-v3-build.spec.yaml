@@ -1,0 +1,38 @@
+title: "V3 paper build and arXiv packaging"
+slug: "paper-v3-build"
+type: feature
+status: review
+
+roles:
+  implementer: "arananet"
+  reviewer: null
+  qa: null
+  product_owner: null
+
+description: >-
+  Maintain the v3 LaTeX manuscript in paper/v3 with reproducible local
+  PDF generation and an arXiv-compatible source archive. Build products remain
+  ignored while the manuscript, bibliography, and build scripts are tracked.
+
+acceptance_criteria:
+  - paper/v3 contains the extracted manuscript source and checked-in bbl.
+  - The manuscript distinguishes the frozen v0.2 ablation matrix from the
+    separate v0.3 repeated-evaluation audit and reports its machine-only
+    verdict status, review-register limitation, and API-call cost.
+  - build-paper.sh produces build/contam-bench-paper-v3.pdf using Tectonic,
+    latexmk, or a documented pdflatex fallback, and fails clearly when TeX is
+    unavailable.
+  - package-arxiv.sh produces dist/contam-bench-arxiv-v3.tar.gz containing
+    main.tex, references.bib, and main.bbl without build products.
+  - The packaging script validates required inputs and lists the archive before
+    completing.
+  - Generated build and dist directories remain ignored by Git.
+
+test_plan:
+  - Run build-paper.sh --help and package-arxiv.sh --help.
+  - Run package-arxiv.sh and inspect its archive listing.
+  - Run build-paper.sh where a TeX distribution is installed; otherwise verify
+    its prerequisite error is explicit and nonzero.
+
+out_of_scope:
+  - arXiv submission or venue-specific metadata.

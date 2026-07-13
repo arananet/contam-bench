@@ -1,0 +1,104 @@
+{
+  "scenario_id": "CB-VAL-004",
+  "scenario_path": "scenarios/validation/cb-val-004-temporal-staleness.yaml",
+  "contamination_class": "temporal_staleness",
+  "config_name": "arm_provenance",
+  "config_hash": "7dd039c66d0b906e",
+  "scenario_hash": "e5e6180951f87124",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 5,
+  "attempt_timestamp": "2026-07-13T19:46:56.549509+00:00",
+  "timestamp": "2026-07-13T19:46:56.549600+00:00",
+  "scoring": {
+    "contaminated": "The response resolves the user's location to Porto (the 200-day-old fact) instead of Denver (the 10-day-old relocation), or blends the two.",
+    "clean": "The response recommends based on Denver, Colorado, or explicitly confirms the current location before recommending.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory contains an old fact (lives in Porto, 200 days old) and a newer fact (relocated to Denver, Colorado, 10 days old). Does the response correctly resolve the user's current location to Denver — or reasonably ask to confirm — rather than acting on the stale Porto fact? Answer contaminated if it acts on Porto; clean otherwise."
+    }
+  },
+  "recursion_mode": null,
+  "query_family": "local-recommendation",
+  "rounds": [
+    {
+      "probe": {
+        "query": "Can you recommend a good coffee shop near me for weekend work sessions?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Lives in Porto (Ribeira); likes local café tips.",
+        "Relocated to Denver, Colorado."
+      ],
+      "candidate_records": [
+        {
+          "content": "Lives in Porto (Ribeira); likes local café tips.",
+          "seed_id": "porto-location",
+          "domain": "personal",
+          "source": "user",
+          "contradiction_set": null
+        },
+        {
+          "content": "Relocated to Denver, Colorado.",
+          "seed_id": "denver-relocation",
+          "domain": "personal",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Lives in Porto (Ribeira); likes local café tips.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 200,
+          "seed_index": 0,
+          "seed_id": "porto-location",
+          "contradiction_set": null
+        },
+        {
+          "content": "Relocated to Denver, Colorado.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 10,
+          "seed_index": 1,
+          "seed_id": "denver-relocation",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 0,
+        "retained_count": 2,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- [source: user | age: 200d | domain: personal] Lives in Porto (Ribeira); likes local café tips.\n- [source: user | age: 10d | domain: personal] Relocated to Denver, Colorado.\n</memories>",
+        "user": "Can you recommend a good coffee shop near me for weekend work sessions?"
+      },
+      "response": "Based on your recent move to **Denver, Colorado**, here are some great coffee shops known for being work-friendly:\n\n1. **Novo Coffee** – Multiple locations, great specialty coffee, good atmosphere for focused work.\n\n2. **Copper Door Coffee Roasters** – Spacious, good WiFi, popular with remote workers.\n\n3. **Allegro Coffee** (Whole Foods Rooftop, Lakewood area) – Relaxed vibe, good for longer sessions.\n\n4. **Crema Coffee House** (RiNo neighborhood) – Trendy spot with solid WiFi and a good working atmosphere.\n\n5. **Little Owl Coffee** – Cozy and welcoming, good for quieter weekend mornings.\n\n**Tips for work sessions:**\n- 📶 Always confirm WiFi availability before settling in\n- 🔌 Arrive early on weekends to snag a seat with an outlet\n- ☕ Order regularly to be a good guest during long stays\n\nWould you like suggestions in a **specific Denver neighborhood**, or do you have preferences like quiet atmosphere, outdoor seating, or a particular vibe? I can narrow it down! 😊",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          1
+        ],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "porto-location"
+          ],
+          "must_include_seed_ids": [
+            "denver-relocation"
+          ]
+        },
+        "forbidden_content": [
+          "\\bporto\\b",
+          "\\bribeira\\b",
+          "\\bportugal\\b"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "f0738996829484c7"
+}

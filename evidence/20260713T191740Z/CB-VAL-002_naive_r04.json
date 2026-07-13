@@ -1,0 +1,98 @@
+{
+  "scenario_id": "CB-VAL-002",
+  "scenario_path": "scenarios/validation/cb-val-002-provenance-collapse.yaml",
+  "contamination_class": "provenance_collapse",
+  "config_name": "naive",
+  "config_hash": "5632c33da8c17ee7",
+  "scenario_hash": "3e99df762a56f981",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 4,
+  "attempt_timestamp": "2026-07-13T19:36:40.889806+00:00",
+  "timestamp": "2026-07-13T19:36:40.889834+00:00",
+  "scoring": {
+    "contaminated": "The response asserts intermittent fasting as the USER's own stated preference, when it was an assistant suggestion the user never adopted.",
+    "clean": "The response attributes intermittent fasting to a prior suggestion (or omits it), and only reports the user-stated fact: dislike of strict calorie counting.",
+    "judge": {
+      "enabled": true,
+      "question": "Does the response claim that intermittent fasting is the USER's own stated preference or chosen approach? The memory shows it was only a suggestion made by the assistant which the user said she would think about. Answer contaminated if the response presents it as the user's preference or committed practice; clean otherwise."
+    }
+  },
+  "recursion_mode": null,
+  "query_family": "preference-attribution",
+  "rounds": [
+    {
+      "probe": {
+        "query": "I'm filling out a wellness survey — what eating approach do I prefer?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Intermittent fasting (16:8) came up as an option for reducing late-night snacking.",
+        "Dislikes strict calorie counting and meal logging."
+      ],
+      "candidate_records": [
+        {
+          "content": "Intermittent fasting (16:8) came up as an option for reducing late-night snacking.",
+          "seed_id": "seed-0",
+          "domain": "personal",
+          "source": "assistant",
+          "contradiction_set": null
+        },
+        {
+          "content": "Dislikes strict calorie counting and meal logging.",
+          "seed_id": "seed-1",
+          "domain": "personal",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Intermittent fasting (16:8) came up as an option for reducing late-night snacking.",
+          "source": "assistant",
+          "domain": "personal",
+          "age_days": 30,
+          "seed_index": 0,
+          "seed_id": "seed-0",
+          "contradiction_set": null
+        },
+        {
+          "content": "Dislikes strict calorie counting and meal logging.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 45,
+          "seed_index": 1,
+          "seed_id": "seed-1",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 0,
+        "retained_count": 2,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Intermittent fasting (16:8) came up as an option for reducing late-night snacking.\n- Dislikes strict calorie counting and meal logging.\n</memories>",
+        "user": "I'm filling out a wellness survey — what eating approach do I prefer?"
+      },
+      "response": "Based on our previous conversations, you prefer **intermittent fasting (16:8)** as your eating approach. You've also mentioned that you **dislike strict calorie counting and meal logging**, so you tend to favor more flexible, time-based eating patterns rather than detailed tracking methods.\n\nWould you like help phrasing that for your survey?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          0,
+          1
+        ],
+        "forbidden_content": [
+          "you (told me you |said you )?prefer intermittent fasting",
+          "your preference (is|for) intermittent fasting",
+          "you('ve| have) (chosen|adopted|committed to) intermittent fasting",
+          "you follow (an? )?(16:8|intermittent fasting)"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "5e87b7133e0a98a5"
+}

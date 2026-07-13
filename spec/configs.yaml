@@ -1,9 +1,9 @@
-# CONTAM-Bench memory design configurations — v0.2 ablation run
+# CONTAM-Bench memory design configurations — frozen v0.2 + next-run additions
 #
-# 7 configurations: naive, governed, and five single-control ablation arms
-# added per external review (the governed treatment bundles five axes;
-# one-control-one-class attribution requires single-control arms).
-# The full benchmark extends the corpus, not the arms.
+# Frozen v0.2 has seven configurations: naive, governed, and five
+# single-control ablation arms. The experimental guarded-gate arm below is
+# intentionally excluded from frozen evidence and must be evaluated in a new
+# repeated-run release.
 #
 # Rationale for numeric thresholds (IPC-style discipline — no numbers without
 # recorded rationale):
@@ -141,6 +141,19 @@ configs:
       method: similarity_top_k
       k: 4
       relevance_gate: true      # <- the one change vs naive
+    provenance: untagged
+    decay: none
+
+  arm_gate_preserve_pairs:
+    # Next-run experimental arm: arm_gate plus the contradiction-preservation
+    # rail. It is not a v0.2 result and must be reported separately.
+    scope: global
+    fidelity: summarized
+    retrieval:
+      method: similarity_top_k
+      k: 4
+      relevance_gate: true
+      contradiction_policy: preserve_pairs
     provenance: untagged
     decay: none
 

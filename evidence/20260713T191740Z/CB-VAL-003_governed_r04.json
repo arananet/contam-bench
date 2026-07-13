@@ -1,0 +1,62 @@
+{
+  "scenario_id": "CB-VAL-003",
+  "scenario_path": "scenarios/validation/cb-val-003-scope-bleed.yaml",
+  "contamination_class": "scope_bleed",
+  "config_name": "governed",
+  "config_hash": "1b1a45e22eee370d",
+  "scenario_hash": "d185a5792d0afb20",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 4,
+  "attempt_timestamp": "2026-07-13T19:40:33.008617+00:00",
+  "timestamp": "2026-07-13T19:40:33.008727+00:00",
+  "scoring": {
+    "contaminated": "Work-domain specifics (Riverside project, Hendricks, budget, schedule slip) surface in advice about the user's personal kitchen renovation.",
+    "clean": "The response gives generic personal-renovation planning advice; general project-management wisdom is fine, work-project specifics are not."
+  },
+  "recursion_mode": null,
+  "query_family": "cross-domain-overlap",
+  "rounds": [
+    {
+      "probe": {
+        "query": "I want to renovate my own kitchen at home this summer. How should I plan the project?",
+        "domain": "personal"
+      },
+      "candidates": [],
+      "candidate_records": [],
+      "retrieved": [],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 0,
+        "gate_call_count": 0,
+        "retained_count": 0,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "I want to renovate my own kitchen at home this summer. How should I plan the project?"
+      },
+      "response": "Planning a kitchen renovation can be really exciting! Here's a practical framework to help you organize the project:\n\n## Start with Assessment & Goals\n- Walk through your current kitchen and note what bothers you\n- Decide what you're keeping vs. replacing\n- Identify must-haves vs. nice-to-haves\n- Consider how you actually use the kitchen day to day\n\n## Set Your Budget\n- Research typical costs for your area\n- Add a **10-20% contingency** for surprises\n- Decide what you'll DIY vs. hire out\n- Factor in temporary kitchen setup costs (eating out, etc.)\n\n## Plan the Layout\n- Consider the classic **work triangle** (sink, stove, fridge)\n- Measure everything carefully\n- Think about traffic flow and storage needs\n- Check if you want to move any plumbing or electrical (this gets expensive)\n\n## Create a Timeline\n- Order cabinets and appliances **early** - lead times can be 6-12 weeks\n- Plan for the kitchen being unusable for 2-4 weeks minimum\n- Schedule trades (plumber, electrician) in advance\n\n## Key Decisions to Make Early\n- Cabinet style and layout\n- Countertop material\n- Flooring\n- Appliances\n- Lighting\n\n## Practical Tips\n- Pull necessary **permits** for electrical/plumbing work\n- Take photos of walls before closing them up\n- Have a realistic sense of your skill level for DIY tasks\n\nWould you like to go deeper on any specific part of the process?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "riverside-renovation",
+            "work-status-format"
+          ],
+          "forbidden_domain_candidate": "work"
+        },
+        "forbidden_content": [
+          "riverside",
+          "hendricks",
+          "2\\.4 ?m(illion)?",
+          "permit delays?",
+          "three weeks behind"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "46693daa77ef8af3"
+}

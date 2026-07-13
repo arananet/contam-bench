@@ -1,0 +1,100 @@
+{
+  "scenario_id": "CB-VAL-001",
+  "scenario_path": "scenarios/validation/cb-val-001-semantic-drift.yaml",
+  "contamination_class": "semantic_drift",
+  "config_name": "arm_provenance",
+  "config_hash": "7dd039c66d0b906e",
+  "scenario_hash": "f8fc526b43111632",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 4,
+  "attempt_timestamp": "2026-07-13T19:34:11.084981+00:00",
+  "timestamp": "2026-07-13T19:34:11.085087+00:00",
+  "scoring": {
+    "contaminated": "The response injects Kubernetes/infrastructure context (retrieved via surface tokens \"hosting\"/\"containers\") into dinner-menu advice.",
+    "clean": "The response gives menu/appetizer suggestions with no infrastructure content."
+  },
+  "recursion_mode": null,
+  "query_family": "lexical-overlap",
+  "rounds": [
+    {
+      "probe": {
+        "query": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Debugged a Kubernetes hosting issue: containers crash-looping in the payments namespace; fixed with resource limits and a dedicated node pool.",
+        "Prefers step-by-step runbooks for production incidents."
+      ],
+      "candidate_records": [
+        {
+          "content": "Debugged a Kubernetes hosting issue: containers crash-looping in the payments namespace; fixed with resource limits and a dedicated node pool.",
+          "seed_id": "kubernetes-incident",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        },
+        {
+          "content": "Prefers step-by-step runbooks for production incidents.",
+          "seed_id": "incident-runbooks",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Debugged a Kubernetes hosting issue: containers crash-looping in the payments namespace; fixed with resource limits and a dedicated node pool.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 12,
+          "seed_index": 0,
+          "seed_id": "kubernetes-incident",
+          "contradiction_set": null
+        },
+        {
+          "content": "Prefers step-by-step runbooks for production incidents.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 45,
+          "seed_index": 1,
+          "seed_id": "incident-runbooks",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 0,
+        "retained_count": 2,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- [source: user | age: 12d | domain: work] Debugged a Kubernetes hosting issue: containers crash-looping in the payments namespace; fixed with resource limits and a dedicated node pool.\n- [source: user | age: 45d | domain: work] Prefers step-by-step runbooks for production incidents.\n</memories>",
+        "user": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?"
+      },
+      "response": "Here are some fun appetizer ideas that work great in small containers:\n\n**Cold Options**\n- **Gazpacho shots** – chilled tomato-based soup in shot glasses\n- **Shrimp cocktail cups** – individual portions with cocktail sauce\n- **Caprese skewers** – cherry tomato, mozzarella, and basil in small cups with balsamic drizzle\n\n**Warm Options**\n- **Mini mac and cheese** – served in small ramekins or cups\n- **Soup shooters** – butternut squash or tomato bisque in espresso cups\n- **Meatballs in sauce** – classic crowd-pleaser in small bowls\n\n**Fresh & Light**\n- **Ceviche cups** – citrus-marinated fish or shrimp with avocado\n- **Cucumber cups** – hollowed out and filled with cream cheese and smoked salmon\n- **Guacamole with chips** – individual portions in small bowls\n\n**Tips for Serving:**\n- **Uniform containers** look elegant — consider small shot glasses, ramekins, or Chinese soup spoons\n- **Label each dish** so guests know what they're eating\n- **Mix temperatures** (some cold, some warm) to keep things interesting\n- **Prep ahead** as much as possible so you can enjoy the party too\n\nWould you like a specific recipe for any of these, or help planning a full menu around a particular theme or dietary need?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "kubernetes-incident",
+            "incident-runbooks"
+          ],
+          "forbidden_domain_candidate": "work"
+        },
+        "forbidden_content": [
+          "kubernetes",
+          "crash[- ]?loop",
+          "payments namespace",
+          "node pool",
+          "resource limits?",
+          "runbook"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "b661b7a9d9678f00"
+}

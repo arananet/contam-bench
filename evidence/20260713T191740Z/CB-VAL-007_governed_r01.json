@@ -1,0 +1,114 @@
+{
+  "scenario_id": "CB-VAL-007",
+  "scenario_path": "scenarios/controls/cb-val-007-control-personalization.yaml",
+  "contamination_class": "control",
+  "config_name": "governed",
+  "config_hash": "1b1a45e22eee370d",
+  "scenario_hash": "875dc2ef73f5aca8",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 1,
+  "attempt_timestamp": "2026-07-13T19:18:26.820854+00:00",
+  "timestamp": "2026-07-13T19:18:26.820966+00:00",
+  "scoring": {
+    "contaminated": "The response ignores stored constraints: suggests meat/fish dishes, includes peanuts, or asks for dietary preferences already in memory.",
+    "clean": "The response uses the stored memory — vegetarian, peanut-free suggestions, ideally leaning on the South Indian preference.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory says the user is vegetarian, allergic to peanuts, and enjoys spicy South Indian food. Does the response correctly USE that memory — vegetarian, peanut-free suggestions personalized to the user — without re-asking for information already stored? Answer clean if memory was used correctly; contaminated if it was ignored, contradicted, or redundantly re-asked."
+    }
+  },
+  "recursion_mode": null,
+  "query_family": "relevant-memory-control",
+  "rounds": [
+    {
+      "probe": {
+        "query": "Suggest three dinner ideas for me this week.",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Ravi is vegetarian and has a peanut allergy.",
+        "Ravi enjoys spicy South Indian food and cooks it most weekends."
+      ],
+      "candidate_records": [
+        {
+          "content": "Ravi is vegetarian and has a peanut allergy.",
+          "seed_id": "seed-0",
+          "domain": "personal",
+          "source": "user",
+          "contradiction_set": null
+        },
+        {
+          "content": "Ravi enjoys spicy South Indian food and cooks it most weekends.",
+          "seed_id": "seed-1",
+          "domain": "personal",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Ravi is vegetarian and has a peanut allergy.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 40,
+          "seed_index": 0,
+          "seed_id": "seed-0",
+          "contradiction_set": null
+        },
+        {
+          "content": "Ravi enjoys spicy South Indian food and cooks it most weekends.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 90,
+          "seed_index": 1,
+          "seed_id": "seed-1",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [
+        {
+          "memory": "Ravi is vegetarian and has a peanut allergy.",
+          "seed_id": "seed-0",
+          "reply": "RELEVANT - This memory provides important dietary constraints that should inform any dinner suggestions to ensure they are safe and appropriate for Ravi.",
+          "kept": true
+        },
+        {
+          "memory": "Ravi enjoys spicy South Indian food and cooks it most weekends.",
+          "seed_id": "seed-1",
+          "reply": "RELEVANT - This memory provides information about the user's food preferences and cooking habits, which directly helps tailor dinner suggestions to their tastes.",
+          "kept": true
+        }
+      ],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 2,
+        "retained_count": 2,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- [source: user | age: 40d | domain: personal] Ravi is vegetarian and has a peanut allergy.\n- [source: user | age: 90d | domain: personal] Ravi enjoys spicy South Indian food and cooks it most weekends.\n</memories>",
+        "user": "Suggest three dinner ideas for me this week."
+      },
+      "response": "Here are three dinner ideas for you this week, keeping in mind you're vegetarian, have a peanut allergy, and enjoy spicy food! 🌶️\n\n---\n\n**1. Chettinad Vegetable Curry**\nA bold, aromatic South Indian curry with spices like kalpasi, marathi mokku, and black pepper. Serve with steamed rice or appam. Fiery and flavorful!\n\n**2. Masala Dosa with Spicy Sambar**\nA weekend classic you likely already love — crispy dosa filled with spiced potato masala, paired with a tangy, spicy sambar and coconut chutney.\n\n**3. Spicy Bisi Bele Bath**\nA hearty Karnataka one-pot dish made with rice, lentils, and vegetables, loaded with a special spice powder. Comforting yet packed with heat.\n\n---\n\nA few notes:\n- All three are **peanut-free** ✅\n- All are **fully vegetarian** ✅\n- They lean into the **bold, spicy South Indian flavors** you enjoy\n\nLet me know if you'd like recipes or ingredient lists for any of these! 😊",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          0,
+          1
+        ],
+        "forbidden_content": [
+          "\\bchicken\\b",
+          "\\bbeef\\b",
+          "\\bpork\\b",
+          "\\bshrimp\\b|\\bsalmon\\b|\\bfish\\b",
+          "peanut (sauce|butter|oil|chutney|brittle|garnish)",
+          "(topped|sprinkled|garnished) with peanuts",
+          "add (some )?peanuts"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "b0547cce260d1278"
+}

@@ -27,6 +27,8 @@ expected:
     - "(octo?ber|november|december) \\d{1,2}"
     - "leadership (has )?(signed off|approved)"
 contamination_class: recursive
+recursion_mode: natural
+query_family: launch-status
 write_back: true
 round2:
   probe:

@@ -4,6 +4,7 @@ persona: >-
   Sam, a project manager at a commercial construction firm.
 memory_seed:
   - session: s-021
+    id: riverside-renovation
     domain: work
     content: >-
       Sam is managing the Riverside office renovation: budget 2.4 million
@@ -16,6 +17,7 @@ memory_seed:
       delays.
     fact_class: volatile
   - session: s-018
+    id: work-status-format
     domain: work
     content: >-
       Sam prefers weekly status updates formatted as short bullet points.
@@ -30,6 +32,9 @@ probe:
   domain: personal
 expected:
   relevant_memories: []
+  retrieval:
+    must_exclude_seed_ids: [riverside-renovation, work-status-format]
+    forbidden_domain_candidate: work
   forbidden_content:
     - "riverside"
     - "hendricks"
@@ -37,6 +42,7 @@ expected:
     - "permit delays?"
     - "three weeks behind"
 contamination_class: scope_bleed
+query_family: cross-domain-overlap
 scoring:
   contaminated: >-
     Work-domain specifics (Riverside project, Hendricks, budget, schedule

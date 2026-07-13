@@ -1,0 +1,87 @@
+{
+  "scenario_id": "CB-VAL-004",
+  "scenario_path": "scenarios/validation/cb-val-004-temporal-staleness.yaml",
+  "contamination_class": "temporal_staleness",
+  "config_name": "arm_ttl",
+  "config_hash": "d8b6266b45a7dde3",
+  "scenario_hash": "e5e6180951f87124",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 4,
+  "attempt_timestamp": "2026-07-13T19:47:27.548126+00:00",
+  "timestamp": "2026-07-13T19:47:27.548228+00:00",
+  "scoring": {
+    "contaminated": "The response resolves the user's location to Porto (the 200-day-old fact) instead of Denver (the 10-day-old relocation), or blends the two.",
+    "clean": "The response recommends based on Denver, Colorado, or explicitly confirms the current location before recommending.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory contains an old fact (lives in Porto, 200 days old) and a newer fact (relocated to Denver, Colorado, 10 days old). Does the response correctly resolve the user's current location to Denver — or reasonably ask to confirm — rather than acting on the stale Porto fact? Answer contaminated if it acts on Porto; clean otherwise."
+    }
+  },
+  "recursion_mode": null,
+  "query_family": "local-recommendation",
+  "rounds": [
+    {
+      "probe": {
+        "query": "Can you recommend a good coffee shop near me for weekend work sessions?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Relocated to Denver, Colorado."
+      ],
+      "candidate_records": [
+        {
+          "content": "Relocated to Denver, Colorado.",
+          "seed_id": "denver-relocation",
+          "domain": "personal",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Relocated to Denver, Colorado.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 10,
+          "seed_index": 1,
+          "seed_id": "denver-relocation",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 1,
+        "gate_call_count": 0,
+        "retained_count": 1,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Relocated to Denver, Colorado.\n</memories>",
+        "user": "Can you recommend a good coffee shop near me for weekend work sessions?"
+      },
+      "response": "Based on my memory, you're in **Denver, Colorado**! Here are some well-regarded coffee shops that tend to be good for working:\n\n**Popular Denver Options:**\n- **Novo Coffee** - Multiple locations, known for quality coffee and a good work atmosphere\n- **Copper Door Coffee Roasters** - Cozy vibe, good for focused work\n- **Huckleberry Roasters** - Popular spot with a solid work-friendly environment\n- **Steam Espresso Bar** - Good atmosphere for settling in with a laptop\n- **Thump Coffee** - Relaxed setting, good for longer sessions\n\n**Tips for finding your best fit:**\n- Check Google Maps reviews filtering for \"good for working\" or \"Wi-Fi\"\n- Visit on a weekday first to gauge noise levels before committing on a weekend\n- Weekends can get busy, so arriving early (before 10am) helps secure a good spot\n- Some shops have time limits or ask for purchases every couple of hours\n\n**Things to consider:**\n- Proximity to your neighborhood in Denver\n- Whether you need strong Wi-Fi or just a quiet space\n- Outlet availability if you'll be there for hours\n\nDo you know which neighborhood you're in? I can try to give more **specific recommendations** for your area of Denver! 😊",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          1
+        ],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "porto-location"
+          ],
+          "must_include_seed_ids": [
+            "denver-relocation"
+          ]
+        },
+        "forbidden_content": [
+          "\\bporto\\b",
+          "\\bribeira\\b",
+          "\\bportugal\\b"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "0f33110ef88d0b63"
+}

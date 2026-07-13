@@ -186,3 +186,6 @@ terraform.rc
 
 # CONTAM-Bench run artifacts (raw prompts, responses, judge verdicts)
 runs/
+
+# Local manuscript sources and generated submission artifacts
+/paper/

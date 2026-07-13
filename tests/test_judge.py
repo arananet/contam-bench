@@ -1,6 +1,10 @@
-"""judge: deterministic regex pass, combination rule, unparseable handling."""
+"""judge: deterministic regex pass, combination rule, adjudication validation."""
 
-from src.judge import deterministic_pass, resolve
+import json
+
+import pytest
+
+from src.judge import deterministic_pass, resolve, validate_adjudications
 
 
 def test_deterministic_case_insensitive():
@@ -39,3 +43,20 @@ def test_resolve_unparseable_judge_flags():
                   {"verdict": None, "evidence": None, "error": "judge_unparseable"})
     assert out["resolved"] == "needs_human_review"
     assert out["reason"] == "judge_unparseable"
+
+
+def test_adjudications_require_a_complete_separate_record(tmp_path):
+    path = tmp_path / "adjudications.json"
+    path.write_text(json.dumps({"version": "v1", "adjudications": [{
+        "artifact_hash": "abc", "round": 1,
+        "adjudicated_verdict": "clean", "rubric_version": "rubric-v1",
+        "adjudicator": "reviewer-a", "blinded": True,
+        "timestamp": "2026-07-13T00:00:00Z", "rationale": "response hedges",
+    }]}))
+    assert validate_adjudications(str(path))["version"] == "v1"
+
+    path.write_text(json.dumps({"version": "v1", "adjudications": [{
+        "artifact_hash": "abc", "round": 1, "adjudicated_verdict": "clean",
+    }]}))
+    with pytest.raises(ValueError, match="required fields"):
+        validate_adjudications(str(path))

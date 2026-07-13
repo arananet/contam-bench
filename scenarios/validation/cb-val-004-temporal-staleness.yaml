@@ -4,6 +4,7 @@ persona: >-
   Jordan, a consultant who recently moved for a new engagement.
 memory_seed:
   - session: s-002
+    id: porto-location
     domain: personal
     content: >-
       Jordan lives in Porto, in the Ribeira district, and often asks
@@ -13,6 +14,7 @@ memory_seed:
     summary: Lives in Porto (Ribeira); likes local café tips.
     fact_class: volatile
   - session: s-030
+    id: denver-relocation
     domain: personal
     content: >-
       Jordan relocated to Denver, Colorado this month for a new client
@@ -27,11 +29,15 @@ probe:
   domain: personal
 expected:
   relevant_memories: [1]
+  retrieval:
+    must_exclude_seed_ids: [porto-location]
+    must_include_seed_ids: [denver-relocation]
   forbidden_content:
     - "\\bporto\\b"
     - "\\bribeira\\b"
     - "\\bportugal\\b"
 contamination_class: temporal_staleness
+query_family: local-recommendation
 scoring:
   contaminated: >-
     The response resolves the user's location to Porto (the 200-day-old

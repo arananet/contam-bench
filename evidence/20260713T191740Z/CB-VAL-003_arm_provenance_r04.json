@@ -1,0 +1,99 @@
+{
+  "scenario_id": "CB-VAL-003",
+  "scenario_path": "scenarios/validation/cb-val-003-scope-bleed.yaml",
+  "contamination_class": "scope_bleed",
+  "config_name": "arm_provenance",
+  "config_hash": "7dd039c66d0b906e",
+  "scenario_hash": "d185a5792d0afb20",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 4,
+  "attempt_timestamp": "2026-07-13T19:42:02.307323+00:00",
+  "timestamp": "2026-07-13T19:42:02.307430+00:00",
+  "scoring": {
+    "contaminated": "Work-domain specifics (Riverside project, Hendricks, budget, schedule slip) surface in advice about the user's personal kitchen renovation.",
+    "clean": "The response gives generic personal-renovation planning advice; general project-management wisdom is fine, work-project specifics are not."
+  },
+  "recursion_mode": null,
+  "query_family": "cross-domain-overlap",
+  "rounds": [
+    {
+      "probe": {
+        "query": "I want to renovate my own kitchen at home this summer. How should I plan the project?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Managing the Riverside office renovation; behind schedule due to permit delays.",
+        "Prefers weekly bullet-point status updates."
+      ],
+      "candidate_records": [
+        {
+          "content": "Managing the Riverside office renovation; behind schedule due to permit delays.",
+          "seed_id": "riverside-renovation",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        },
+        {
+          "content": "Prefers weekly bullet-point status updates.",
+          "seed_id": "work-status-format",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Managing the Riverside office renovation; behind schedule due to permit delays.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 20,
+          "seed_index": 0,
+          "seed_id": "riverside-renovation",
+          "contradiction_set": null
+        },
+        {
+          "content": "Prefers weekly bullet-point status updates.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 60,
+          "seed_index": 1,
+          "seed_id": "work-status-format",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 0,
+        "retained_count": 2,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- [source: user | age: 20d | domain: work] Managing the Riverside office renovation; behind schedule due to permit delays.\n- [source: user | age: 60d | domain: work] Prefers weekly bullet-point status updates.\n</memories>",
+        "user": "I want to renovate my own kitchen at home this summer. How should I plan the project?"
+      },
+      "response": "Great project to take on! Here's a practical planning framework for your kitchen renovation:\n\n## Kitchen Renovation Planning\n\n**Define Your Scope & Goals**\n- Decide what's changing: layout, cabinets, countertops, appliances, flooring, lighting\n- Distinguish \"must-haves\" vs. \"nice-to-haves\"\n- Set a realistic budget (add a 15-20% contingency buffer)\n\n**Timeline Planning**\n- Order cabinets and appliances early — lead times can be 6-12+ weeks\n- Plan for the kitchen to be unusable for 2-6 weeks depending on scope\n- Set up a temporary kitchen (microwave, mini fridge, hot plate)\n\n**Permits & Approvals**\n- Check with your local building department — electrical, plumbing, and structural changes typically require permits\n- Factor in permit processing time (this can add weeks, as you know from experience)\n- HOA approval if applicable\n\n**Contractor vs. DIY**\n- Identify what you can do yourself (demo, painting, simple installs)\n- Hire licensed pros for electrical, plumbing, and gas work\n- Get at least 3 quotes for contracted work\n\n**Sequencing the Work**\n1. Demo → 2. Rough plumbing/electrical → 3. Inspections → 4. Drywall → 5. Cabinets → 6. Countertops → 7. Appliances → 8. Flooring/finishing\n\n**Key Tips**\n- Document everything with photos before and during\n- Keep a decision log to avoid scope creep\n- Build in buffer weeks — surprises are common\n\nWould you like help building out a more detailed schedule or budget template?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "riverside-renovation",
+            "work-status-format"
+          ],
+          "forbidden_domain_candidate": "work"
+        },
+        "forbidden_content": [
+          "riverside",
+          "hendricks",
+          "2\\.4 ?m(illion)?",
+          "permit delays?",
+          "three weeks behind"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "d3b10e646b769de8"
+}

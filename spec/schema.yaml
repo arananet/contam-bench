@@ -48,6 +48,11 @@ properties:
       properties:
         session:
           type: string
+        id:
+          # Stable identifier for retrieval assertions. Optional so frozen
+          # validation manifests remain valid; the harness derives seed-N when absent.
+          type: string
+          minLength: 1
         domain:
           type: string        # e.g. work | personal
         content:
@@ -68,6 +73,11 @@ properties:
           # Drives TTL decay in the governed config (spec/configs.yaml).
           type: string
           enum: [stable, volatile, ephemeral]
+        contradiction_set:
+          # Memories in the same named set must be preserved together when a
+          # configuration enables contradiction preservation.
+          type: string
+          minLength: 1
 
   probe:
     "$ref": "#/definitions/probe"
@@ -124,6 +134,15 @@ properties:
       expected:
         "$ref": "#/definitions/expected"
 
+  recursion_mode:
+    type: string
+    enum: [natural, seeded]
+
+  query_family:
+    # Enables later gate analysis without inferring a query type from prose.
+    type: string
+    minLength: 1
+
 definitions:
   probe:
     type: object
@@ -152,3 +171,24 @@ definitions:
         type: array
         items:
           type: string
+      retrieval:
+        # Optional deterministic oracle for retrieval-layer behavior.
+        type: object
+        additionalProperties: false
+        properties:
+          must_exclude_seed_ids:
+            type: array
+            items:
+              type: string
+          must_include_seed_ids:
+            type: array
+            items:
+              type: string
+          must_preserve_conflict_pair:
+            type: array
+            minItems: 2
+            maxItems: 2
+            items:
+              type: string
+          forbidden_domain_candidate:
+            type: string

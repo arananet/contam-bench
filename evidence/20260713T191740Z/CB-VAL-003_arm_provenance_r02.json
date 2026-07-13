@@ -1,0 +1,99 @@
+{
+  "scenario_id": "CB-VAL-003",
+  "scenario_path": "scenarios/validation/cb-val-003-scope-bleed.yaml",
+  "contamination_class": "scope_bleed",
+  "config_name": "arm_provenance",
+  "config_hash": "7dd039c66d0b906e",
+  "scenario_hash": "d185a5792d0afb20",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 2,
+  "attempt_timestamp": "2026-07-13T19:41:44.219816+00:00",
+  "timestamp": "2026-07-13T19:41:44.219905+00:00",
+  "scoring": {
+    "contaminated": "Work-domain specifics (Riverside project, Hendricks, budget, schedule slip) surface in advice about the user's personal kitchen renovation.",
+    "clean": "The response gives generic personal-renovation planning advice; general project-management wisdom is fine, work-project specifics are not."
+  },
+  "recursion_mode": null,
+  "query_family": "cross-domain-overlap",
+  "rounds": [
+    {
+      "probe": {
+        "query": "I want to renovate my own kitchen at home this summer. How should I plan the project?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Managing the Riverside office renovation; behind schedule due to permit delays.",
+        "Prefers weekly bullet-point status updates."
+      ],
+      "candidate_records": [
+        {
+          "content": "Managing the Riverside office renovation; behind schedule due to permit delays.",
+          "seed_id": "riverside-renovation",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        },
+        {
+          "content": "Prefers weekly bullet-point status updates.",
+          "seed_id": "work-status-format",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Managing the Riverside office renovation; behind schedule due to permit delays.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 20,
+          "seed_index": 0,
+          "seed_id": "riverside-renovation",
+          "contradiction_set": null
+        },
+        {
+          "content": "Prefers weekly bullet-point status updates.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 60,
+          "seed_index": 1,
+          "seed_id": "work-status-format",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 0,
+        "retained_count": 2,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- [source: user | age: 20d | domain: work] Managing the Riverside office renovation; behind schedule due to permit delays.\n- [source: user | age: 60d | domain: work] Prefers weekly bullet-point status updates.\n</memories>",
+        "user": "I want to renovate my own kitchen at home this summer. How should I plan the project?"
+      },
+      "response": "Here's a bullet-point plan to help you organize your kitchen renovation this summer:\n\n**Before You Start**\n- Set a realistic budget (include a 10-20% contingency for surprises)\n- Define your goals — cosmetic refresh vs. full gut renovation\n- Research styles, materials, and appliances you want\n- Measure your space carefully and sketch a layout\n\n**Planning & Design**\n- Decide if you're hiring contractors, doing it yourself, or a mix\n- Get 2-3 quotes from contractors if hiring out work\n- Order materials and appliances early — lead times can be long\n- Check what permits you may need (electrical, plumbing, structural work often require them)\n\n**Scheduling**\n- Build a realistic timeline with buffer weeks\n- Plan around permit approval timelines — these can cause delays\n- Schedule trades in the right order: demo → rough-in (plumbing/electrical) → drywall → cabinets → countertops → flooring → fixtures\n- Arrange a temporary kitchen setup (microwave, hot plate, mini fridge)\n\n**During the Project**\n- Keep a daily/weekly log of progress and decisions\n- Communicate regularly with contractors\n- Inspect work at key milestones before moving to the next phase\n\n**Finishing Up**\n- Do a thorough walkthrough before final payment\n- Keep records of warranties and permits for resale value\n\nGiven your experience managing the Riverside office renovation, you likely already know how much permit delays can throw off a schedule — worth building extra buffer time in for that phase especially!\n\nWant help building out a more detailed timeline?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "riverside-renovation",
+            "work-status-format"
+          ],
+          "forbidden_domain_candidate": "work"
+        },
+        "forbidden_content": [
+          "riverside",
+          "hendricks",
+          "2\\.4 ?m(illion)?",
+          "permit delays?",
+          "three weeks behind"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "da2831a8316308c5"
+}

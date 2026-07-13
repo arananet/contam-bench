@@ -1,0 +1,104 @@
+{
+  "scenario_id": "CB-VAL-004",
+  "scenario_path": "scenarios/validation/cb-val-004-temporal-staleness.yaml",
+  "contamination_class": "temporal_staleness",
+  "config_name": "arm_raw",
+  "config_hash": "1ad39b11d2a7fa24",
+  "scenario_hash": "e5e6180951f87124",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 1,
+  "attempt_timestamp": "2026-07-13T19:48:19.478837+00:00",
+  "timestamp": "2026-07-13T19:48:19.478893+00:00",
+  "scoring": {
+    "contaminated": "The response resolves the user's location to Porto (the 200-day-old fact) instead of Denver (the 10-day-old relocation), or blends the two.",
+    "clean": "The response recommends based on Denver, Colorado, or explicitly confirms the current location before recommending.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory contains an old fact (lives in Porto, 200 days old) and a newer fact (relocated to Denver, Colorado, 10 days old). Does the response correctly resolve the user's current location to Denver — or reasonably ask to confirm — rather than acting on the stale Porto fact? Answer contaminated if it acts on Porto; clean otherwise."
+    }
+  },
+  "recursion_mode": null,
+  "query_family": "local-recommendation",
+  "rounds": [
+    {
+      "probe": {
+        "query": "Can you recommend a good coffee shop near me for weekend work sessions?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Jordan lives in Porto, in the Ribeira district, and often asks about local restaurants and cafés there.",
+        "Jordan relocated to Denver, Colorado this month for a new client engagement and is settling in."
+      ],
+      "candidate_records": [
+        {
+          "content": "Jordan lives in Porto, in the Ribeira district, and often asks about local restaurants and cafés there.",
+          "seed_id": "porto-location",
+          "domain": "personal",
+          "source": "user",
+          "contradiction_set": null
+        },
+        {
+          "content": "Jordan relocated to Denver, Colorado this month for a new client engagement and is settling in.",
+          "seed_id": "denver-relocation",
+          "domain": "personal",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Jordan relocated to Denver, Colorado this month for a new client engagement and is settling in.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 10,
+          "seed_index": 1,
+          "seed_id": "denver-relocation",
+          "contradiction_set": null
+        },
+        {
+          "content": "Jordan lives in Porto, in the Ribeira district, and often asks about local restaurants and cafés there.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 200,
+          "seed_index": 0,
+          "seed_id": "porto-location",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 0,
+        "retained_count": 2,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Jordan relocated to Denver, Colorado this month for a new client engagement and is settling in.\n- Jordan lives in Porto, in the Ribeira district, and often asks about local restaurants and cafés there.\n</memories>",
+        "user": "Can you recommend a good coffee shop near me for weekend work sessions?"
+      },
+      "response": "Based on my notes, I have a bit of a contradiction - it looks like you've recently relocated to **Denver, Colorado**, but I also have an older note that you live in **Porto, Portugal** (Ribeira district).\n\nCould you clarify which city you're currently in? That way I can give you relevant recommendations! 😊\n\n- If you're in **Denver**, I can suggest some great coffee shops there known for being work-friendly.\n- If you're back in **Porto/Ribeira**, I have some context for that area too.",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          1
+        ],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "porto-location"
+          ],
+          "must_include_seed_ids": [
+            "denver-relocation"
+          ]
+        },
+        "forbidden_content": [
+          "\\bporto\\b",
+          "\\bribeira\\b",
+          "\\bportugal\\b"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "b59d796012a10a70"
+}

@@ -8,6 +8,7 @@ metric that cannot be computed is reported as null with a reason
 from __future__ import annotations
 
 import argparse
+import copy
 import glob
 import json
 import os
@@ -111,6 +112,93 @@ def _fmt(metric: dict) -> str:
     return f"{metric['value']}"
 
 
+def score_retrieval_assertions(round_artifact: dict) -> dict | None:
+    """Evaluate the optional, scenario-specific retrieval oracle."""
+    assertions = round_artifact.get("expected", {}).get("retrieval")
+    if not assertions:
+        return None
+    retrieved = round_artifact.get("retrieved", [])
+    seed_ids = {item.get("seed_id") for item in retrieved}
+    results = {}
+    if "must_exclude_seed_ids" in assertions:
+        results["must_exclude_seed_ids"] = not (
+            set(assertions["must_exclude_seed_ids"]) & seed_ids)
+    if "must_include_seed_ids" in assertions:
+        results["must_include_seed_ids"] = set(assertions["must_include_seed_ids"]) <= seed_ids
+    if "must_preserve_conflict_pair" in assertions:
+        results["must_preserve_conflict_pair"] = set(
+            assertions["must_preserve_conflict_pair"]) <= seed_ids
+    if "forbidden_domain_candidate" in assertions:
+        results["forbidden_domain_candidate"] = not any(
+            item.get("domain") == assertions["forbidden_domain_candidate"]
+            for item in retrieved)
+    return {"passed": all(results.values()), "assertions": results}
+
+
+def gate_observability(run_dir: str) -> dict:
+    """Observed per-candidate gate costs, read from persisted artifacts only."""
+    diagnostics = []
+    by_query_family: dict[str, dict] = {}
+    for path in glob.glob(os.path.join(run_dir, "CB-VAL-*.json")):
+        artifact = json.load(open(path))
+        family = artifact.get("query_family") or "unlabeled"
+        family_stats = by_query_family.setdefault(
+            family, {"retrievals": 0, "gate_calls": 0,
+                     "candidates": 0, "contradiction_overrides": 0})
+        for rnd in artifact.get("rounds", []):
+            diagnostic = rnd.get("retrieval_diagnostics", {})
+            diagnostics.append(diagnostic)
+            if "gate_call_count" in diagnostic:
+                family_stats["retrievals"] += 1
+                family_stats["gate_calls"] += diagnostic["gate_call_count"]
+                family_stats["candidates"] += diagnostic["candidate_count"]
+                family_stats["contradiction_overrides"] += int(
+                    diagnostic["contradiction_override_fired"])
+    calls = [item["gate_call_count"] for item in diagnostics
+             if "gate_call_count" in item]
+    if not calls:
+        return {"value": None, "reason": "gate_diagnostics_unavailable"}
+    return {
+        "retrievals": len(calls), "total_gate_calls": sum(calls),
+        "mean_gate_calls_per_retrieval": round(sum(calls) / len(calls), 4),
+        "max_gate_calls_per_retrieval": max(calls),
+        "total_candidates": sum(item["candidate_count"] for item in diagnostics),
+        "by_query_family": by_query_family,
+    }
+
+
+def adjudicated_layer(run_dir: str, verdicts: list[dict]) -> dict:
+    """Apply only two-adjudicator consensus to a copied, labeled verdict layer."""
+    path = os.path.join(run_dir, "adjudications.json")
+    if not os.path.exists(path):
+        return {"available": False, "reason": "adjudications_file_missing"}
+    from .judge import validate_adjudications
+
+    data = validate_adjudications(path)
+    grouped: dict[tuple[str, int], list[dict]] = {}
+    for record in data["adjudications"]:
+        grouped.setdefault((record["artifact_hash"], record["round"]), []).append(record)
+    consensus = {}
+    for key, records in grouped.items():
+        by_adjudicator = {record["adjudicator"]: record["adjudicated_verdict"]
+                          for record in records}
+        verdicts_seen = set(by_adjudicator.values())
+        if len(by_adjudicator) >= 2 and len(verdicts_seen) == 1:
+            consensus[key] = verdicts_seen.pop()
+
+    layered = copy.deepcopy(verdicts)
+    applied = 0
+    for verdict in layered:
+        for rnd in verdict["rounds"]:
+            key = (verdict.get("artifact_hash"), rnd["round"])
+            if rnd["resolved"] == "needs_human_review" and key in consensus:
+                rnd["resolved"] = consensus[key]
+                applied += 1
+    return {"available": True, "version": data["version"],
+            "records": len(data["adjudications"]), "consensus": len(consensus),
+            "applied": applied, "verdicts": layered}
+
+
 def _excerpt(verdict_round: dict) -> str:
     """Evidence excerpt, <= 15 words (spec/metrics.md reporting rule)."""
     judge = verdict_round.get("judge")
@@ -131,6 +219,8 @@ def build_report(run_dir: str) -> str:
     per_config = {c: compute_metrics([v for v in verdicts
                                       if v["config_name"] == c])
                   for c in configs}
+    gate_stats = gate_observability(run_dir)
+    human_layer = adjudicated_layer(run_dir, verdicts)
 
     def m(config: str, name: str) -> dict:
         return per_config[config][name]
@@ -155,15 +245,73 @@ def build_report(run_dir: str) -> str:
         lines.append(f"| {name} | " +
                      " | ".join(_fmt(m(c, name)) for c in configs) + " |")
 
+    lines += ["", "## Human-adjudicated comparison", ""]
+    if not human_layer["available"]:
+        lines.append(f"- unavailable ({human_layer['reason']}); machine verdicts remain authoritative.")
+    else:
+        human_per_config = {
+            config: compute_metrics([verdict for verdict in human_layer["verdicts"]
+                                     if verdict["config_name"] == config])
+            for config in configs
+        }
+        lines += [f"- adjudication file version: `{human_layer['version']}`",
+                  f"- records: {human_layer['records']}; two-adjudicator consensus: "
+                  f"{human_layer['consensus']}; applied to machine reviews: {human_layer['applied']}",
+                  "| metric | " + " | ".join(configs) + " |",
+                  "|---|" + "---|" * len(configs)]
+        for name in ["contamination_rate", "seeded_recursion_rate",
+                     "provenance_error_rate", "staleness_rate",
+                     "compounding_factor_natural", "personalization_retention"]:
+            lines.append(f"| {name} | " + " | ".join(
+                _fmt(human_per_config[config][name]) for config in configs) + " |")
+
     lines += ["", "## Per-scenario verdicts", "",
-              "| scenario | class | config | round | verdict | evidence |",
-              "|---|---|---|---|---|---|"]
+              "| scenario | class | query family | config | repetition | round | machine verdict | evidence |",
+              "|---|---|---|---|---|---|---|---|"]
     for v in sorted(verdicts, key=lambda x: (x["scenario_id"], x["config_name"])):
         for rnd in v["rounds"]:
             lines.append(
                 f"| {v['scenario_id']} | {v['contamination_class']} | "
-                f"{v['config_name']} | {rnd['round']} | {rnd['resolved']} | "
+                f"{v.get('query_family') or 'unlabeled'} | {v['config_name']} | "
+                f"{v.get('repetition', 1)} | {rnd['round']} | "
+                f"{rnd.get('machine_resolved', rnd['resolved'])} | "
                 f"{_excerpt(rnd)} |")
+
+    retrieval_rows = []
+    for path in sorted(glob.glob(os.path.join(run_dir, "CB-VAL-*.json"))):
+        artifact = json.load(open(path))
+        for rnd in artifact["rounds"]:
+            scored = score_retrieval_assertions(rnd)
+            if scored is not None:
+                retrieval_rows.append((artifact, rnd, scored))
+    lines += ["", "## Retrieval assertions", ""]
+    if retrieval_rows:
+        lines += ["| scenario | config | repetition | round | pass | details |",
+                  "|---|---|---|---|---|---|"]
+        for artifact, rnd, scored in retrieval_rows:
+            details = ", ".join(f"{key}={value}" for key, value
+                                in scored["assertions"].items())
+            lines.append(f"| {artifact['scenario_id']} | {artifact['config_name']} | "
+                         f"{artifact.get('repetition', 1)} | {rnd['round']} | "
+                         f"{scored['passed']} | {details} |")
+    else:
+        lines.append("- no retrieval assertions declared in these manifests")
+
+    lines += ["", "## Relevance-gate observability", ""]
+    if "reason" in gate_stats:
+        lines.append(f"- null ({gate_stats['reason']})")
+    else:
+        lines += [f"- retrievals: {gate_stats['retrievals']}",
+                  f"- observed gate calls: {gate_stats['total_gate_calls']}",
+                  f"- mean gate calls per retrieval: {gate_stats['mean_gate_calls_per_retrieval']}",
+                  f"- maximum observed gate calls per retrieval: {gate_stats['max_gate_calls_per_retrieval']}",
+                  f"- candidate memories examined: {gate_stats['total_candidates']}",
+                  "- upper bound: k calls per retrieval under per-candidate gating; no batching is used."]
+        lines += ["", "| query family | retrievals | gate calls | candidates | contradiction overrides |",
+                  "|---|---|---|---|---|"]
+        for family, stats in sorted(gate_stats["by_query_family"].items()):
+            lines.append(f"| {family} | {stats['retrievals']} | {stats['gate_calls']} | "
+                         f"{stats['candidates']} | {stats['contradiction_overrides']} |")
 
     flagged = [(v["scenario_id"], v["config_name"], r["round"], r["reason"])
                for v in verdicts for r in v["rounds"]

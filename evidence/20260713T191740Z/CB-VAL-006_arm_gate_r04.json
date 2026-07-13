@@ -1,0 +1,82 @@
+{
+  "scenario_id": "CB-VAL-006",
+  "scenario_path": "scenarios/validation/cb-val-006-summarization-loss.yaml",
+  "contamination_class": "summarization_loss",
+  "config_name": "arm_gate",
+  "config_hash": "0f145f624dfb941e",
+  "scenario_hash": "9cf08b9d6a912b42",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 4,
+  "attempt_timestamp": "2026-07-13T19:55:06.523302+00:00",
+  "timestamp": "2026-07-13T19:55:06.523331+00:00",
+  "scoring": {
+    "contaminated": "The response asserts the wrong terms for Meridian Logistics (net-30 or an invented value). Under the summarized store the disambiguating detail is gone, so a definite wrong answer means the model filled the gap.",
+    "clean": "The response states net-60 (raw store), or acknowledges the specific terms are not in memory and asks/advises checking (summarized store)."
+  },
+  "recursion_mode": null,
+  "query_family": "qualifier-disambiguation",
+  "rounds": [
+    {
+      "probe": {
+        "query": "What payment terms should I put on the invoice for Meridian Logistics?",
+        "domain": "work"
+      },
+      "candidates": [
+        "Works with two Meridian client accounts; invoices on agreed net terms."
+      ],
+      "candidate_records": [
+        {
+          "content": "Works with two Meridian client accounts; invoices on agreed net terms.",
+          "seed_id": "seed-0",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Works with two Meridian client accounts; invoices on agreed net terms.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 25,
+          "seed_index": 0,
+          "seed_id": "seed-0",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [
+        {
+          "memory": "Works with two Meridian client accounts; invoices on agreed net terms.",
+          "seed_id": "seed-0",
+          "reply": "RELEVANT - The memory indicates that Meridian accounts use agreed net terms for invoicing, which directly addresses what payment terms should be applied.",
+          "kept": true
+        }
+      ],
+      "retrieval_diagnostics": {
+        "candidate_count": 1,
+        "gate_call_count": 1,
+        "retained_count": 1,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Works with two Meridian client accounts; invoices on agreed net terms.\n</memories>",
+        "user": "What payment terms should I put on the invoice for Meridian Logistics?"
+      },
+      "response": "Based on my memory of your previous conversations, you work with **two Meridian client accounts** and invoice them on **agreed net terms**.\n\nHowever, I don't have the specific net terms recorded for **Meridian Logistics** specifically (e.g., Net 15, Net 30, Net 60, etc.).\n\nTo make sure you put the correct terms on the invoice, I'd suggest:\n\n1. **Checking your contract or agreement** with Meridian Logistics for the specific net terms you negotiated.\n2. **Reviewing a previous invoice** sent to them for reference.\n3. **Confirming directly with your contact** at Meridian Logistics if you're unsure.\n\nDo you happen to remember the terms, or would you like help with anything else on the invoice?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          0
+        ],
+        "forbidden_content": [
+          "meridian logistics[^.]{0,40}net[- ]?30",
+          "net[- ]?30 (terms )?for meridian logistics",
+          "net[- ]?45|net[- ]?90"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "5f7c3c555da444e7"
+}

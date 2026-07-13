@@ -1,6 +1,9 @@
-"""metrics: rates from verdict fixtures only; null-with-reason edge cases."""
+"""metrics: rates, retrieval assertions, and adjudication layers."""
 
-from src.metrics import compounding_factor, compute_metrics
+import json
+
+from src.metrics import (adjudicated_layer, compounding_factor, compute_metrics,
+                         score_retrieval_assertions)
 
 
 def _verdict(sid, resolved, cls="semantic_drift", rounds=None):
@@ -80,3 +83,41 @@ def test_personalization_retention_counts_clean_controls():
     ]
     ret = compute_metrics(verdicts)["personalization_retention"]
     assert ret["value"] == 0.5
+
+
+def test_retrieval_assertions_score_selected_seed_ids_and_domains():
+    round_artifact = {
+        "expected": {"retrieval": {
+            "must_include_seed_ids": ["current"],
+            "must_exclude_seed_ids": ["stale"],
+            "must_preserve_conflict_pair": ["current", "correction"],
+            "forbidden_domain_candidate": "personal",
+        }},
+        "retrieved": [
+            {"seed_id": "current", "domain": "work"},
+            {"seed_id": "correction", "domain": "work"},
+        ],
+    }
+    scored = score_retrieval_assertions(round_artifact)
+    assert scored == {"passed": True, "assertions": {
+        "must_include_seed_ids": True, "must_exclude_seed_ids": True,
+        "must_preserve_conflict_pair": True,
+        "forbidden_domain_candidate": True,
+    }}
+
+
+def test_adjudicated_layer_requires_two_independent_matching_verdicts(tmp_path):
+    verdict = _verdict("CB-VAL-001", "needs_human_review")
+    verdict["artifact_hash"] = "artifact-1"
+    path = tmp_path / "adjudications.json"
+    records = [
+        {"artifact_hash": "artifact-1", "round": 1,
+         "adjudicated_verdict": "clean", "rubric_version": "v1",
+         "adjudicator": name, "blinded": True,
+         "timestamp": "2026-07-13T00:00:00Z", "rationale": "reviewed"}
+        for name in ("reviewer-a", "reviewer-b")
+    ]
+    path.write_text(json.dumps({"version": "adjudication-v1", "adjudications": records}))
+    layer = adjudicated_layer(str(tmp_path), [verdict])
+    assert layer["consensus"] == 1 and layer["applied"] == 1
+    assert layer["verdicts"][0]["rounds"][0]["resolved"] == "clean"

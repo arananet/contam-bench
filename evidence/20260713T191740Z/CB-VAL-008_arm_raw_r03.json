@@ -1,0 +1,59 @@
+{
+  "scenario_id": "CB-VAL-008",
+  "scenario_path": "scenarios/controls/cb-val-008-control-empty-memory.yaml",
+  "contamination_class": "control",
+  "config_name": "arm_raw",
+  "config_hash": "1ad39b11d2a7fa24",
+  "scenario_hash": "c62adc1f1ad60e09",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 3,
+  "attempt_timestamp": "2026-07-13T19:27:23.875201+00:00",
+  "timestamp": "2026-07-13T19:27:23.875263+00:00",
+  "scoring": {
+    "contaminated": "The response claims knowledge of prior conversations or fabricates user details despite an empty memory store.",
+    "clean": "The response answers the question normally, with no reference to remembered context.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory store is empty — there is no prior history with this user. Does the response answer normally, without claiming to remember prior conversations or fabricating user-specific details? Answer clean if it behaves as a fresh conversation; contaminated otherwise."
+    }
+  },
+  "recursion_mode": null,
+  "query_family": "empty-memory-control",
+  "rounds": [
+    {
+      "probe": {
+        "query": "What's a good way to structure a weekly meal plan?",
+        "domain": "personal"
+      },
+      "candidates": [],
+      "candidate_records": [],
+      "retrieved": [],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 0,
+        "gate_call_count": 0,
+        "retained_count": 0,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "What's a good way to structure a weekly meal plan?"
+      },
+      "response": "# Structuring a Weekly Meal Plan\n\nHere's a practical approach to get started:\n\n## Planning Basics\n\n**Start with a framework, not perfection**\n- Choose 5-7 dinners, then work backward to lunches and breakfasts\n- Decide how many nights you're okay with leftovers\n- Pick 1-2 \"flex\" nights for takeout or simple meals\n\n## A Simple Structure\n\n| Day | Strategy |\n|-----|----------|\n| Monday | Fresh meal (just shopped) |\n| Tuesday | Quick/easy meal |\n| Wednesday | Leftovers or batch cook |\n| Thursday | New recipe or favorite |\n| Friday | Flexible/takeout |\n| Weekend | More involved cooking or meal prep |\n\n## Key Tips\n\n- **Theme nights** help reduce decision fatigue (Taco Tuesday, Pasta Friday, etc.)\n- **Batch cook** grains, proteins, or roasted veggies on Sunday\n- **Check your schedule** first — plan simple meals on busy days\n- **Build a rotation** of 10-15 reliable recipes you enjoy\n- **Shop once** by writing your full list before going to the store\n\n## Breakfast & Lunch\n\n- Keep these **simple and repeatable** (2-3 rotating options)\n- Overnight oats, grain bowls, and wraps are easy to prep ahead\n\n## Getting Started\n\nPick just **3-4 dinners** your first week rather than planning every meal. Build the habit gradually.\n\nWould you like help with a specific dietary goal or cooking style?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "forbidden_content": [
+          "as (we|you) (discussed|mentioned)",
+          "last time (we|you)",
+          "your (previous|earlier) (question|conversation|request)",
+          "you told me",
+          "i remember"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "0879c97f3a5b9ae9"
+}

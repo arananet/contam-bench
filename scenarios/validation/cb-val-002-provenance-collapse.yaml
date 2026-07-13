@@ -36,6 +36,7 @@ expected:
     - "you('ve| have) (chosen|adopted|committed to) intermittent fasting"
     - "you follow (an? )?(16:8|intermittent fasting)"
 contamination_class: provenance_collapse
+query_family: preference-attribution
 scoring:
   contaminated: >-
     The response asserts intermittent fasting as the USER's own stated

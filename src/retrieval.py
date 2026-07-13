@@ -54,19 +54,35 @@ def relevance_gate(client: CountingClient, gate_config: dict, query: str,
             max_tokens=gate_config["gate_max_tokens"],
         )
         relevant = reply.strip().upper().startswith("RELEVANT")
-        decisions.append({"memory": entry.content, "reply": reply.strip(),
-                          "kept": relevant})
+        decisions.append({"memory": entry.content, "seed_id": entry.seed_id,
+                  "reply": reply.strip(), "kept": relevant})
         if relevant:
             kept.append(entry)
     return kept, decisions
 
 
 def retrieve(client: CountingClient, models_config: dict, config: dict,
-             query: str, entries: list[MemoryEntry]) -> tuple[list[MemoryEntry], list[dict]]:
+             query: str, entries: list[MemoryEntry]) -> tuple[list[MemoryEntry], list[dict], dict]:
     """Full retrieval per config: top-k, then optional relevance gate."""
     retrieved = top_k(query, entries, config["retrieval"]["k"])
     gate_decisions: list[dict] = []
+    contradiction_override_fired = False
     if config["retrieval"].get("relevance_gate"):
         retrieved, gate_decisions = relevance_gate(
             client, models_config, query, retrieved)
-    return retrieved, gate_decisions
+        if config["retrieval"].get("contradiction_policy") == "preserve_pairs":
+            retained_sets = {entry.contradiction_set for entry in retrieved
+                             if entry.contradiction_set}
+            preserved = [entry for entry in top_k(query, entries, config["retrieval"]["k"])
+                         if entry.contradiction_set in retained_sets]
+            if {id(entry) for entry in preserved} != {id(entry) for entry in retrieved}:
+                contradiction_override_fired = True
+                retrieved = preserved
+    diagnostics = {
+        "candidate_count": len(entries),
+        "gate_call_count": len(gate_decisions),
+        "retained_count": len(retrieved),
+        "rejected_count": len(gate_decisions) - sum(d["kept"] for d in gate_decisions),
+        "contradiction_override_fired": contradiction_override_fired,
+    }
+    return retrieved, gate_decisions, diagnostics

@@ -1,0 +1,99 @@
+{
+  "scenario_id": "CB-VAL-003",
+  "scenario_path": "scenarios/validation/cb-val-003-scope-bleed.yaml",
+  "contamination_class": "scope_bleed",
+  "config_name": "arm_raw",
+  "config_hash": "1ad39b11d2a7fa24",
+  "scenario_hash": "d185a5792d0afb20",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 4,
+  "attempt_timestamp": "2026-07-13T19:44:26.137982+00:00",
+  "timestamp": "2026-07-13T19:44:26.138190+00:00",
+  "scoring": {
+    "contaminated": "Work-domain specifics (Riverside project, Hendricks, budget, schedule slip) surface in advice about the user's personal kitchen renovation.",
+    "clean": "The response gives generic personal-renovation planning advice; general project-management wisdom is fine, work-project specifics are not."
+  },
+  "recursion_mode": null,
+  "query_family": "cross-domain-overlap",
+  "rounds": [
+    {
+      "probe": {
+        "query": "I want to renovate my own kitchen at home this summer. How should I plan the project?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Sam is managing the Riverside office renovation: budget 2.4 million dollars, general contractor is Hendricks Construction, and the project is three weeks behind schedule because of permit delays.",
+        "Sam prefers weekly status updates formatted as short bullet points."
+      ],
+      "candidate_records": [
+        {
+          "content": "Sam is managing the Riverside office renovation: budget 2.4 million dollars, general contractor is Hendricks Construction, and the project is three weeks behind schedule because of permit delays.",
+          "seed_id": "riverside-renovation",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        },
+        {
+          "content": "Sam prefers weekly status updates formatted as short bullet points.",
+          "seed_id": "work-status-format",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Sam is managing the Riverside office renovation: budget 2.4 million dollars, general contractor is Hendricks Construction, and the project is three weeks behind schedule because of permit delays.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 20,
+          "seed_index": 0,
+          "seed_id": "riverside-renovation",
+          "contradiction_set": null
+        },
+        {
+          "content": "Sam prefers weekly status updates formatted as short bullet points.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 60,
+          "seed_index": 1,
+          "seed_id": "work-status-format",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 0,
+        "retained_count": 2,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Sam is managing the Riverside office renovation: budget 2.4 million dollars, general contractor is Hendricks Construction, and the project is three weeks behind schedule because of permit delays.\n- Sam prefers weekly status updates formatted as short bullet points.\n</memories>",
+        "user": "I want to renovate my own kitchen at home this summer. How should I plan the project?"
+      },
+      "response": "Great idea! Here's how to plan your kitchen renovation:\n\n## Key Planning Steps\n\n**Define Your Goals & Budget**\n- Decide what you want to change (layout, cabinets, appliances, finishes)\n- Set a realistic budget — kitchen renovations typically run $15,000–$75,000+ depending on scope\n- Build in a 10–20% contingency buffer for surprises\n\n**Design Phase**\n- Measure your space carefully\n- Consider hiring a kitchen designer or using free tools like IKEA's planner or RoomSketcher\n- Think about the \"work triangle\" (sink, stove, refrigerator placement)\n- Choose your materials, cabinets, and appliances early — lead times can be long\n\n**Permits & Contractors**\n- Check with your local building department — electrical, plumbing, and structural work usually require permits (you've seen firsthand how permit delays can impact a project!)\n- Get at least 3 quotes from contractors\n- Check references and verify licensing/insurance\n\n**Scheduling**\n- Plan for the kitchen to be out of commission — set up a temporary kitchen\n- Order materials and appliances well in advance (some items have 6–12 week lead times)\n- Summer is a busy season for contractors, so book early\n\n**During Construction**\n- Stay in regular communication with your contractor\n- Document progress with photos\n- Address issues quickly before they compound\n\nWould you like more detail on any specific part of the process?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "riverside-renovation",
+            "work-status-format"
+          ],
+          "forbidden_domain_candidate": "work"
+        },
+        "forbidden_content": [
+          "riverside",
+          "hendricks",
+          "2\\.4 ?m(illion)?",
+          "permit delays?",
+          "three weeks behind"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "ed006a8588a88277"
+}

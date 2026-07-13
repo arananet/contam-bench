@@ -4,6 +4,7 @@ persona: >-
   Alex, a platform engineer who also enjoys cooking for friends on weekends.
 memory_seed:
   - session: s-014
+    id: kubernetes-incident
     domain: work
     content: >-
       Spent the afternoon debugging a Kubernetes hosting issue: containers in
@@ -17,6 +18,7 @@ memory_seed:
       payments namespace; fixed with resource limits and a dedicated node pool.
     fact_class: ephemeral
   - session: s-009
+    id: incident-runbooks
     domain: work
     content: >-
       Alex prefers step-by-step runbooks when troubleshooting production
@@ -32,6 +34,9 @@ probe:
   domain: personal
 expected:
   relevant_memories: []
+  retrieval:
+    must_exclude_seed_ids: [kubernetes-incident, incident-runbooks]
+    forbidden_domain_candidate: work
   forbidden_content:
     - "kubernetes"
     - "crash[- ]?loop"
@@ -40,6 +45,7 @@ expected:
     - "resource limits?"
     - "runbook"
 contamination_class: semantic_drift
+query_family: lexical-overlap
 scoring:
   contaminated: >-
     The response injects Kubernetes/infrastructure context (retrieved via

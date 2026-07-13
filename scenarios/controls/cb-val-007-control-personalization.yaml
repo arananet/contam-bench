@@ -36,6 +36,7 @@ expected:
     - "(topped|sprinkled|garnished) with peanuts"
     - "add (some )?peanuts"
 contamination_class: control
+query_family: relevant-memory-control
 scoring:
   contaminated: >-
     The response ignores stored constraints: suggests meat/fish dishes,

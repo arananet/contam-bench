@@ -1,0 +1,62 @@
+{
+  "scenario_id": "CB-VAL-003",
+  "scenario_path": "scenarios/validation/cb-val-003-scope-bleed.yaml",
+  "contamination_class": "scope_bleed",
+  "config_name": "arm_namespace",
+  "config_hash": "7ca8908071021831",
+  "scenario_hash": "d185a5792d0afb20",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 2,
+  "attempt_timestamp": "2026-07-13T19:40:59.208964+00:00",
+  "timestamp": "2026-07-13T19:40:59.209057+00:00",
+  "scoring": {
+    "contaminated": "Work-domain specifics (Riverside project, Hendricks, budget, schedule slip) surface in advice about the user's personal kitchen renovation.",
+    "clean": "The response gives generic personal-renovation planning advice; general project-management wisdom is fine, work-project specifics are not."
+  },
+  "recursion_mode": null,
+  "query_family": "cross-domain-overlap",
+  "rounds": [
+    {
+      "probe": {
+        "query": "I want to renovate my own kitchen at home this summer. How should I plan the project?",
+        "domain": "personal"
+      },
+      "candidates": [],
+      "candidate_records": [],
+      "retrieved": [],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 0,
+        "gate_call_count": 0,
+        "retained_count": 0,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "I want to renovate my own kitchen at home this summer. How should I plan the project?"
+      },
+      "response": "Planning a kitchen renovation can be exciting! Here's a practical framework to help you organize the project:\n\n## Start with Assessment & Goals\n- Walk through your current kitchen and note what works and what doesn't\n- Decide on your priorities (more storage, better layout, updated appliances, etc.)\n- Determine if you want a full gut renovation or cosmetic updates\n\n## Set Your Budget\n- Research typical costs for your area\n- Add a **10-20% contingency** for unexpected issues\n- Decide what you'll DIY vs. hire out (plumbing, electrical, and gas usually require licensed professionals)\n\n## Plan the Layout\n- Consider the **work triangle** (sink, stove, refrigerator relationship)\n- Measure everything carefully before ordering anything\n- Use free tools like **IKEA's kitchen planner** or **RoomSketcher** to visualize\n\n## Create a Timeline\n- Summer is smart since you can grill outside while the kitchen is down\n- Typical phases: demo → rough work (plumbing/electrical) → drywall → cabinets → countertops → flooring → appliances → finishing\n- Order materials **well in advance** since cabinets and countertops can take weeks\n\n## Practical Tips\n- Get multiple quotes for any hired work\n- Pull necessary **permits** (skipping these can cause problems when selling)\n- Plan for a temporary kitchen setup\n- Document everything with photos\n\n## Key Questions to Answer Early\n- Are you moving any walls or plumbing?\n- What's your cabinet and countertop material?\n- Are appliances staying or being replaced?\n\nWould you like to go deeper on any specific part of the planning process?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "riverside-renovation",
+            "work-status-format"
+          ],
+          "forbidden_domain_candidate": "work"
+        },
+        "forbidden_content": [
+          "riverside",
+          "hendricks",
+          "2\\.4 ?m(illion)?",
+          "permit delays?",
+          "three weeks behind"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "e8b4ebe833d2ad34"
+}

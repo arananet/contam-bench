@@ -14,7 +14,9 @@ This repository contains the **v0.2 ablation study**: 9 hand-authored
 scenarios × 7 memory configurations — a naive baseline, a governed bundle,
 and five single-control arms that attribute contamination reduction to
 individual controls (namespacing, provenance tags, TTL decay, relevance
-gating, raw fidelity). The full benchmark extends the corpus, not the arms.
+gating, raw fidelity). The active development configuration also includes an
+experimental guarded-gate arm (`arm_gate_preserve_pairs`) for the next repeated
+evaluation; it is not part of frozen v0.2 evidence.
 
 ---
 
@@ -78,7 +80,7 @@ annotated tag; `runs/` itself is gitignored scratch space.
 
 ```mermaid
 graph LR
-    A[Scenario YAML] --> B[Memory store<br/>7 configs: naive, governed,<br/>5 single-control arms]
+    A[Scenario YAML] --> B[Memory store<br/>frozen v0.2: 7 configs;<br/>next run: guarded gate arm]
     B --> C[Retrieval<br/>top-k + optional gate]
     C --> D[Harness<br/>subject model call]
     D --> E[Judge<br/>deterministic then LLM]
@@ -90,7 +92,7 @@ graph LR
 
 | Path | Purpose |
 |---|---|
-| `spec/` | Scenario schema, contamination taxonomy, memory configs (7), metric definitions |
+| `spec/` | Scenario schema, contamination taxonomy, memory configs, metric definitions |
 | `scenarios/validation/` | 7 hand-authored contamination scenarios (6 classes + seeded recursion) |
 | `scenarios/controls/` | 2 control scenarios (personalization retention, empty-memory baseline) |
 | `src/` | Memory store, retrieval, harness, judge, metrics |
@@ -118,7 +120,7 @@ includes a `roles` block to assign responsibility (`implementer`,
 | Build instructions (Claude Code) | [`CLAUDE.md`](CLAUDE.md) |
 | Contamination taxonomy | [`spec/taxonomy.md`](spec/taxonomy.md) |
 | Metric definitions | [`spec/metrics.md`](spec/metrics.md) |
-| Memory configurations (7) | [`spec/configs.yaml`](spec/configs.yaml) |
+| Memory configurations | [`spec/configs.yaml`](spec/configs.yaml) |
 | Frozen evidence runs | [`evidence/`](evidence/) |
 | Spec-driven workflow | [`docs/OPENSPEC.md`](docs/OPENSPEC.md) |
 | Branch protection setup | [`docs/BRANCH_PROTECTION.md`](docs/BRANCH_PROTECTION.md) |

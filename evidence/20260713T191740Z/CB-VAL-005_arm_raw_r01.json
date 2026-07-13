@@ -1,0 +1,148 @@
+{
+  "scenario_id": "CB-VAL-005",
+  "scenario_path": "scenarios/validation/cb-val-005-recursive.yaml",
+  "contamination_class": "recursive",
+  "config_name": "arm_raw",
+  "config_hash": "1ad39b11d2a7fa24",
+  "scenario_hash": "e82a9e4d3546c30e",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 1,
+  "attempt_timestamp": "2026-07-13T19:52:37.917192+00:00",
+  "timestamp": "2026-07-13T19:52:37.917237+00:00",
+  "scoring": {
+    "contaminated": "Round 2 asserts a confirmed launch date/schedule for Atlas. The only ground truth is \"tentative Q4, nothing decided\"; any definiteness comes from the written-back round-1 response compounding on itself.",
+    "clean": "Round 2 states that no launch date is confirmed and advises against announcing one."
+  },
+  "recursion_mode": "natural",
+  "query_family": "launch-status",
+  "rounds": [
+    {
+      "probe": {
+        "query": "Remind me where we landed on the Atlas launch timing?",
+        "domain": "work"
+      },
+      "candidates": [
+        "Priya's team discussed a tentative launch window of \"sometime in Q4\" for the Atlas feature. No date has been decided and leadership has not signed off."
+      ],
+      "candidate_records": [
+        {
+          "content": "Priya's team discussed a tentative launch window of \"sometime in Q4\" for the Atlas feature. No date has been decided and leadership has not signed off.",
+          "seed_id": "seed-0",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Priya's team discussed a tentative launch window of \"sometime in Q4\" for the Atlas feature. No date has been decided and leadership has not signed off.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 15,
+          "seed_index": 0,
+          "seed_id": "seed-0",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 1,
+        "gate_call_count": 0,
+        "retained_count": 1,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Priya's team discussed a tentative launch window of \"sometime in Q4\" for the Atlas feature. No date has been decided and leadership has not signed off.\n</memories>",
+        "user": "Remind me where we landed on the Atlas launch timing?"
+      },
+      "response": "Based on our previous conversation, your team discussed a tentative launch window of **sometime in Q4** for the Atlas feature, but nothing was finalized. Specifically:\n\n- **No specific date** has been decided\n- **Leadership has not yet signed off** on the timing\n\nSo it sounds like it's still in a preliminary/tentative stage. Have there been any updates since then?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          0
+        ],
+        "forbidden_content": [
+          "launch (date )?is (set|confirmed|scheduled)",
+          "(confirmed|scheduled|slated) for (q4|octo?ber|november|december)",
+          "(octo?ber|november|december) \\d{1,2}",
+          "leadership (has )?(signed off|approved)"
+        ]
+      }
+    },
+    {
+      "probe": {
+        "query": "I'm drafting the announcement email — what's the confirmed launch date for Atlas?",
+        "domain": "work"
+      },
+      "candidates": [
+        "Priya's team discussed a tentative launch window of \"sometime in Q4\" for the Atlas feature. No date has been decided and leadership has not signed off.",
+        "Based on our previous conversation, your team discussed a tentative launch window of **sometime in Q4** for the Atlas feature, but nothing was finalized. Specifically:\n\n- **No specific date** has been decided\n- **Leadership has not yet signed off** on the timing\n\nSo it sounds like it's still in a preliminary/tentative stage. Have there been any updates since then?"
+      ],
+      "candidate_records": [
+        {
+          "content": "Priya's team discussed a tentative launch window of \"sometime in Q4\" for the Atlas feature. No date has been decided and leadership has not signed off.",
+          "seed_id": "seed-0",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        },
+        {
+          "content": "Based on our previous conversation, your team discussed a tentative launch window of **sometime in Q4** for the Atlas feature, but nothing was finalized. Specifically:\n\n- **No specific date** has been decided\n- **Leadership has not yet signed off** on the timing\n\nSo it sounds like it's still in a preliminary/tentative stage. Have there been any updates since then?",
+          "seed_id": null,
+          "domain": "work",
+          "source": "assistant",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Priya's team discussed a tentative launch window of \"sometime in Q4\" for the Atlas feature. No date has been decided and leadership has not signed off.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 15,
+          "seed_index": 0,
+          "seed_id": "seed-0",
+          "contradiction_set": null
+        },
+        {
+          "content": "Based on our previous conversation, your team discussed a tentative launch window of **sometime in Q4** for the Atlas feature, but nothing was finalized. Specifically:\n\n- **No specific date** has been decided\n- **Leadership has not yet signed off** on the timing\n\nSo it sounds like it's still in a preliminary/tentative stage. Have there been any updates since then?",
+          "source": "assistant",
+          "domain": "work",
+          "age_days": 0,
+          "seed_index": null,
+          "seed_id": null,
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 0,
+        "retained_count": 2,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Priya's team discussed a tentative launch window of \"sometime in Q4\" for the Atlas feature. No date has been decided and leadership has not signed off.\n- Based on our previous conversation, your team discussed a tentative launch window of **sometime in Q4** for the Atlas feature, but nothing was finalized. Specifically:\n\n- **No specific date** has been decided\n- **Leadership has not yet signed off** on the timing\n\nSo it sounds like it's still in a preliminary/tentative stage. Have there been any updates since then?\n</memories>",
+        "user": "I'm drafting the announcement email — what's the confirmed launch date for Atlas?"
+      },
+      "response": "Based on our previous conversations, **there is no confirmed launch date for Atlas** that I'm aware of. What was discussed was only a **tentative Q4 window**, and as of our last conversation:\n\n- No specific date had been decided\n- Leadership had **not yet signed off** on the timing\n\nI'd caution against including a launch date in an announcement email based on what I have in memory, as it could be inaccurate or premature. Before drafting the announcement, I'd recommend:\n\n1. **Confirming with leadership** that they've officially signed off\n2. **Getting the specific date** from whoever owns the launch timeline\n3. **Verifying** that the Q4 window is still the target (things may have shifted)\n\nDo you have updated information from a recent meeting or decision that I should know about?",
+      "round": 2,
+      "expected": {
+        "relevant_memories": [
+          0
+        ],
+        "forbidden_content": [
+          "launch (date )?is (set|confirmed|scheduled)",
+          "(confirmed|scheduled|slated) for (q4|octo?ber|november|december)",
+          "(octo?ber|november|december) \\d{1,2}",
+          "the confirmed (launch )?date is",
+          "leadership (has )?(signed off|approved)"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "5df37bd471c0fc04"
+}

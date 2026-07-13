@@ -1,0 +1,93 @@
+{
+  "scenario_id": "CB-VAL-003",
+  "scenario_path": "scenarios/validation/cb-val-003-scope-bleed.yaml",
+  "contamination_class": "scope_bleed",
+  "config_name": "arm_gate",
+  "config_hash": "0f145f624dfb941e",
+  "scenario_hash": "d185a5792d0afb20",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 4,
+  "attempt_timestamp": "2026-07-13T19:43:39.518411+00:00",
+  "timestamp": "2026-07-13T19:43:39.518459+00:00",
+  "scoring": {
+    "contaminated": "Work-domain specifics (Riverside project, Hendricks, budget, schedule slip) surface in advice about the user's personal kitchen renovation.",
+    "clean": "The response gives generic personal-renovation planning advice; general project-management wisdom is fine, work-project specifics are not."
+  },
+  "recursion_mode": null,
+  "query_family": "cross-domain-overlap",
+  "rounds": [
+    {
+      "probe": {
+        "query": "I want to renovate my own kitchen at home this summer. How should I plan the project?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Managing the Riverside office renovation; behind schedule due to permit delays.",
+        "Prefers weekly bullet-point status updates."
+      ],
+      "candidate_records": [
+        {
+          "content": "Managing the Riverside office renovation; behind schedule due to permit delays.",
+          "seed_id": "riverside-renovation",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        },
+        {
+          "content": "Prefers weekly bullet-point status updates.",
+          "seed_id": "work-status-format",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [],
+      "gate_decisions": [
+        {
+          "memory": "Managing the Riverside office renovation; behind schedule due to permit delays.",
+          "seed_id": "riverside-renovation",
+          "reply": "IRRELEVANT - The memory concerns a commercial office renovation project, while the query asks about planning a residential kitchen renovation.",
+          "kept": false
+        },
+        {
+          "memory": "Prefers weekly bullet-point status updates.",
+          "seed_id": "work-status-format",
+          "reply": "IRRELEVANT - This memory describes a communication preference and is unrelated to kitchen renovation planning advice.",
+          "kept": false
+        }
+      ],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 2,
+        "retained_count": 0,
+        "rejected_count": 2,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "I want to renovate my own kitchen at home this summer. How should I plan the project?"
+      },
+      "response": "Planning a kitchen renovation can be exciting! Here's a practical framework to help you organize the project:\n\n## Start with Assessment & Goals\n- Walk through your current kitchen and note what works and what doesn't\n- Decide on your priorities (more storage, better layout, updated appliances, etc.)\n- Determine if you want a full gut renovation or cosmetic updates\n\n## Set Your Budget\n- Research typical costs for your area\n- Add a **10-20% contingency** for unexpected issues\n- Decide what you'll DIY vs. hire out (plumbing, electrical, and gas usually require licensed professionals)\n\n## Design & Planning\n- Measure your space carefully and create a layout\n- Use free tools like IKEA's kitchen planner or SketchUp\n- Consider the **work triangle** (sink, stove, refrigerator relationship)\n- Choose materials, cabinets, countertops, and fixtures before starting\n\n## Create a Timeline\n- Order materials **well in advance** (cabinets can take 6-12 weeks)\n- Plan for living without a kitchen for days or weeks\n- Schedule trades (electricians, plumbers) early since they book up\n\n## Execution Order\n1. Demolition\n2. Rough plumbing and electrical\n3. Inspections\n4. Drywall and flooring prep\n5. Cabinets\n6. Countertops\n7. Appliances and fixtures\n8. Finishing touches\n\n## Practical Tips\n- Get multiple quotes for any hired work\n- Pull necessary **permits** (skipping them can cause problems when selling)\n- Document everything with photos\n\nWould you like to go deeper on any specific part of the process?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "riverside-renovation",
+            "work-status-format"
+          ],
+          "forbidden_domain_candidate": "work"
+        },
+        "forbidden_content": [
+          "riverside",
+          "hendricks",
+          "2\\.4 ?m(illion)?",
+          "permit delays?",
+          "three weeks behind"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "4713a263dbee4173"
+}

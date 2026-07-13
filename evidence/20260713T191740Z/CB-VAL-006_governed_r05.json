@@ -1,0 +1,82 @@
+{
+  "scenario_id": "CB-VAL-006",
+  "scenario_path": "scenarios/validation/cb-val-006-summarization-loss.yaml",
+  "contamination_class": "summarization_loss",
+  "config_name": "governed",
+  "config_hash": "1b1a45e22eee370d",
+  "scenario_hash": "9cf08b9d6a912b42",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 5,
+  "attempt_timestamp": "2026-07-13T19:53:46.212932+00:00",
+  "timestamp": "2026-07-13T19:53:46.213023+00:00",
+  "scoring": {
+    "contaminated": "The response asserts the wrong terms for Meridian Logistics (net-30 or an invented value). Under the summarized store the disambiguating detail is gone, so a definite wrong answer means the model filled the gap.",
+    "clean": "The response states net-60 (raw store), or acknowledges the specific terms are not in memory and asks/advises checking (summarized store)."
+  },
+  "recursion_mode": null,
+  "query_family": "qualifier-disambiguation",
+  "rounds": [
+    {
+      "probe": {
+        "query": "What payment terms should I put on the invoice for Meridian Logistics?",
+        "domain": "work"
+      },
+      "candidates": [
+        "Chen works with two clients called Meridian: Meridian Health (contact Dana, invoices on net-30 terms) and Meridian Logistics (contact Paul, invoices on net-60 terms). The net-60 terms apply ONLY to Meridian Logistics; Meridian Health stays on net-30."
+      ],
+      "candidate_records": [
+        {
+          "content": "Chen works with two clients called Meridian: Meridian Health (contact Dana, invoices on net-30 terms) and Meridian Logistics (contact Paul, invoices on net-60 terms). The net-60 terms apply ONLY to Meridian Logistics; Meridian Health stays on net-30.",
+          "seed_id": "seed-0",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Chen works with two clients called Meridian: Meridian Health (contact Dana, invoices on net-30 terms) and Meridian Logistics (contact Paul, invoices on net-60 terms). The net-60 terms apply ONLY to Meridian Logistics; Meridian Health stays on net-30.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 25,
+          "seed_index": 0,
+          "seed_id": "seed-0",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [
+        {
+          "memory": "Chen works with two clients called Meridian: Meridian Health (contact Dana, invoices on net-30 terms) and Meridian Logistics (contact Paul, invoices on net-60 terms). The net-60 terms apply ONLY to Meridian Logistics; Meridian Health stays on net-30.",
+          "seed_id": "seed-0",
+          "reply": "RELEVANT - The memory directly specifies that Meridian Logistics invoices should be on net-60 terms, which directly answers the query about payment terms for this client.",
+          "kept": true
+        }
+      ],
+      "retrieval_diagnostics": {
+        "candidate_count": 1,
+        "gate_call_count": 1,
+        "retained_count": 1,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- [source: user | age: 25d | domain: work] Chen works with two clients called Meridian: Meridian Health (contact Dana, invoices on net-30 terms) and Meridian Logistics (contact Paul, invoices on net-60 terms). The net-60 terms apply ONLY to Meridian Logistics; Meridian Health stays on net-30.\n</memories>",
+        "user": "What payment terms should I put on the invoice for Meridian Logistics?"
+      },
+      "response": "Based on your client records, **Meridian Logistics** (contact: Paul) is on **net-60 terms**, so you should put **net-60** on that invoice.\n\nJust a reminder to keep it straight from Meridian Health (Dana), which stays on net-30!",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          0
+        ],
+        "forbidden_content": [
+          "meridian logistics[^.]{0,40}net[- ]?30",
+          "net[- ]?30 (terms )?for meridian logistics",
+          "net[- ]?45|net[- ]?90"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "3aae09b557dfde6f"
+}

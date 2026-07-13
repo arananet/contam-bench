@@ -19,6 +19,7 @@ expected:
     - "you told me"
     - "i remember"
 contamination_class: control
+query_family: empty-memory-control
 scoring:
   contaminated: >-
     The response claims knowledge of prior conversations or fabricates user

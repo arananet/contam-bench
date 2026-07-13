@@ -65,7 +65,7 @@ def load_scenarios(paths: list[str] | None = None) -> list[dict]:
 def run_round(client: CountingClient, models: dict, config: dict,
               store: MemoryStore, probe: dict) -> dict:
     candidates = store.candidates(probe["domain"])
-    retrieved, gate_decisions = retrieve(
+    retrieved, gate_decisions, retrieval_diagnostics = retrieve(
         client, models, config, probe["query"], candidates)
     memory_block = store.render(retrieved)
     system = SYSTEM_PROMPT.format(memory_block=memory_block)
@@ -80,19 +80,28 @@ def run_round(client: CountingClient, models: dict, config: dict,
     return {
         "probe": probe,
         "candidates": [e.content for e in candidates],
+        "candidate_records": [
+            {"content": e.content, "seed_id": e.seed_id,
+             "domain": e.domain, "source": e.source,
+             "contradiction_set": e.contradiction_set}
+            for e in candidates
+        ],
         "retrieved": [
             {"content": e.content, "source": e.source, "domain": e.domain,
-             "age_days": e.age_days, "seed_index": e.seed_index}
+             "age_days": e.age_days, "seed_index": e.seed_index,
+             "seed_id": e.seed_id,
+             "contradiction_set": e.contradiction_set}
             for e in retrieved
         ],
         "gate_decisions": gate_decisions,
+        "retrieval_diagnostics": retrieval_diagnostics,
         "prompt": {"system": system, "user": probe["query"]},
         "response": response,
     }
 
 
 def run_pair(client: CountingClient, spec: dict, config_name: str,
-             scenario: dict) -> dict:
+             scenario: dict, repetition: int = 1) -> dict:
     models = spec["models"]
     config = spec["configs"][config_name]
     scenario_clean = {k: v for k, v in scenario.items() if not k.startswith("_")}
@@ -112,7 +121,7 @@ def run_pair(client: CountingClient, spec: dict, config_name: str,
         round2["expected"] = scenario["round2"]["expected"]
         rounds.append(round2)
 
-    return {
+    artifact = {
         "scenario_id": scenario["scenario_id"],
         "scenario_path": scenario["_path"],
         "contamination_class": scenario["contamination_class"],
@@ -121,10 +130,17 @@ def run_pair(client: CountingClient, spec: dict, config_name: str,
         "scenario_hash": canonical_hash(scenario_clean),
         "subject_model": models["subject"],
         "subject_temperature": models["subject_temperature"],
+        "repetition": repetition,
+        "attempt_timestamp": datetime.now(timezone.utc).isoformat(),
+        # Retained for readers of frozen-artifact-era field names.
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "scoring": scenario["scoring"],
+        "recursion_mode": scenario.get("recursion_mode"),
+        "query_family": scenario.get("query_family"),
         "rounds": rounds,
     }
+    artifact["artifact_hash"] = canonical_hash(artifact)
+    return artifact
 
 
 def main(argv: list[str] | None = None) -> str:
@@ -132,13 +148,19 @@ def main(argv: list[str] | None = None) -> str:
     parser.add_argument("--scenario", action="append",
                         help="run only this scenario file (repeatable)")
     parser.add_argument("--config", action="append",
-                        choices=["naive", "governed"],
                         help="run only this config (repeatable)")
+    parser.add_argument("--repetitions", type=int, default=1,
+                        help="independent attempts per scenario/configuration cell")
     args = parser.parse_args(argv)
+    if args.repetitions < 1:
+        parser.error("--repetitions must be at least 1")
 
     spec = load_spec()
     scenarios = load_scenarios(args.scenario)
     config_names = args.config or list(spec["configs"])
+    unknown_configs = set(config_names) - set(spec["configs"])
+    if unknown_configs:
+        parser.error(f"unknown configuration(s): {', '.join(sorted(unknown_configs))}")
     client = make_client()
 
     run_dir = os.path.join(
@@ -147,15 +169,18 @@ def main(argv: list[str] | None = None) -> str:
 
     for scenario in scenarios:
         for config_name in config_names:
-            print(f"running {scenario['scenario_id']} × {config_name} ...")
-            artifact = run_pair(client, spec, config_name, scenario)
-            name = f"{artifact['scenario_id']}_{config_name}.json"
-            with open(os.path.join(run_dir, name), "w") as f:
-                json.dump(artifact, f, indent=2, ensure_ascii=False)
+            for repetition in range(1, args.repetitions + 1):
+                print(f"running {scenario['scenario_id']} × {config_name} "
+                      f"(repetition {repetition}/{args.repetitions}) ...")
+                artifact = run_pair(client, spec, config_name, scenario, repetition)
+                name = f"{artifact['scenario_id']}_{config_name}_r{repetition:02d}.json"
+                with open(os.path.join(run_dir, name), "w") as f:
+                    json.dump(artifact, f, indent=2, ensure_ascii=False)
 
     meta = {
         "run_dir": os.path.relpath(run_dir, REPO_ROOT),
         "models": spec["models"],
+        "repetitions": args.repetitions,
         "call_counts": client.counts,
         "total_calls": client.total_calls,
     }

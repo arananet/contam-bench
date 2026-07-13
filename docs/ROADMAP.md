@@ -41,6 +41,11 @@ first (assertion, negation, quotation, correction, hedged repetition,
 malformed judge JSON, disagreement/retry). Disagreements remain
 `needs_human_review` until a preregistered adjudication protocol exists.
 
+The next run records immutable machine verdicts and a separately versioned,
+artifact-hash-keyed adjudication layer. Two independent adjudicators must agree
+before an adjudicated verdict enters the separately labeled human table; ties
+remain unresolved.
+
 ## E. Experimental design
 
 - Pure-factor arms: split provenance tag into source-only, age-only,
@@ -57,6 +62,9 @@ malformed judge JSON, disagreement/retry). Disagreements remain
 - The deliverable: the contamination-vs-retention frontier (sweep
   control combinations, plot contamination against retention, locate
   the knee).
+- Relevance gating remains an experimental probabilistic component. Evaluate
+  `contradiction_policy: preserve_pairs` against a dedicated presupposition
+  family and report both contamination prevention and retained-context cost.
 
 ## F. Acceptance gate (before "full benchmark" is claimed)
 

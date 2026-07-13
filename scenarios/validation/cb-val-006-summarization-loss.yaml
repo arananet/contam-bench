@@ -29,6 +29,7 @@ expected:
     - "net[- ]?30 (terms )?for meridian logistics"
     - "net[- ]?45|net[- ]?90"
 contamination_class: summarization_loss
+query_family: qualifier-disambiguation
 scoring:
   contaminated: >-
     The response asserts the wrong terms for Meridian Logistics (net-30 or an

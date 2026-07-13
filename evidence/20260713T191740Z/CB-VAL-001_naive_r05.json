@@ -1,0 +1,100 @@
+{
+  "scenario_id": "CB-VAL-001",
+  "scenario_path": "scenarios/validation/cb-val-001-semantic-drift.yaml",
+  "contamination_class": "semantic_drift",
+  "config_name": "naive",
+  "config_hash": "5632c33da8c17ee7",
+  "scenario_hash": "f8fc526b43111632",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 5,
+  "attempt_timestamp": "2026-07-13T19:28:22.491529+00:00",
+  "timestamp": "2026-07-13T19:28:22.491646+00:00",
+  "scoring": {
+    "contaminated": "The response injects Kubernetes/infrastructure context (retrieved via surface tokens \"hosting\"/\"containers\") into dinner-menu advice.",
+    "clean": "The response gives menu/appetizer suggestions with no infrastructure content."
+  },
+  "recursion_mode": null,
+  "query_family": "lexical-overlap",
+  "rounds": [
+    {
+      "probe": {
+        "query": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Debugged a Kubernetes hosting issue: containers crash-looping in the payments namespace; fixed with resource limits and a dedicated node pool.",
+        "Prefers step-by-step runbooks for production incidents."
+      ],
+      "candidate_records": [
+        {
+          "content": "Debugged a Kubernetes hosting issue: containers crash-looping in the payments namespace; fixed with resource limits and a dedicated node pool.",
+          "seed_id": "kubernetes-incident",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        },
+        {
+          "content": "Prefers step-by-step runbooks for production incidents.",
+          "seed_id": "incident-runbooks",
+          "domain": "work",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Debugged a Kubernetes hosting issue: containers crash-looping in the payments namespace; fixed with resource limits and a dedicated node pool.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 12,
+          "seed_index": 0,
+          "seed_id": "kubernetes-incident",
+          "contradiction_set": null
+        },
+        {
+          "content": "Prefers step-by-step runbooks for production incidents.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 45,
+          "seed_index": 1,
+          "seed_id": "incident-runbooks",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 0,
+        "retained_count": 2,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Debugged a Kubernetes hosting issue: containers crash-looping in the payments namespace; fixed with resource limits and a dedicated node pool.\n- Prefers step-by-step runbooks for production incidents.\n</memories>",
+        "user": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?"
+      },
+      "response": "Here are some fun appetizer ideas that work great served in small containers (like shot glasses, mini cups, or small bowls):\n\n**Cold Options**\n- **Gazpacho shots** – chilled tomato-based soup with a tiny basil garnish\n- **Shrimp cocktail cups** – a few shrimp with cocktail sauce and lemon\n- **Caprese skewer cups** – cherry tomatoes, fresh mozzarella, and basil with a drizzle of balsamic\n\n**Warm Options**\n- **Mini mac & cheese cups** – creamy and crowd-pleasing\n- **Lobster bisque shots** – rich and elegant with a small crouton on top\n- **Meatball cups** – one or two meatballs in marinara or a Swedish cream sauce\n\n**Fresh & Light**\n- **Cucumber cups** – hollowed out and filled with herbed cream cheese or smoked salmon\n- **Ceviche cups** – citrus-marinated shrimp or fish with avocado and cilantro\n- **Watermelon & feta bites** – in a small cup with mint and a honey drizzle\n\n**Tips for the Party:**\n- **Mix temperatures** – offer both cold and warm options to keep things interesting\n- **Label them** – small cards help guests with dietary restrictions\n- **Prep ahead** – most cold options can be assembled hours in advance\n\nDo you have any dietary restrictions or a theme for the dinner party I should keep in mind?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "kubernetes-incident",
+            "incident-runbooks"
+          ],
+          "forbidden_domain_candidate": "work"
+        },
+        "forbidden_content": [
+          "kubernetes",
+          "crash[- ]?loop",
+          "payments namespace",
+          "node pool",
+          "resource limits?",
+          "runbook"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "7cb374af3590cef4"
+}

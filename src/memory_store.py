@@ -17,6 +17,8 @@ class MemoryEntry:
     age_days: int
     fact_class: str
     seed_index: int | None  # index into the scenario's memory_seed; None = write-back
+    seed_id: str | None = None
+    contradiction_set: str | None = None
 
 
 def _summarize(item: dict) -> str:
@@ -48,6 +50,8 @@ class MemoryStore:
                 age_days=item["age_days"],
                 fact_class=item.get("fact_class", default_fc),
                 seed_index=i,
+                seed_id=item.get("id", f"seed-{i}"),
+                contradiction_set=item.get("contradiction_set"),
             ))
 
     def write_back(self, response_text: str, domain: str) -> None:
@@ -59,6 +63,8 @@ class MemoryStore:
             age_days=0,
             fact_class="volatile",
             seed_index=None,
+            seed_id=None,
+            contradiction_set=None,
         ))
 
     def candidates(self, probe_domain: str) -> list[MemoryEntry]:

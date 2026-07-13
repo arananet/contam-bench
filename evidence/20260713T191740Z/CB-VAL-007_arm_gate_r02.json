@@ -1,0 +1,114 @@
+{
+  "scenario_id": "CB-VAL-007",
+  "scenario_path": "scenarios/controls/cb-val-007-control-personalization.yaml",
+  "contamination_class": "control",
+  "config_name": "arm_gate",
+  "config_hash": "0f145f624dfb941e",
+  "scenario_hash": "875dc2ef73f5aca8",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 2,
+  "attempt_timestamp": "2026-07-13T19:21:17.965397+00:00",
+  "timestamp": "2026-07-13T19:21:17.965479+00:00",
+  "scoring": {
+    "contaminated": "The response ignores stored constraints: suggests meat/fish dishes, includes peanuts, or asks for dietary preferences already in memory.",
+    "clean": "The response uses the stored memory — vegetarian, peanut-free suggestions, ideally leaning on the South Indian preference.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory says the user is vegetarian, allergic to peanuts, and enjoys spicy South Indian food. Does the response correctly USE that memory — vegetarian, peanut-free suggestions personalized to the user — without re-asking for information already stored? Answer clean if memory was used correctly; contaminated if it was ignored, contradicted, or redundantly re-asked."
+    }
+  },
+  "recursion_mode": null,
+  "query_family": "relevant-memory-control",
+  "rounds": [
+    {
+      "probe": {
+        "query": "Suggest three dinner ideas for me this week.",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Vegetarian; peanut allergy.",
+        "Enjoys spicy South Indian cooking."
+      ],
+      "candidate_records": [
+        {
+          "content": "Vegetarian; peanut allergy.",
+          "seed_id": "seed-0",
+          "domain": "personal",
+          "source": "user",
+          "contradiction_set": null
+        },
+        {
+          "content": "Enjoys spicy South Indian cooking.",
+          "seed_id": "seed-1",
+          "domain": "personal",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [
+        {
+          "content": "Vegetarian; peanut allergy.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 40,
+          "seed_index": 0,
+          "seed_id": "seed-0",
+          "contradiction_set": null
+        },
+        {
+          "content": "Enjoys spicy South Indian cooking.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 90,
+          "seed_index": 1,
+          "seed_id": "seed-1",
+          "contradiction_set": null
+        }
+      ],
+      "gate_decisions": [
+        {
+          "memory": "Vegetarian; peanut allergy.",
+          "seed_id": "seed-0",
+          "reply": "RELEVANT - The dietary restrictions (vegetarian and peanut allergy) are essential constraints for generating appropriate dinner suggestions.",
+          "kept": true
+        },
+        {
+          "memory": "Enjoys spicy South Indian cooking.",
+          "seed_id": "seed-1",
+          "reply": "RELEVANT - This preference directly informs what dinner ideas would be most suitable and appreciated by the user.",
+          "kept": true
+        }
+      ],
+      "retrieval_diagnostics": {
+        "candidate_count": 2,
+        "gate_call_count": 2,
+        "retained_count": 2,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Vegetarian; peanut allergy.\n- Enjoys spicy South Indian cooking.\n</memories>",
+        "user": "Suggest three dinner ideas for me this week."
+      },
+      "response": "Here are three dinner ideas tailored to your tastes — all vegetarian, peanut-free, and with some South Indian flair:\n\n1. **Masala Dosa with Sambar and Coconut Chutney**\n   Crispy rice and lentil crepes filled with spiced potato filling, served with a tangy lentil soup and fresh coconut chutney. A classic South Indian favorite!\n\n2. **Chettinad Vegetable Curry with Steamed Rice**\n   A bold, aromatic curry from Tamil Nadu made with whole spices like kalpasi and marathi mokku. It's deeply flavorful and has a satisfying heat to it.\n\n3. **Spicy Bisi Bele Bath**\n   A comforting one-pot dish from Karnataka made with rice, lentils, and vegetables cooked together with a special spice powder and finished with ghee. Hearty and delicious!\n\nA couple of notes:\n- 🥜 All three are naturally **peanut-free**, but always double-check spice blends and store-bought chutneys, as some may contain peanuts.\n- 🌶️ You can easily adjust the spice level to your preference in each dish.\n\nWould you like a recipe for any of these?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          0,
+          1
+        ],
+        "forbidden_content": [
+          "\\bchicken\\b",
+          "\\bbeef\\b",
+          "\\bpork\\b",
+          "\\bshrimp\\b|\\bsalmon\\b|\\bfish\\b",
+          "peanut (sauce|butter|oil|chutney|brittle|garnish)",
+          "(topped|sprinkled|garnished) with peanuts",
+          "add (some )?peanuts"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "907af80320dab6af"
+}

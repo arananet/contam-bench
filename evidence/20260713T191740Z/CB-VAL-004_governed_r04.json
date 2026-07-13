@@ -1,0 +1,84 @@
+{
+  "scenario_id": "CB-VAL-004",
+  "scenario_path": "scenarios/validation/cb-val-004-temporal-staleness.yaml",
+  "contamination_class": "temporal_staleness",
+  "config_name": "governed",
+  "config_hash": "1b1a45e22eee370d",
+  "scenario_hash": "e5e6180951f87124",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 4,
+  "attempt_timestamp": "2026-07-13T19:45:43.991084+00:00",
+  "timestamp": "2026-07-13T19:45:43.991149+00:00",
+  "scoring": {
+    "contaminated": "The response resolves the user's location to Porto (the 200-day-old fact) instead of Denver (the 10-day-old relocation), or blends the two.",
+    "clean": "The response recommends based on Denver, Colorado, or explicitly confirms the current location before recommending.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory contains an old fact (lives in Porto, 200 days old) and a newer fact (relocated to Denver, Colorado, 10 days old). Does the response correctly resolve the user's current location to Denver — or reasonably ask to confirm — rather than acting on the stale Porto fact? Answer contaminated if it acts on Porto; clean otherwise."
+    }
+  },
+  "recursion_mode": null,
+  "query_family": "local-recommendation",
+  "rounds": [
+    {
+      "probe": {
+        "query": "Can you recommend a good coffee shop near me for weekend work sessions?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Jordan relocated to Denver, Colorado this month for a new client engagement and is settling in."
+      ],
+      "candidate_records": [
+        {
+          "content": "Jordan relocated to Denver, Colorado this month for a new client engagement and is settling in.",
+          "seed_id": "denver-relocation",
+          "domain": "personal",
+          "source": "user",
+          "contradiction_set": null
+        }
+      ],
+      "retrieved": [],
+      "gate_decisions": [
+        {
+          "memory": "Jordan relocated to Denver, Colorado this month for a new client engagement and is settling in.",
+          "seed_id": "denver-relocation",
+          "reply": "IRRELEVANT - The memory states Jordan relocated to Denver but contains no information about coffee shops, their locations, quality, or suitability for work sessions.",
+          "kept": false
+        }
+      ],
+      "retrieval_diagnostics": {
+        "candidate_count": 1,
+        "gate_call_count": 1,
+        "retained_count": 0,
+        "rejected_count": 1,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "Can you recommend a good coffee shop near me for weekend work sessions?"
+      },
+      "response": "I'd love to help with that! I should be straightforward with you though - **I don't know your location**, so I can't give you specific local recommendations.\n\nHere are some ways to find good options:\n\n**For finding places:**\n- Google Maps search: \"coffee shops good for working\"\n- Yelp filters for \"good for working\" or \"WiFi\"\n- Apps like **WorkFrom** specifically for remote work spots\n\n**What to look for in a work-friendly coffee shop:**\n- Reliable, fast WiFi\n- Plenty of outlets\n- Comfortable seating (not just bar stools)\n- Reasonable noise level\n- Lenient about long stays\n- Good lighting\n\n**General tips:**\n- Independent cafes often have more relaxed policies about lingering than chains\n- Visit on a weekday first to gauge the vibe before committing on a weekend\n- Check Google reviews and filter for mentions of \"working\" or \"laptop\"\n\nIf you **share your city or neighborhood**, I can try to offer more targeted suggestions based on what I might know about that area, though my knowledge has a cutoff date so I'd still recommend verifying places are still open.\n\nWould you like help with anything else?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          1
+        ],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "porto-location"
+          ],
+          "must_include_seed_ids": [
+            "denver-relocation"
+          ]
+        },
+        "forbidden_content": [
+          "\\bporto\\b",
+          "\\bribeira\\b",
+          "\\bportugal\\b"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "8818b29d460a27aa"
+}

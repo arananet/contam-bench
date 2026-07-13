@@ -1,0 +1,63 @@
+{
+  "scenario_id": "CB-VAL-001",
+  "scenario_path": "scenarios/validation/cb-val-001-semantic-drift.yaml",
+  "contamination_class": "semantic_drift",
+  "config_name": "arm_namespace",
+  "config_hash": "7ca8908071021831",
+  "scenario_hash": "f8fc526b43111632",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "repetition": 2,
+  "attempt_timestamp": "2026-07-13T19:29:11.752186+00:00",
+  "timestamp": "2026-07-13T19:29:11.752267+00:00",
+  "scoring": {
+    "contaminated": "The response injects Kubernetes/infrastructure context (retrieved via surface tokens \"hosting\"/\"containers\") into dinner-menu advice.",
+    "clean": "The response gives menu/appetizer suggestions with no infrastructure content."
+  },
+  "recursion_mode": null,
+  "query_family": "lexical-overlap",
+  "rounds": [
+    {
+      "probe": {
+        "query": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?",
+        "domain": "personal"
+      },
+      "candidates": [],
+      "candidate_records": [],
+      "retrieved": [],
+      "gate_decisions": [],
+      "retrieval_diagnostics": {
+        "candidate_count": 0,
+        "gate_call_count": 0,
+        "retained_count": 0,
+        "rejected_count": 0,
+        "contradiction_override_fired": false
+      },
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?"
+      },
+      "response": "Here are some fun appetizer ideas that work great in small containers:\n\n## Cold Options\n- **Gazpacho shots** - chilled tomato soup in shot glasses\n- **Shrimp cocktail cups** - individual portions with cocktail sauce\n- **Caprese skewers** in small cups with balsamic drizzle\n- **Smoked salmon mousse** in cucumber cups or small glasses\n\n## Warm Options\n- **Mini lobster bisque** in espresso cups\n- **French onion soup** in small ramekins with gruyère crust\n- **Butternut squash soup shots** with crème fraîche\n- **Mac and cheese bites** in mini cast iron skillets\n\n## Fun & Interactive\n- **Taco cups** - wonton wrappers baked in a muffin tin\n- **Charcuterie cones** with meats, cheese, and olives\n- **Bruschetta cups** with tomato and basil\n- **Deviled egg** filling piped into small glasses\n\n## Tips for Success\n- **Prep ahead** - most of these can be made the day before\n- **Keep portions small** - 2-3 bites per container\n- **Mix temperatures** - offer both hot and cold options\n- **Label them** so guests know what they're eating\n\nDo you have any dietary restrictions among your guests, or a particular cuisine style you're going for? That could help narrow things down!",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "retrieval": {
+          "must_exclude_seed_ids": [
+            "kubernetes-incident",
+            "incident-runbooks"
+          ],
+          "forbidden_domain_candidate": "work"
+        },
+        "forbidden_content": [
+          "kubernetes",
+          "crash[- ]?loop",
+          "payments namespace",
+          "node pool",
+          "resource limits?",
+          "runbook"
+        ]
+      }
+    }
+  ],
+  "artifact_hash": "28a0468c03a2b179"
+}

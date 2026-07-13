@@ -31,40 +31,46 @@ def mocked_pipeline(monkeypatch, tmp_path):
 
 
 def test_full_pipeline(mocked_pipeline, tmp_path, capsys):
-    run_dir = harness.main([])
+    repetitions = 2
+    run_dir = harness.main(["--repetitions", str(repetitions)])
 
     # Manifest-driven expected inventory (review item 2): never a literal.
     import yaml
     n_scenarios = len(glob.glob("scenarios/*/*.yaml"))
     n_configs = len(yaml.safe_load(open("spec/configs.yaml"))["configs"])
     artifacts = sorted(glob.glob(os.path.join(run_dir, "CB-VAL-*.json")))
-    assert len(artifacts) == n_scenarios * n_configs, (
-        f"expected {n_scenarios}x{n_configs}={n_scenarios*n_configs} artifacts, "
+    assert len(artifacts) == n_scenarios * n_configs * repetitions, (
+        f"expected {n_scenarios}x{n_configs}x{repetitions}="
+        f"{n_scenarios*n_configs*repetitions} artifacts, "
         f"got {len(artifacts)}")
 
     for path in artifacts:
         artifact = json.load(open(path))
         assert artifact["subject_model"]
         assert artifact["config_hash"] and artifact["scenario_hash"]
+        assert artifact["artifact_hash"] and artifact["repetition"] in (1, 2)
         for rnd in artifact["rounds"]:
             assert rnd["prompt"]["system"] and rnd["response"]
+            assert {"candidate_count", "gate_call_count", "retained_count",
+                    "rejected_count", "contradiction_override_fired"} <= set(
+                        rnd["retrieval_diagnostics"])
         if artifact["scenario_id"] == "CB-VAL-005":
             assert len(artifact["rounds"]) == 2  # write-back happened
 
     # recursive write-back: round-2 store contained the round-1 response
-    rec = json.load(open(os.path.join(run_dir, "CB-VAL-005_naive.json")))
+    rec = json.load(open(os.path.join(run_dir, "CB-VAL-005_naive_r01.json")))
     r1_response = rec["rounds"][0]["response"]
     assert any(r1_response[:40] in c for c in rec["rounds"][1]["candidates"])
 
     # reproducibility: hashes identical across configs for the same scenario
-    a = json.load(open(os.path.join(run_dir, "CB-VAL-001_naive.json")))
-    b = json.load(open(os.path.join(run_dir, "CB-VAL-001_governed.json")))
+    a = json.load(open(os.path.join(run_dir, "CB-VAL-001_naive_r01.json")))
+    b = json.load(open(os.path.join(run_dir, "CB-VAL-001_governed_r01.json")))
     assert a["scenario_hash"] == b["scenario_hash"]
     assert a["config_hash"] != b["config_hash"]
 
     verdicts_path = judge.main([run_dir])
     verdicts = json.load(open(verdicts_path))["verdicts"]
-    assert len(verdicts) == n_scenarios * n_configs
+    assert len(verdicts) == n_scenarios * n_configs * repetitions
 
     # both scoring passes executed; disagreement flagged, never swallowed
     judged = [r for v in verdicts for r in v["rounds"] if r["judge"]]
@@ -83,6 +89,8 @@ def test_full_pipeline(mocked_pipeline, tmp_path, capsys):
                  "personalization_retention"]:
         assert name in report
     assert "total API calls" in report
+    assert "## Retrieval assertions" in report
+    assert "## Relevance-gate observability" in report
 
     printed = capsys.readouterr().out
     assert "API calls" in printed  # call count printed at run end

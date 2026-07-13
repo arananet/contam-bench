@@ -1,0 +1,47 @@
+title: "Repeated evaluation and retrieval observability"
+slug: "repeated-evaluation-observability"
+type: feature
+status: review
+
+roles:
+  implementer: "arananet"
+  reviewer: null
+  qa: null
+  product_owner: null
+
+description: >-
+  Implement the next-evaluation contract from the external review: repeated
+  scenario/configuration runs, immutable machine verdicts with separately
+  versioned adjudications, manifest-defined retrieval assertions, and observed
+  relevance-gate accounting. The frozen v0.2 evidence remains unchanged.
+
+acceptance_criteria:
+  - The harness accepts --repetitions K, persists repetition, attempt timestamp,
+    and an artifact hash, and writes distinct artifacts for every repetition.
+  - Scenario manifests may declare stable seed IDs and structured retrieval
+    assertions; the schema validates them and artifacts persist selected IDs.
+  - Retrieval assertions are deterministically evaluated and reported per
+    scenario/configuration/repetition without aggregating distinct assertions
+    into an unqualified retrieval-contamination rate.
+  - Harness artifacts record candidate, gate-call, retained, and rejected
+    counts, plus contradiction-override status; reports expose observed gate
+    calls per retrieval and the documented k-call upper bound.
+  - Machine verdicts remain immutable. Optional adjudications are read from a
+    separate versioned file, keyed by artifact hash, validated, and reported
+    separately from machine-only metrics.
+  - The report labels verdict layers and denominators and keeps
+    needs_human_review visible.
+  - Focused tests cover repeated artifact naming, retrieval assertions, gate
+    accounting, and adjudication validation; pytest -q passes.
+
+test_plan:
+  - >-
+    Run pytest -q. The mocked integration run verifies 9 scenarios x 7 configs
+    x requested repetitions, unique artifact names and hashes, retrieval/gate
+    observability, machine metrics, and separately loaded adjudications.
+
+out_of_scope:
+  - Rerunning or modifying frozen v0.2 evidence.
+  - Claiming efficacy of contradiction preservation before a dedicated gate
+    scenario family and repeated evaluation.
+  - Production-memory baselines and cross-model comparison.
