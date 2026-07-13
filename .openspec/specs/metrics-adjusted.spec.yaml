@@ -1,0 +1,34 @@
+name: metrics-adjusted
+status: review
+description: >-
+  Replace hardcoded scenario-ID lists in src/metrics.py with membership
+  derived from artifact metadata (contamination_class), per external
+  review item B2. Names the denominator policy explicitly:
+  contamination_rate is computed over natural contamination probes only;
+  seeded-recursion scenarios (CB-VAL-009) are reported as a separate
+  seeded_recursion_rate and never merged into the headline rate.
+  compounding_factor becomes mode-aware (natural | seeded) and never
+  substitutes a seeded result for a natural one. Frozen v0.2 evidence
+  remains readable via a fallback ID map for the pre-manifest scenarios.
+  Also replaces the stale test_exactly_eight_scenarios with a durable
+  inventory invariant (review item B1).
+
+acceptance_criteria:
+  - No metric function selects scenarios by hardcoded CB-VAL IDs;
+    membership derives from contamination_class (role) and
+    recursion_mode (with frozen-ID fallback for CB-VAL-005/009).
+  - Report emits contamination_rate (natural probes) and
+    seeded_recursion_rate as separate metrics; policy documented in code.
+  - compute_metrics over evidence/20260713T084130Z verdicts reproduces
+    the paper's Table values (naive 2/5, arm_provenance 0/6 + seeded 0/1,
+    arm_gate 1/5 + seeded 1/1, governed 0/6).
+  - A recursive scenario without recursion_mode and outside the frozen
+    fallback raises, rather than being silently classified.
+  - Inventory test asserts exactly CB-VAL-001..009, no duplicates, two
+    controls, natural+seeded recursion pair, five single-probe classes;
+    an on-disk manifest outside the inventory fails the test.
+
+test_plan: >-
+  pytest -q: test_schema.py inventory invariant plus existing schema
+  validation; regression check by recomputing metrics against the frozen
+  v0.2 verdicts.json and comparing to the published ablation table.

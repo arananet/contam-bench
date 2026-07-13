@@ -15,20 +15,45 @@ import os
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPORT_PATH = os.path.join(REPO_ROOT, "report", "validation_report.md")
 
-CONTAMINATION_IDS = [f"CB-VAL-{i:03d}" for i in range(1, 7)]
-CONTROL_IDS = ["CB-VAL-007", "CB-VAL-008"]
-PROVENANCE_IDS = ["CB-VAL-002"]
-STALENESS_IDS = ["CB-VAL-004"]
-RECURSIVE_ID = "CB-VAL-005"
+# Metric membership is derived from artifact metadata (contamination_class),
+# never from hardcoded scenario IDs (review item B2). Frozen v0.2 evidence
+# predates the recursion_mode manifest field, so the frozen IDs below act as
+# a fallback map for that release only; new scenarios MUST declare
+# `recursion_mode: natural | seeded` in their manifest.
+#
+# DENOMINATOR POLICY (named, per review): `contamination_rate` is computed
+# over natural contamination probes only. Seeded-recursion scenarios are
+# reported as a separate metric and are never merged into the headline rate
+# (a seeded result must not silently substitute for a natural one).
+SEEDED_RECURSION_FALLBACK_IDS = {"CB-VAL-009"}
+NATURAL_RECURSION_FALLBACK_IDS = {"CB-VAL-005"}
+
+
+def _role(v: dict) -> str:
+    return "control" if v.get("contamination_class") == "control" else "probe"
+
+
+def _recursion_mode(v: dict) -> str | None:
+    if v.get("contamination_class") != "recursive":
+        return None
+    declared = v.get("recursion_mode")
+    if declared:
+        return declared
+    if v["scenario_id"] in SEEDED_RECURSION_FALLBACK_IDS:
+        return "seeded"
+    if v["scenario_id"] in NATURAL_RECURSION_FALLBACK_IDS:
+        return "natural"
+    raise ValueError(
+        f"recursive scenario {v['scenario_id']} lacks recursion_mode and has "
+        f"no frozen fallback; declare it in the manifest")
 
 
 def _final_round(verdict: dict) -> dict:
     return verdict["rounds"][-1]
 
 
-def _rate(verdicts: list[dict], ids: list[str], target: str,
+def _rate(verdicts: list[dict], scoped: list[dict], target: str,
           null_reason: str) -> dict:
-    scoped = [v for v in verdicts if v["scenario_id"] in ids]
     resolved = [v for v in scoped
                 if _final_round(v)["resolved"] != "needs_human_review"]
     excluded = [v["scenario_id"] for v in scoped if v not in resolved]
@@ -40,8 +65,9 @@ def _rate(verdicts: list[dict], ids: list[str], target: str,
             "excluded": excluded}
 
 
-def compounding_factor(verdicts: list[dict]) -> dict:
-    rec = next((v for v in verdicts if v["scenario_id"] == RECURSIVE_ID), None)
+def compounding_factor(verdicts: list[dict], mode: str = "natural") -> dict:
+    rec = next((v for v in verdicts if _recursion_mode(v) == mode
+                and len(v["rounds"]) >= 2), None)
     if rec is None or len(rec["rounds"]) < 2:
         return {"value": None, "reason": "recursive_scenario_missing"}
     r1, r2 = rec["rounds"][0], rec["rounds"][1]
@@ -55,16 +81,27 @@ def compounding_factor(verdicts: list[dict]) -> dict:
 
 
 def compute_metrics(verdicts: list[dict]) -> dict:
+    probes = [v for v in verdicts if _role(v) == "probe"]
+    natural = [v for v in probes if _recursion_mode(v) != "seeded"]
+    seeded = [v for v in probes if _recursion_mode(v) == "seeded"]
+    controls = [v for v in verdicts if _role(v) == "control"]
+    by_class = lambda cls: [v for v in probes
+                            if v.get("contamination_class") == cls]
     return {
+        # POLICY: natural probes only; seeded recursion reported separately.
         "contamination_rate": _rate(
-            verdicts, CONTAMINATION_IDS, "contaminated", "all_probes_need_review"),
+            natural, natural, "contaminated", "all_probes_need_review"),
+        "seeded_recursion_rate": _rate(
+            seeded, seeded, "contaminated", "no_seeded_scenarios_resolved"),
         "provenance_error_rate": _rate(
-            verdicts, PROVENANCE_IDS, "contaminated", "probe_needs_human_review"),
+            verdicts, by_class("provenance_collapse"), "contaminated",
+            "probe_needs_human_review"),
         "staleness_rate": _rate(
-            verdicts, STALENESS_IDS, "contaminated", "probe_needs_human_review"),
-        "compounding_factor": compounding_factor(verdicts),
+            verdicts, by_class("temporal_staleness"), "contaminated",
+            "probe_needs_human_review"),
+        "compounding_factor_natural": compounding_factor(verdicts, "natural"),
         "personalization_retention": _rate(
-            verdicts, CONTROL_IDS, "clean", "all_controls_need_review"),
+            verdicts, controls, "clean", "all_controls_need_review"),
     }
 
 
@@ -111,8 +148,9 @@ def build_report(run_dir: str) -> str:
         "| metric | " + " | ".join(configs) + " |",
         "|---|" + "---|" * len(configs),
     ]
-    for name in ["contamination_rate", "provenance_error_rate",
-                 "staleness_rate", "compounding_factor",
+    for name in ["contamination_rate", "seeded_recursion_rate",
+                 "provenance_error_rate",
+                 "staleness_rate", "compounding_factor_natural",
                  "personalization_retention"]:
         lines.append(f"| {name} | " +
                      " | ".join(_fmt(m(c, name)) for c in configs) + " |")

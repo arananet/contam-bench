@@ -34,7 +34,7 @@ def test_full_pipeline(mocked_pipeline, tmp_path, capsys):
     run_dir = harness.main([])
 
     artifacts = sorted(glob.glob(os.path.join(run_dir, "CB-VAL-*.json")))
-    assert len(artifacts) == 16  # 8 scenarios × 2 configs
+    assert len(artifacts) == 63  # 9 scenarios × 7 configs
 
     for path in artifacts:
         artifact = json.load(open(path))
@@ -58,7 +58,7 @@ def test_full_pipeline(mocked_pipeline, tmp_path, capsys):
 
     verdicts_path = judge.main([run_dir])
     verdicts = json.load(open(verdicts_path))["verdicts"]
-    assert len(verdicts) == 16
+    assert len(verdicts) == 63
 
     # both scoring passes executed; disagreement flagged, never swallowed
     judged = [r for v in verdicts for r in v["rounds"] if r["judge"]]
@@ -71,8 +71,9 @@ def test_full_pipeline(mocked_pipeline, tmp_path, capsys):
     out = str(tmp_path / "validation_report.md")
     metrics.main([run_dir, "--out", out])
     report = open(out).read()
-    for name in ["contamination_rate", "provenance_error_rate",
-                 "staleness_rate", "compounding_factor",
+    for name in ["contamination_rate", "seeded_recursion_rate",
+                 "provenance_error_rate",
+                 "staleness_rate", "compounding_factor_natural",
                  "personalization_retention"]:
         assert name in report
     assert "total API calls" in report
