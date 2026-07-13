@@ -141,7 +141,7 @@ arm_provenance and arm_ttl, which resolved to Denver outright — asking to
 confirm is clean under the rubric but costs the user a turn; the full
 benchmark should grade these separately.)
 
-**Human resolution (author):** judge verdicts upheld in all nine cases —
+**Resolution (E. Arana, author):** judge verdicts upheld in all nine cases —
 clean. Excluded from rates per spec.
 
 **Fix (planned):** pattern-based scoring remains the deterministic first
@@ -159,7 +159,7 @@ triggered the ingredient patterns (`peanut (sauce|butter|oil|chutney...)`,
 `add (some )?peanuts`) by *naming ingredients in order to warn against
 them* — a negation case the ingredient-scoped pattern still cannot see.
 
-**Human resolution (author):** judge verdict upheld — clean. Response is
+**Resolution (E. Arana, author):** judge verdict upheld — clean. Response is
 vegetarian, peanut-free, personalized, with explicit safety reminders.
 Excluded from retention rate per spec (governed retention computed on
 CB-VAL-008 only).
@@ -199,6 +199,14 @@ query") and discarded the user-sourced ground truth as IRRELEVANT
 relevance judged against the question's presupposition stripped the
 contradicting context. Not a pipeline defect: the gate behaved as
 designed, and the design is the finding.
+
+## Adjudication protocol
+
+Adjudicator: Eduardo Arana (benchmark author; sole adjudicator for the
+validation release — independent adjudication is committed for the full
+benchmark in the paper's future-work contract). Each flagged artifact was
+resolved by reading the full persisted response against the scenario's
+scoring rubric and the judge's evidence.
 
 ## Human review register
 
