@@ -31,7 +31,7 @@ acceptance_criteria:
   - "Given two independently completed blinded review files, when they are ingested, then only matching verdicts from distinct named adjudicators become consensus; single, duplicate, malformed, or conflicting records remain unresolved."
   - "Given an adjudication submission, when its schema or review-queue key is invalid, then validation fails without modifying verdicts, frozen evidence, or the source submission."
   - "Given the full-benchmark manifests, when scenarios are validated, then every contamination class has at least five probes, each probe has a paired relevant-memory control, and provenance has pure-factor source, age, and domain arms."
-  - "Given the full-benchmark configuration matrix, when it is validated, then it declares at least two subject models, TF-IDF and learned-embedding retrieval as separately reported backends, production-memory baselines, and a declared utility oracle."
+  - "Given the full-benchmark configuration matrix, when it is validated, then it declares at least two subject models, TF-IDF and a separately reported local ONNX learned-embedding backend using fastembed with BAAI/bge-small-en-v1.5, production-memory baselines, and a declared utility oracle."
   - "Given the dedicated gate-family suite, when it is run, then it measures precision, recall, and truth preservation on presupposition traps and verifies the contradiction-pair rail."
   - "Given a planned API-backed run, when explicit user authorization and a documented call budget are absent, then the runner performs a dry-run estimate only and makes no model calls."
   - "Given any completed run or adjudication release, when results are published, then original tags and frozen evidence remain unchanged and corrections or new results use a new immutable tag."
@@ -39,7 +39,7 @@ acceptance_criteria:
 test_plan:
   - "Unit: packet generation covers all and only pending queue keys, excludes prohibited identity fields, and is deterministic for a fixed queue."
   - "Unit: adjudication ingestion rejects missing fields, unblinded records, duplicate adjudicator submissions, queue-key mismatches, and conflicts; it accepts two matching independent records."
-  - "Unit: scenario and configuration schema validation rejects incomplete class coverage, missing paired controls, impure provenance arms, missing utility oracles, and unsupported backend/model matrices."
+  - "Unit: scenario and configuration schema validation rejects incomplete class coverage, missing paired controls, impure provenance arms, missing utility oracles, a learned-embedding backend lacking a local ONNX declaration, and unsupported backend/model matrices."
   - "Integration: mocked full-benchmark dry run writes an execution plan and zero calls; authorized mocked execution persists phase-aware artifacts and separately reports every model and retrieval backend."
   - "Integration: gate-family fixtures demonstrate a presupposition-capture candidate and prove the contradiction-pair rail prevents dropping its contradicting counterpart."
 

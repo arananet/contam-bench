@@ -52,7 +52,12 @@ def test_duplicate_or_unblinded_submission_is_rejected(tmp_path):
 def test_full_benchmark_plan_dry_run():
     import yaml
     plan = yaml.safe_load(open("spec/full-benchmark.plan.yaml"))
-    assert dry_run(plan)["api_calls"] == 0
+    result = dry_run(plan)
+    assert result["api_calls"] == 0
+    assert result["retrieval_backends"][1]["learned_embedding"] == {
+        "provider": "fastembed", "model": "BAAI/bge-small-en-v1.5",
+        "execution": "local_onnx",
+    }
     plan["execution"]["subject_models"] = ["one-model"]
     with pytest.raises(ValueError, match="two subject"):
         validate_plan(plan)

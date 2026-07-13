@@ -40,6 +40,26 @@ def top_k(query: str, entries: list[MemoryEntry], k: int) -> list[MemoryEntry]:
     return [entries[i] for i in ranked[:k]]
 
 
+def top_k_embeddings(query: str, entries: list[MemoryEntry], k: int,
+                     embedder: object) -> list[MemoryEntry]:
+    """k most similar entries using an injected local embedding backend."""
+    if not entries:
+        return []
+    vectors = list(embedder.embed([query] + [entry.content for entry in entries]))
+    scores = cosine_similarity([vectors[0]], vectors[1:]).flatten()
+    ranked = sorted(range(len(entries)), key=lambda index: scores[index], reverse=True)
+    return [entries[index] for index in ranked[:k]]
+
+
+def local_embedder(model_name: str = "BAAI/bge-small-en-v1.5") -> object:
+    """Construct the optional ONNX embedding model on demand, never at import time."""
+    try:
+        from fastembed import TextEmbedding
+    except ImportError as error:
+        raise RuntimeError("install fastembed to use learned_embedding retrieval") from error
+    return TextEmbedding(model_name=model_name)
+
+
 def relevance_gate(client: CountingClient, gate_config: dict, query: str,
                    entries: list[MemoryEntry]) -> tuple[list[MemoryEntry], list[dict]]:
     """Filter entries through the gate model. Returns (kept, decisions)."""

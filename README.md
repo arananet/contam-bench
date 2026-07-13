@@ -71,6 +71,14 @@ python3 -m src.metrics runs/<timestamp>  # aggregate → report/validation_repor
 pytest
 ```
 
+### Local Embedding Backend
+
+The full-benchmark plan reports TF-IDF and a learned embedding backend as
+separate conditions. The learned backend uses local ONNX inference through
+`fastembed` with `BAAI/bge-small-en-v1.5`; the approximately 67 MB model is
+downloaded on its first use and makes no embedding-provider API calls. It is
+not used by the frozen v0.1--v0.3 evidence releases.
+
 ---
 
 ## Usage

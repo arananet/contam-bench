@@ -3,7 +3,7 @@
 import yaml
 
 from src.memory_store import MemoryEntry
-from src.retrieval import relevance_gate, retrieve, top_k
+from src.retrieval import relevance_gate, retrieve, top_k, top_k_embeddings
 
 MODELS = yaml.safe_load(open("spec/configs.yaml"))["models"]
 
@@ -29,6 +29,16 @@ def test_top_k_returns_most_similar_first():
 def test_top_k_caps_at_k_and_handles_empty():
     assert len(top_k("anything", ENTRIES, k=1)) == 1
     assert top_k("anything", [], k=4) == []
+
+
+def test_local_embedding_top_k_uses_injected_backend():
+    class FakeEmbedder:
+        def embed(self, texts):
+            assert len(texts) == 4
+            return [[1, 0], [1, 0], [0, 1], [0, 0]]
+
+    result = top_k_embeddings("kubernetes", ENTRIES, k=1, embedder=FakeEmbedder())
+    assert result == [ENTRIES[0]]
 
 
 def test_relevance_gate_filters_irrelevant(fake_client):

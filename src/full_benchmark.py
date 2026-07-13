@@ -29,8 +29,16 @@ def validate_plan(plan: dict) -> None:
     execution = plan["execution"]
     if len(execution["subject_models"]) < 2:
         raise ValueError("full benchmark requires at least two subject models")
-    if not {"tfidf", "learned_embedding"} <= set(execution["retrieval_backends"]):
+    backends = execution["retrieval_backends"]
+    backend_names = {backend if isinstance(backend, str) else next(iter(backend))
+                     for backend in backends}
+    if not {"tfidf", "learned_embedding"} <= backend_names:
         raise ValueError("full benchmark requires separately reported TF-IDF and learned embeddings")
+    embedding_backend = next((backend["learned_embedding"] for backend in backends
+                              if isinstance(backend, dict)
+                              and "learned_embedding" in backend), None)
+    if not embedding_backend or embedding_backend.get("execution") != "local_onnx":
+        raise ValueError("learned embeddings require a declared local ONNX backend")
     if not execution["production_baselines"] or not execution.get("utility_oracle"):
         raise ValueError("full benchmark requires production baselines and a utility oracle")
     gate_metrics = set(plan["gate_family"]["metrics"])

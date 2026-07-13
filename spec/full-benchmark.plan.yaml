@@ -8,7 +8,12 @@ execution:
     # reported as a separate model/sampling condition, not a deterministic
     # replication of the Sonnet 4.6 condition.
     claude-sonnet-5: {temperature: provider_default}
-  retrieval_backends: [tfidf, learned_embedding]
+  retrieval_backends:
+    - tfidf
+    - learned_embedding:
+        provider: fastembed
+        model: BAAI/bge-small-en-v1.5
+        execution: local_onnx
   production_baselines: [Mem0, Zep, Letta]
   utility_oracle: task-specific-must-include-patterns-v1
 gate_family:
