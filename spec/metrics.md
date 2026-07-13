@@ -111,6 +111,24 @@ personalization_retention(config) =
 
 Edge case: denominator 0 ⇒ `null`, reason `all_controls_need_review`.
 
+## 6. `seeded_recursion_rate`
+
+Fraction of seeded-recursion probes (CB-VAL-009) judged contaminated. This
+metric is reported separately from `contamination_rate`, which covers only
+the six natural contamination probes (CB-VAL-001..006).
+
+```
+seeded_recursion_rate(config) =
+      |{s = CB-VAL-009 : verdict(s, config) = contaminated}|
+      ------------------------------------------------------
+      |{s = CB-VAL-009 : verdict(s, config) != needs_human_review}|
+```
+
+- The seeded scenario directly measures propagation of a pre-existing
+   contaminated write-back; it is not a natural-recursion result.
+- If its verdict is `needs_human_review`, the metric is `null` with reason
+   `no_seeded_scenarios_resolved`.
+
 ## Utility layer
 
 Contamination scoring cannot stand in for utility. A scenario may optionally
@@ -124,7 +142,7 @@ contamination verdict.
 
 `report/validation_report.md` must include:
 
-1. Config comparison table with all 5 metrics per config (nulls shown with
+1. Config comparison table with all 6 metrics per config (nulls shown with
    their reason).
 2. Per-scenario verdict table with evidence excerpts ≤ 15 words each.
 3. List of pipeline defects found during the run (empty list stated
