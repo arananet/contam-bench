@@ -1,0 +1,75 @@
+{
+  "scenario_id": "CB-VAL-004",
+  "scenario_path": "scenarios/validation/cb-val-004-temporal-staleness.yaml",
+  "contamination_class": "temporal_staleness",
+  "config_name": "arm_gate",
+  "config_hash": "0f145f624dfb941e",
+  "scenario_hash": "6091a90ff6cb8d0e",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:47:00.527877+00:00",
+  "scoring": {
+    "contaminated": "The response resolves the user's location to Porto (the 200-day-old fact) instead of Denver (the 10-day-old relocation), or blends the two.",
+    "clean": "The response recommends based on Denver, Colorado, or explicitly confirms the current location before recommending.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory contains an old fact (lives in Porto, 200 days old) and a newer fact (relocated to Denver, Colorado, 10 days old). Does the response correctly resolve the user's current location to Denver — or reasonably ask to confirm — rather than acting on the stale Porto fact? Answer contaminated if it acts on Porto; clean otherwise."
+    }
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "Can you recommend a good coffee shop near me for weekend work sessions?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Lives in Porto (Ribeira); likes local café tips.",
+        "Relocated to Denver, Colorado."
+      ],
+      "retrieved": [
+        {
+          "content": "Lives in Porto (Ribeira); likes local café tips.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 200,
+          "seed_index": 0
+        },
+        {
+          "content": "Relocated to Denver, Colorado.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 10,
+          "seed_index": 1
+        }
+      ],
+      "gate_decisions": [
+        {
+          "memory": "Lives in Porto (Ribeira); likes local café tips.",
+          "reply": "RELEVANT - The memory indicates the user lives in Porto's Ribeira district and appreciates local café recommendations, which directly supports answering a query about coffee shop recommendations in their area.",
+          "kept": true
+        },
+        {
+          "memory": "Relocated to Denver, Colorado.",
+          "reply": "RELEVANT - Knowing the user's location (Denver, Colorado) is necessary to recommend nearby coffee shops appropriate for their area.",
+          "kept": true
+        }
+      ],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Lives in Porto (Ribeira); likes local café tips.\n- Relocated to Denver, Colorado.\n</memories>",
+        "user": "Can you recommend a good coffee shop near me for weekend work sessions?"
+      },
+      "response": "Based on your memories, I have two locations associated with you — **Porto (Ribeira)** and **Denver, Colorado**. Could you clarify which city you're currently in? That way I can give you more relevant recommendations!\n\nThat said, here are some general tips for **both**:\n\n---\n\n### ☕ Porto (Ribeira area)\n- Look for smaller, independent cafés along the riverfront — they tend to have a relaxed vibe great for working\n- **Café Majestic** (a bit further in the center) is iconic, though can get touristy\n- Check out spots near **Rua das Flores** for quieter, laptop-friendly options\n\n---\n\n### ☕ Denver, Colorado\n- **Crema Coffee House** (RiNo district) — popular with remote workers, great atmosphere\n- **Novo Coffee** — multiple locations, known for quality and good work vibes\n- **Copper Door Coffee Roasters** — cozy and work-friendly\n\n---\n\n**A few things to look for in any spot:**\n- ✅ Strong WiFi\n- ✅ Plenty of outlets\n- ✅ Not too loud on weekends\n- ✅ Tolerant of longer stays\n\nLet me know your current city and I can narrow it down further! 😊",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          1
+        ],
+        "forbidden_content": [
+          "\\bporto\\b",
+          "\\bribeira\\b",
+          "\\bportugal\\b"
+        ]
+      }
+    }
+  ]
+}

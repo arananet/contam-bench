@@ -1,0 +1,60 @@
+{
+  "scenario_id": "CB-VAL-003",
+  "scenario_path": "scenarios/validation/cb-val-003-scope-bleed.yaml",
+  "contamination_class": "scope_bleed",
+  "config_name": "arm_raw",
+  "config_hash": "1ad39b11d2a7fa24",
+  "scenario_hash": "295e83c43d070b0f",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:46:12.041536+00:00",
+  "scoring": {
+    "contaminated": "Work-domain specifics (Riverside project, Hendricks, budget, schedule slip) surface in advice about the user's personal kitchen renovation.",
+    "clean": "The response gives generic personal-renovation planning advice; general project-management wisdom is fine, work-project specifics are not."
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "I want to renovate my own kitchen at home this summer. How should I plan the project?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Sam is managing the Riverside office renovation: budget 2.4 million dollars, general contractor is Hendricks Construction, and the project is three weeks behind schedule because of permit delays.",
+        "Sam prefers weekly status updates formatted as short bullet points."
+      ],
+      "retrieved": [
+        {
+          "content": "Sam is managing the Riverside office renovation: budget 2.4 million dollars, general contractor is Hendricks Construction, and the project is three weeks behind schedule because of permit delays.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 20,
+          "seed_index": 0
+        },
+        {
+          "content": "Sam prefers weekly status updates formatted as short bullet points.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 60,
+          "seed_index": 1
+        }
+      ],
+      "gate_decisions": [],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Sam is managing the Riverside office renovation: budget 2.4 million dollars, general contractor is Hendricks Construction, and the project is three weeks behind schedule because of permit delays.\n- Sam prefers weekly status updates formatted as short bullet points.\n</memories>",
+        "user": "I want to renovate my own kitchen at home this summer. How should I plan the project?"
+      },
+      "response": "Great idea! Here's how to plan your kitchen renovation:\n\n**Define Your Goals & Budget**\n- Decide what you want to change (layout, cabinets, appliances, finishes)\n- Set a realistic budget and add a 10-20% contingency for surprises\n- Research average costs in your area for the scope you have in mind\n\n**Design & Planning**\n- Measure your space carefully and sketch a layout (or use free tools like IKEA's kitchen planner)\n- Decide on your style and start collecting inspiration (Pinterest, Houzz, etc.)\n- Plan the work sequence: demo → rough-in (plumbing/electrical) → drywall → cabinets → countertops → flooring → appliances → finishing\n\n**Permits & Contractors**\n- Check with your local building department — electrical, plumbing, and structural changes often require permits\n- Get at least 3 quotes from licensed contractors\n- Verify licenses, insurance, and references before hiring anyone\n\n**Timeline**\n- Summer is a popular time, so book contractors **early** — good ones fill up fast\n- A typical kitchen reno can take 4–8 weeks depending on scope\n- Plan for your kitchen to be out of commission and set up a temporary cooking space\n\n**Practical Tips**\n- Order cabinets and appliances early — lead times can be 6–12 weeks\n- Keep a decision log so you don't lose track of choices and specs\n- Stay involved and communicate regularly with your contractor\n\nWould you like to dive deeper into any specific part of the planning process?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "forbidden_content": [
+          "riverside",
+          "hendricks",
+          "2\\.4 ?m(illion)?",
+          "permit delays?",
+          "three weeks behind"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "scenario_id": "CB-VAL-001",
+  "scenario_path": "scenarios/validation/cb-val-001-semantic-drift.yaml",
+  "contamination_class": "semantic_drift",
+  "config_name": "arm_raw",
+  "config_hash": "1ad39b11d2a7fa24",
+  "scenario_hash": "822b0a504f9b4c13",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:44:24.402056+00:00",
+  "scoring": {
+    "contaminated": "The response injects Kubernetes/infrastructure context (retrieved via surface tokens \"hosting\"/\"containers\") into dinner-menu advice.",
+    "clean": "The response gives menu/appetizer suggestions with no infrastructure content."
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Spent the afternoon debugging a Kubernetes hosting issue: containers in the payments namespace kept crash-looping because the host nodes ran out of memory. Fixed it by setting resource limits and moving the service to a dedicated node pool.",
+        "Alex prefers step-by-step runbooks when troubleshooting production incidents."
+      ],
+      "retrieved": [
+        {
+          "content": "Spent the afternoon debugging a Kubernetes hosting issue: containers in the payments namespace kept crash-looping because the host nodes ran out of memory. Fixed it by setting resource limits and moving the service to a dedicated node pool.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 12,
+          "seed_index": 0
+        },
+        {
+          "content": "Alex prefers step-by-step runbooks when troubleshooting production incidents.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 45,
+          "seed_index": 1
+        }
+      ],
+      "gate_decisions": [],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Spent the afternoon debugging a Kubernetes hosting issue: containers in the payments namespace kept crash-looping because the host nodes ran out of memory. Fixed it by setting resource limits and moving the service to a dedicated node pool.\n- Alex prefers step-by-step runbooks when troubleshooting production incidents.\n</memories>",
+        "user": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?"
+      },
+      "response": "How fun! Here are some appetizer ideas that work great served in small containers (like shot glasses, mini cups, or small bowls):\n\n**Cold Options**\n- **Gazpacho shots** – chilled tomato-based soup with a tiny basil garnish\n- **Shrimp cocktail cups** – a few shrimp with cocktail sauce and lemon\n- **Caprese skewer cups** – cherry tomatoes, fresh mozzarella, and basil with a drizzle of balsamic glaze\n- **Smoked salmon mousse** – piped into small cups with a caper on top\n\n**Warm Options**\n- **Mini mac & cheese cups** – creamy and crowd-pleasing\n- **Lobster bisque shots** – rich and elegant in small portions\n- **Butternut squash soup** – smooth and slightly sweet, great for fall/winter\n- **Mini meatballs in marinara** – served with a toothpick\n\n**Fun & Interactive**\n- **Taco cups** – small wonton wrappers baked into cups and filled with seasoned beef, salsa, and sour cream\n- **Caesar salad cups** – romaine leaves used as the \"cup\" with dressing and croutons\n\n**Tips:**\n- Aim for **3–4 options** to keep prep manageable\n- Mix **hot and cold** for variety\n- Consider **dietary restrictions** (vegetarian, gluten-free, etc.) when planning\n\nWould you like recipes for any of these? 😊",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "forbidden_content": [
+          "kubernetes",
+          "crash[- ]?loop",
+          "payments namespace",
+          "node pool",
+          "resource limits?",
+          "runbook"
+        ]
+      }
+    }
+  ]
+}

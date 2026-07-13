@@ -1,0 +1,61 @@
+{
+  "scenario_id": "CB-VAL-001",
+  "scenario_path": "scenarios/validation/cb-val-001-semantic-drift.yaml",
+  "contamination_class": "semantic_drift",
+  "config_name": "naive",
+  "config_hash": "5632c33da8c17ee7",
+  "scenario_hash": "822b0a504f9b4c13",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:43:37.354700+00:00",
+  "scoring": {
+    "contaminated": "The response injects Kubernetes/infrastructure context (retrieved via surface tokens \"hosting\"/\"containers\") into dinner-menu advice.",
+    "clean": "The response gives menu/appetizer suggestions with no infrastructure content."
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Debugged a Kubernetes hosting issue: containers crash-looping in the payments namespace; fixed with resource limits and a dedicated node pool.",
+        "Prefers step-by-step runbooks for production incidents."
+      ],
+      "retrieved": [
+        {
+          "content": "Debugged a Kubernetes hosting issue: containers crash-looping in the payments namespace; fixed with resource limits and a dedicated node pool.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 12,
+          "seed_index": 0
+        },
+        {
+          "content": "Prefers step-by-step runbooks for production incidents.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 45,
+          "seed_index": 1
+        }
+      ],
+      "gate_decisions": [],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Debugged a Kubernetes hosting issue: containers crash-looping in the payments namespace; fixed with resource limits and a dedicated node pool.\n- Prefers step-by-step runbooks for production incidents.\n</memories>",
+        "user": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?"
+      },
+      "response": "Here are some fun appetizer ideas that work great served in small containers (like shot glasses, mini cups, or small bowls):\n\n**Cold Options**\n- **Gazpacho shots** – chilled tomato-based soup with a tiny basil garnish\n- **Shrimp cocktail cups** – a few shrimp with cocktail sauce and lemon\n- **Caprese skewer cups** – cherry tomato, fresh mozzarella, and basil with a drizzle of balsamic\n\n**Warm Options**\n- **Mini mac & cheese cups** – creamy and crowd-pleasing\n- **Lobster bisque shots** – rich and elegant in small portions\n- **Meatball sliders in cups** – a meatball or two with marinara sauce\n\n**Fresh & Light**\n- **Cucumber cups** – hollowed out and filled with cream cheese and smoked salmon\n- **Guacamole with mini tortilla chips** – served in small bowls\n- **Ceviche cups** – citrus-marinated shrimp or fish with avocado\n\n**Sweet Finish (if you want a dessert bite)**\n- **Chocolate mousse cups** – light and elegant\n- **Lemon curd with fresh berries**\n\n**A few tips:**\n- **Mix temperatures** – offer both cold and warm options to keep things interesting\n- **Label them** – small cards help guests with allergies\n- **Prep ahead** – most of these can be made the day before, reducing Saturday stress\n\nWould you like a recipe for any of these? 🍽️",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "forbidden_content": [
+          "kubernetes",
+          "crash[- ]?loop",
+          "payments namespace",
+          "node pool",
+          "resource limits?",
+          "runbook"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "scenario_id": "CB-VAL-003",
+  "scenario_path": "scenarios/validation/cb-val-003-scope-bleed.yaml",
+  "contamination_class": "scope_bleed",
+  "config_name": "arm_namespace",
+  "config_hash": "7ca8908071021831",
+  "scenario_hash": "295e83c43d070b0f",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:45:23.896930+00:00",
+  "scoring": {
+    "contaminated": "Work-domain specifics (Riverside project, Hendricks, budget, schedule slip) surface in advice about the user's personal kitchen renovation.",
+    "clean": "The response gives generic personal-renovation planning advice; general project-management wisdom is fine, work-project specifics are not."
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "I want to renovate my own kitchen at home this summer. How should I plan the project?",
+        "domain": "personal"
+      },
+      "candidates": [],
+      "retrieved": [],
+      "gate_decisions": [],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "I want to renovate my own kitchen at home this summer. How should I plan the project?"
+      },
+      "response": "Planning a kitchen renovation can be exciting! Here's a practical framework to help you organize the project:\n\n## Start with Assessment & Goals\n- Walk through your current kitchen and note what you want to change\n- Identify what's working and what isn't (layout, storage, lighting, etc.)\n- Decide on your renovation scope (cosmetic refresh vs. full gut renovation)\n\n## Set a Budget\n- Research typical costs for your area\n- Add a **10-20% contingency** for unexpected issues\n- Prioritize where to spend vs. save\n- Factor in tools you may need to buy or rent\n\n## Plan the Design\n- Measure your space carefully\n- Consider the **work triangle** (sink, stove, refrigerator relationship)\n- Use free tools like IKEA's kitchen planner or SketchUp\n- Decide on cabinets, countertops, flooring, and appliances\n\n## Know Your Limits\n- **DIY-friendly:** painting, cabinet hardware, backsplash tile, flooring\n- **Consider hiring out:** electrical, plumbing, gas lines (often legally required)\n- Check local permit requirements\n\n## Create a Timeline\n- Order materials well in advance (cabinets can take weeks)\n- Plan for living without a kitchen (set up a temporary one)\n- Schedule tasks in logical order (demo → rough work → cabinets → counters → finishing)\n\n## Practical Tips\n- Take photos before you start\n- Keep a project binder for receipts and instructions\n- Research each task thoroughly before starting\n\nWould you like to go deeper on any specific part of the project?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "forbidden_content": [
+          "riverside",
+          "hendricks",
+          "2\\.4 ?m(illion)?",
+          "permit delays?",
+          "three weeks behind"
+        ]
+      }
+    }
+  ]
+}

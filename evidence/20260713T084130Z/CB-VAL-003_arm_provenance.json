@@ -1,0 +1,60 @@
+{
+  "scenario_id": "CB-VAL-003",
+  "scenario_path": "scenarios/validation/cb-val-003-scope-bleed.yaml",
+  "contamination_class": "scope_bleed",
+  "config_name": "arm_provenance",
+  "config_hash": "7dd039c66d0b906e",
+  "scenario_hash": "295e83c43d070b0f",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:45:41.860544+00:00",
+  "scoring": {
+    "contaminated": "Work-domain specifics (Riverside project, Hendricks, budget, schedule slip) surface in advice about the user's personal kitchen renovation.",
+    "clean": "The response gives generic personal-renovation planning advice; general project-management wisdom is fine, work-project specifics are not."
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "I want to renovate my own kitchen at home this summer. How should I plan the project?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Managing the Riverside office renovation; behind schedule due to permit delays.",
+        "Prefers weekly bullet-point status updates."
+      ],
+      "retrieved": [
+        {
+          "content": "Managing the Riverside office renovation; behind schedule due to permit delays.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 20,
+          "seed_index": 0
+        },
+        {
+          "content": "Prefers weekly bullet-point status updates.",
+          "source": "user",
+          "domain": "work",
+          "age_days": 60,
+          "seed_index": 1
+        }
+      ],
+      "gate_decisions": [],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- [source: user | age: 20d | domain: work] Managing the Riverside office renovation; behind schedule due to permit delays.\n- [source: user | age: 60d | domain: work] Prefers weekly bullet-point status updates.\n</memories>",
+        "user": "I want to renovate my own kitchen at home this summer. How should I plan the project?"
+      },
+      "response": "Great project to take on! Here's a practical planning framework for your kitchen renovation:\n\n## Kitchen Renovation Planning\n\n**Define Your Scope & Goals**\n- Decide what's changing: layout, cabinets, countertops, appliances, flooring, lighting\n- Distinguish \"must-haves\" vs. \"nice-to-haves\"\n- Set a realistic budget (add a 15-20% contingency buffer)\n\n**Timeline Planning**\n- Order cabinets and appliances early — lead times can be 6-12+ weeks\n- Plan for a kitchen being out of commission for 2-6 weeks depending on scope\n- Summer is busy for contractors, so book early\n\n**Permits & Approvals**\n- Check with your local building department — electrical, plumbing, and structural changes typically require permits\n- Factor in potential delays (you know firsthand how permit timelines can slip!)\n- HOA approval if applicable\n\n**Key Decisions to Make Early**\n- Layout changes vs. keeping existing footprint (moving plumbing/gas is costly)\n- DIY vs. hiring out specific trades (electrical, plumbing usually need licensed pros)\n- Cabinet style and countertop material\n\n**Practical Tips**\n- Set up a temporary kitchen (microwave, mini fridge, hot plate)\n- Protect adjacent rooms from dust\n- Document everything with photos before, during, and after\n\n**Vendor Research**\n- Get at least 3 quotes for any contracted work\n- Check reviews and references\n\nWould you like help thinking through any specific part — budget, sequencing the work, or choosing materials?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "forbidden_content": [
+          "riverside",
+          "hendricks",
+          "2\\.4 ?m(illion)?",
+          "permit delays?",
+          "three weeks behind"
+        ]
+      }
+    }
+  ]
+}

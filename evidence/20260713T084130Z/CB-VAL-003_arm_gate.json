@@ -1,0 +1,56 @@
+{
+  "scenario_id": "CB-VAL-003",
+  "scenario_path": "scenarios/validation/cb-val-003-scope-bleed.yaml",
+  "contamination_class": "scope_bleed",
+  "config_name": "arm_gate",
+  "config_hash": "0f145f624dfb941e",
+  "scenario_hash": "295e83c43d070b0f",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:46:03.258817+00:00",
+  "scoring": {
+    "contaminated": "Work-domain specifics (Riverside project, Hendricks, budget, schedule slip) surface in advice about the user's personal kitchen renovation.",
+    "clean": "The response gives generic personal-renovation planning advice; general project-management wisdom is fine, work-project specifics are not."
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "I want to renovate my own kitchen at home this summer. How should I plan the project?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Managing the Riverside office renovation; behind schedule due to permit delays.",
+        "Prefers weekly bullet-point status updates."
+      ],
+      "retrieved": [],
+      "gate_decisions": [
+        {
+          "memory": "Managing the Riverside office renovation; behind schedule due to permit delays.",
+          "reply": "IRRELEVANT - The memory concerns a commercial office renovation project, while the query asks about planning a residential kitchen renovation.",
+          "kept": false
+        },
+        {
+          "memory": "Prefers weekly bullet-point status updates.",
+          "reply": "IRRELEVANT - This memory describes a communication preference and is unrelated to kitchen renovation planning advice.",
+          "kept": false
+        }
+      ],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "I want to renovate my own kitchen at home this summer. How should I plan the project?"
+      },
+      "response": "Planning a kitchen renovation can be exciting! Here's a practical framework to help you organize the project:\n\n## Start with Assessment & Goals\n- Walk through your current kitchen and note what works and what doesn't\n- Decide on your priorities (more storage, better layout, updated appliances, etc.)\n- Determine if you want a full gut renovation or cosmetic updates\n\n## Set Your Budget\n- Research typical costs for your area\n- Add a **10-20% contingency** for unexpected issues\n- Decide what you'll DIY vs. hire out (plumbing, electrical, and gas usually require licensed professionals)\n\n## Design & Planning\n- Measure your space carefully\n- Consider the **work triangle** (sink, stove, refrigerator relationship)\n- Use free tools like IKEA's kitchen planner or SketchUp to visualize layouts\n- Order samples before committing to materials\n\n## Create a Timeline\n- Kitchens typically take **4-12 weeks** depending on scope\n- Plan for living without a kitchen (set up a temporary cooking area)\n- Order cabinets and appliances early since lead times can be long\n\n## Sequence of Work\n1. Demolition\n2. Rough plumbing/electrical/structural changes\n3. Inspections (if required)\n4. Cabinets and drywall\n5. Countertops\n6. Flooring\n7. Appliances and fixtures\n8. Finishing touches\n\n## Key Tips\n- Pull necessary **permits** - skipping them can cause problems when selling\n- Get multiple quotes for any hired work\n- Document everything with photos\n\nWhat aspects are you most focused on or uncertain about?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "forbidden_content": [
+          "riverside",
+          "hendricks",
+          "2\\.4 ?m(illion)?",
+          "permit delays?",
+          "three weeks behind"
+        ]
+      }
+    }
+  ]
+}

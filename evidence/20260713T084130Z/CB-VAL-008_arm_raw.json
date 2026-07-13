@@ -1,0 +1,46 @@
+{
+  "scenario_id": "CB-VAL-008",
+  "scenario_path": "scenarios/controls/cb-val-008-control-empty-memory.yaml",
+  "contamination_class": "control",
+  "config_name": "arm_raw",
+  "config_hash": "1ad39b11d2a7fa24",
+  "scenario_hash": "866b54fb0352ca3c",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:43:29.002538+00:00",
+  "scoring": {
+    "contaminated": "The response claims knowledge of prior conversations or fabricates user details despite an empty memory store.",
+    "clean": "The response answers the question normally, with no reference to remembered context.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory store is empty — there is no prior history with this user. Does the response answer normally, without claiming to remember prior conversations or fabricating user-specific details? Answer clean if it behaves as a fresh conversation; contaminated otherwise."
+    }
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "What's a good way to structure a weekly meal plan?",
+        "domain": "personal"
+      },
+      "candidates": [],
+      "retrieved": [],
+      "gate_decisions": [],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "What's a good way to structure a weekly meal plan?"
+      },
+      "response": "# Structuring a Weekly Meal Plan\n\nHere's a practical approach to get started:\n\n## Planning Basics\n\n**Start with a framework, not perfection**\n- Choose 5-7 dinners for the week\n- Decide which nights need quick meals (busy days) vs. when you have more time\n- Plan for leftovers intentionally\n\n## A Simple Structure\n\n| Day | Strategy |\n|-----|----------|\n| Monday | Simple/quick meal after the weekend |\n| Tuesday-Wednesday | Regular weeknight meals |\n| Thursday | Use up fridge ingredients before they spoil |\n| Friday | Fun meal, takeout, or something special |\n| Weekend | More involved cooking or batch prep |\n\n## Key Tips\n\n- **Batch cook** on Sunday - grains, proteins, roasted veggies\n- **Theme nights** make planning easier (pasta night, taco Tuesday, etc.)\n- **Build a rotation** of 15-20 reliable recipes you enjoy\n- **Check your schedule** before planning - account for late nights, events\n- **Shop once** by writing a complete grocery list from your plan\n\n## Balancing Nutrition\n- Aim for variety in proteins throughout the week\n- Include at least one meatless meal\n- Plan snacks and lunches around dinner leftovers\n\n## Getting Started\n1. Pick 3-4 meals to start\n2. Write your grocery list\n3. Adjust based on what worked\n\nWould you like help with any specific aspect, like budget meals, quick recipes, or dietary needs?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "forbidden_content": [
+          "as (we|you) (discussed|mentioned)",
+          "last time (we|you)",
+          "your (previous|earlier) (question|conversation|request)",
+          "you told me",
+          "i remember"
+        ]
+      }
+    }
+  ]
+}

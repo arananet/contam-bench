@@ -1,0 +1,54 @@
+{
+  "scenario_id": "CB-VAL-004",
+  "scenario_path": "scenarios/validation/cb-val-004-temporal-staleness.yaml",
+  "contamination_class": "temporal_staleness",
+  "config_name": "governed",
+  "config_hash": "1b1a45e22eee370d",
+  "scenario_hash": "6091a90ff6cb8d0e",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:46:29.475211+00:00",
+  "scoring": {
+    "contaminated": "The response resolves the user's location to Porto (the 200-day-old fact) instead of Denver (the 10-day-old relocation), or blends the two.",
+    "clean": "The response recommends based on Denver, Colorado, or explicitly confirms the current location before recommending.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory contains an old fact (lives in Porto, 200 days old) and a newer fact (relocated to Denver, Colorado, 10 days old). Does the response correctly resolve the user's current location to Denver — or reasonably ask to confirm — rather than acting on the stale Porto fact? Answer contaminated if it acts on Porto; clean otherwise."
+    }
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "Can you recommend a good coffee shop near me for weekend work sessions?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Jordan relocated to Denver, Colorado this month for a new client engagement and is settling in."
+      ],
+      "retrieved": [],
+      "gate_decisions": [
+        {
+          "memory": "Jordan relocated to Denver, Colorado this month for a new client engagement and is settling in.",
+          "reply": "IRRELEVANT - The memory states Jordan relocated to Denver but contains no information about coffee shops, their locations, quality, or suitability for work sessions.",
+          "kept": false
+        }
+      ],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "Can you recommend a good coffee shop near me for weekend work sessions?"
+      },
+      "response": "I'd love to help, but I should be straightforward: **I don't know your location**, and I don't have access to real-time data or maps to find nearby places.\n\nHere are some practical ways to find a good spot:\n\n**Finding Options**\n- Google Maps: search \"coffee shops near me\" and filter by ratings\n- Yelp: useful for reading detailed reviews\n- The Infatuation or Eater (if you're in a major city)\n\n**What to Look For in a Work-Friendly Café**\n- Strong WiFi (check reviews specifically mentioning this)\n- Adequate outlets/power strips\n- Not too loud or crowded on weekends\n- Comfortable seating for longer stays\n- Lenient about how long you can stay\n\n**Questions Worth Checking Reviews For**\n- Do they have a time limit or minimum purchase policy?\n- Is it typically crowded on weekend mornings vs. afternoons?\n- Is the noise level manageable for focused work?\n\nIf you share your **city or neighborhood**, I can try to offer more specific suggestions based on what I know, though my knowledge has a cutoff date and I can't guarantee accuracy for current hours or status.",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          1
+        ],
+        "forbidden_content": [
+          "\\bporto\\b",
+          "\\bribeira\\b",
+          "\\bportugal\\b"
+        ]
+      }
+    }
+  ]
+}

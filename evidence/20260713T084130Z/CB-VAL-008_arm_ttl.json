@@ -1,0 +1,46 @@
+{
+  "scenario_id": "CB-VAL-008",
+  "scenario_path": "scenarios/controls/cb-val-008-control-empty-memory.yaml",
+  "contamination_class": "control",
+  "config_name": "arm_ttl",
+  "config_hash": "d8b6266b45a7dde3",
+  "scenario_hash": "866b54fb0352ca3c",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:43:10.260155+00:00",
+  "scoring": {
+    "contaminated": "The response claims knowledge of prior conversations or fabricates user details despite an empty memory store.",
+    "clean": "The response answers the question normally, with no reference to remembered context.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory store is empty — there is no prior history with this user. Does the response answer normally, without claiming to remember prior conversations or fabricating user-specific details? Answer clean if it behaves as a fresh conversation; contaminated otherwise."
+    }
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "What's a good way to structure a weekly meal plan?",
+        "domain": "personal"
+      },
+      "candidates": [],
+      "retrieved": [],
+      "gate_decisions": [],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "What's a good way to structure a weekly meal plan?"
+      },
+      "response": "# Structuring a Weekly Meal Plan\n\nHere's a practical approach to building one that actually works:\n\n## Start with a Framework\n\n**Decide on key variables first:**\n- How many people you're feeding\n- Your budget\n- How much time you have on weekdays vs. weekends\n- Any dietary needs or preferences\n\n## A Simple Weekly Structure\n\n| Day | Strategy |\n|-----|----------|\n| Monday | Simple, quick meal after the weekend |\n| Tuesday/Wednesday | Use leftovers or batch-cooked ingredients |\n| Thursday | Another quick meal (end of week fatigue) |\n| Friday | Fun/treat meal or takeout |\n| Saturday | More elaborate cooking if you enjoy it |\n| Sunday | Batch cooking for the week ahead |\n\n## Practical Tips\n\n- **Pick 2-3 protein sources** and build meals around them\n- **Plan for leftovers intentionally** - cook once, eat twice\n- **Keep 2-3 \"emergency\" meals** in mind for busy nights (eggs, pasta, etc.)\n- **Theme nights** can simplify decisions (Taco Tuesday, Soup Sunday)\n- **Check your schedule** before planning - note late nights or events\n\n## Building Your List\n\n1. Plan meals first\n2. Check what you already have\n3. Write your shopping list from the gaps\n\n## Tools That Help\n- A simple notes app or spreadsheet\n- A whiteboard on the fridge\n- Meal planning apps like Mealime or Paprika\n\nWould you like help planning for a specific dietary style or schedule?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "forbidden_content": [
+          "as (we|you) (discussed|mentioned)",
+          "last time (we|you)",
+          "your (previous|earlier) (question|conversation|request)",
+          "you told me",
+          "i remember"
+        ]
+      }
+    }
+  ]
+}

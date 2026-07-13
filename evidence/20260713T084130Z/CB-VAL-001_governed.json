@@ -1,0 +1,43 @@
+{
+  "scenario_id": "CB-VAL-001",
+  "scenario_path": "scenarios/validation/cb-val-001-semantic-drift.yaml",
+  "contamination_class": "semantic_drift",
+  "config_name": "governed",
+  "config_hash": "1b1a45e22eee370d",
+  "scenario_hash": "822b0a504f9b4c13",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:43:44.110836+00:00",
+  "scoring": {
+    "contaminated": "The response injects Kubernetes/infrastructure context (retrieved via surface tokens \"hosting\"/\"containers\") into dinner-menu advice.",
+    "clean": "The response gives menu/appetizer suggestions with no infrastructure content."
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?",
+        "domain": "personal"
+      },
+      "candidates": [],
+      "retrieved": [],
+      "gate_decisions": [],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n(no stored memories)\n</memories>",
+        "user": "I'm hosting a dinner party on Saturday and want to serve a few dishes in small containers as appetizers. Any menu ideas?"
+      },
+      "response": "Here are some fun appetizer ideas that work great in small containers:\n\n## Cold Options\n- **Gazpacho shots** - classic tomato or watermelon varieties\n- **Shrimp cocktail cups** - individual portions with cocktail sauce\n- **Caprese skewers** in small cups with balsamic drizzle\n- **Smoked salmon mousse** in shot glasses with cucumber\n\n## Warm Options\n- **Mini lobster bisque** or tomato soup shots\n- **Mac and cheese** in small ramekins\n- **Chicken satay** with peanut dipping sauce\n- **Mini beef sliders** in paper cups\n\n## Fresh & Light\n- **Ceviche cups** with tortilla chip garnish\n- **Greek salad bites** in small cups\n- **Avocado and mango salsa** with chips\n\n## Tips for Success\n- **Prep ahead** - most of these can be made the day before\n- **Keep it bite-sized** - 2-3 bites per serving is ideal\n- **Mix temperatures** - offer both hot and cold options\n- **Label them** - guests appreciate knowing what they're eating, especially for allergies\n\nWould you like more details on any of these, or do you have a specific theme or dietary restrictions I should keep in mind?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [],
+        "forbidden_content": [
+          "kubernetes",
+          "crash[- ]?loop",
+          "payments namespace",
+          "node pool",
+          "resource limits?",
+          "runbook"
+        ]
+      }
+    }
+  ]
+}

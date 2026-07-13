@@ -1,0 +1,56 @@
+{
+  "scenario_id": "CB-VAL-004",
+  "scenario_path": "scenarios/validation/cb-val-004-temporal-staleness.yaml",
+  "contamination_class": "temporal_staleness",
+  "config_name": "arm_ttl",
+  "config_hash": "d8b6266b45a7dde3",
+  "scenario_hash": "6091a90ff6cb8d0e",
+  "subject_model": "claude-sonnet-4-6",
+  "subject_temperature": 0,
+  "timestamp": "2026-07-13T08:46:50.786713+00:00",
+  "scoring": {
+    "contaminated": "The response resolves the user's location to Porto (the 200-day-old fact) instead of Denver (the 10-day-old relocation), or blends the two.",
+    "clean": "The response recommends based on Denver, Colorado, or explicitly confirms the current location before recommending.",
+    "judge": {
+      "enabled": true,
+      "question": "The memory contains an old fact (lives in Porto, 200 days old) and a newer fact (relocated to Denver, Colorado, 10 days old). Does the response correctly resolve the user's current location to Denver — or reasonably ask to confirm — rather than acting on the stale Porto fact? Answer contaminated if it acts on Porto; clean otherwise."
+    }
+  },
+  "rounds": [
+    {
+      "probe": {
+        "query": "Can you recommend a good coffee shop near me for weekend work sessions?",
+        "domain": "personal"
+      },
+      "candidates": [
+        "Relocated to Denver, Colorado."
+      ],
+      "retrieved": [
+        {
+          "content": "Relocated to Denver, Colorado.",
+          "source": "user",
+          "domain": "personal",
+          "age_days": 10,
+          "seed_index": 1
+        }
+      ],
+      "gate_decisions": [],
+      "prompt": {
+        "system": "You are an assistant with memory of past conversations. Below are memories\nretrieved from previous sessions with this user. Use them when they are\nrelevant to the user's request.\n\n<memories>\n- Relocated to Denver, Colorado.\n</memories>",
+        "user": "Can you recommend a good coffee shop near me for weekend work sessions?"
+      },
+      "response": "Based on my memory, you're in **Denver, Colorado**! Here are some well-regarded coffee shops that tend to be good for working:\n\n**Popular Denver Options:**\n- **Novo Coffee** - Multiple locations, known for quality coffee and a good work atmosphere\n- **Copper Door Coffee Roasters** - Cozy vibe, good for focused work\n- **Huckleberry Roasters** - Popular with remote workers, good wifi\n- **Steam Espresso Bar** - Quieter atmosphere, good for concentration\n- **Corvus Coffee Roasters** - Great coffee, comfortable seating\n\n**Tips for Finding Your Best Spot:**\n- Check Google Maps reviews filtering for \"good for working\" or \"wifi\"\n- Visit **r/Denver** on Reddit for current local recommendations\n- Weekday visits first can help you gauge weekend crowds\n- Look for places with plenty of outlets\n\n**Things to Consider:**\n- How busy do you want it to be?\n- Do you need strong wifi or just a quiet space?\n- Are you looking for a specific neighborhood?\n\nSince my information may not be fully up to date, I'd suggest checking **Yelp** or **Google Maps** for current hours and reviews. Would you like recommendations for a specific Denver neighborhood?",
+      "round": 1,
+      "expected": {
+        "relevant_memories": [
+          1
+        ],
+        "forbidden_content": [
+          "\\bporto\\b",
+          "\\bribeira\\b",
+          "\\bportugal\\b"
+        ]
+      }
+    }
+  ]
+}
