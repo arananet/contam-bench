@@ -74,7 +74,10 @@ def test_full_pipeline(mocked_pipeline, tmp_path, capsys):
     meta = json.load(open(os.path.join(run_dir, "run_meta.json")))
     assert meta["harness_total_calls"] == meta["total_calls"]
     assert meta["pipeline_call_counts"]["judge"] > 0
-    assert meta["total_pipeline_calls"] > meta["harness_total_calls"]
+    assert meta["judge_total_calls"] == meta["pipeline_call_counts"]["judge"]
+    assert meta["pipeline_total_calls"] == (
+        meta["harness_total_calls"] + meta["judge_total_calls"])
+    assert meta["total_pipeline_calls"] == meta["pipeline_total_calls"]
 
     # both scoring passes executed; disagreement flagged, never swallowed
     judged = [r for v in verdicts for r in v["rounds"] if r["judge"]]

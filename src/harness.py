@@ -184,7 +184,10 @@ def main(argv: list[str] | None = None) -> str:
         "repetitions": args.repetitions,
         "harness_call_counts": client.counts,
         "harness_total_calls": client.total_calls,
+        "judge_total_calls": None,
         "pipeline_call_counts": None,
+        "pipeline_total_calls": None,
+        # Compatibility alias retained for pre-v0.3.1 report readers.
         "total_pipeline_calls": None,
         # Compatibility fields retained for report readers of pre-v0.3.1 runs.
         "call_counts": client.counts,

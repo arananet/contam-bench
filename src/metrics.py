@@ -242,7 +242,8 @@ def call_accounting(run_dir: str, meta: dict, verdict_data: dict) -> dict:
     judge_calls = sum(verdict_data.get("judge_call_counts", {}).values())
     harness_counts = meta.get("harness_call_counts", meta["call_counts"])
     harness_total = meta.get("harness_total_calls", meta["total_calls"])
-    declared_total = meta.get("total_pipeline_calls")
+    declared_total = meta.get("pipeline_total_calls",
+                              meta.get("total_pipeline_calls"))
     if declared_total is None:
         declared_total = harness_total + judge_calls
     correction_path = os.path.join(run_dir, "corrections", "call-count-v1.json")

@@ -26,9 +26,9 @@ acceptance_criteria:
   - The report exposes a utility layer as unavailable when no scenario declares
     a utility oracle, rather than treating clean contamination scoring as a
     utility result.
-  - New run metadata records harness-phase calls separately from full-pipeline
-    calls after scoring; frozen historical metadata remains immutable and is
-    reconciled only by a versioned correction artifact.
+  - New run metadata records harness, judge, and full-pipeline call totals
+    separately from the outset; frozen historical metadata remains immutable
+    and is reconciled only by a versioned correction artifact.
   - The manuscript names presupposition capture, states the contradiction-pair
     contract, reports observed and worst-case gate cost separately, and limits
     control claims to the layer supported by the frozen evidence.

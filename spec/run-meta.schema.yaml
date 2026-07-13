@@ -9,8 +9,9 @@ required:
   - repetitions
   - harness_call_counts
   - harness_total_calls
+  - judge_total_calls
   - pipeline_call_counts
-  - total_pipeline_calls
+  - pipeline_total_calls
 properties:
   run_dir:
     type: string
@@ -24,11 +25,16 @@ properties:
   harness_total_calls:
     type: integer
     minimum: 0
+  judge_total_calls:
+    anyOf:
+      - type: integer
+        minimum: 0
+      - type: "null"
   pipeline_call_counts:
     anyOf:
       - "$ref": "#/definitions/call_counts"
       - type: "null"
-  total_pipeline_calls:
+  pipeline_total_calls:
     anyOf:
       - type: integer
         minimum: 0
@@ -39,6 +45,11 @@ properties:
   total_calls:
     type: integer
     minimum: 0
+  total_pipeline_calls:
+    anyOf:
+      - type: integer
+        minimum: 0
+      - type: "null"
 definitions:
   call_counts:
     type: object

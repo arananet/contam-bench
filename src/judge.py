@@ -16,6 +16,7 @@ import json
 import os
 import re
 
+import jsonschema
 import yaml
 
 from .llm import CountingClient, make_client
@@ -187,7 +188,12 @@ def update_pipeline_call_metadata(run_dir: str, judge_call_counts: dict) -> None
     for role, count in judge_call_counts.items():
         pipeline_counts[role] = pipeline_counts.get(role, 0) + count
     meta["pipeline_call_counts"] = pipeline_counts
-    meta["total_pipeline_calls"] = harness_total + sum(judge_call_counts.values())
+    meta["judge_total_calls"] = sum(judge_call_counts.values())
+    meta["pipeline_total_calls"] = harness_total + meta["judge_total_calls"]
+    meta["total_pipeline_calls"] = meta["pipeline_total_calls"]
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    schema = yaml.safe_load(open(os.path.join(repo_root, "spec", "run-meta.schema.yaml")))
+    jsonschema.validate(meta, schema)
     with open(path, "w") as f:
         json.dump(meta, f, indent=2)
 
