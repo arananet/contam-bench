@@ -1,7 +1,13 @@
 version: full-benchmark-plan-v1
 execution:
   max_api_calls: 0
-  subject_models: [claude-sonnet-4-6, second-subject-model-to-be-approved]
+  subject_models: [claude-sonnet-4-6, claude-sonnet-5]
+  subject_sampling:
+    claude-sonnet-4-6: {temperature: 0}
+    # Sonnet 5 rejects an explicit temperature=0 request. Its results must be
+    # reported as a separate model/sampling condition, not a deterministic
+    # replication of the Sonnet 4.6 condition.
+    claude-sonnet-5: {temperature: provider_default}
   retrieval_backends: [tfidf, learned_embedding]
   production_baselines: [Mem0, Zep, Letta]
   utility_oracle: task-specific-must-include-patterns-v1
