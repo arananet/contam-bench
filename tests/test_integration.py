@@ -1,4 +1,4 @@
-"""End-to-end: all scenarios × both configs with a mocked API.
+"""End-to-end: all scenarios x all configured configs with a mocked API.
 
 Asserts the acceptance criteria that don't need live tokens: zero unhandled
 exceptions, artifacts persisted with model/config-hash/scenario-hash, both
@@ -33,8 +33,14 @@ def mocked_pipeline(monkeypatch, tmp_path):
 def test_full_pipeline(mocked_pipeline, tmp_path, capsys):
     run_dir = harness.main([])
 
+    # Manifest-driven expected inventory (review item 2): never a literal.
+    import yaml
+    n_scenarios = len(glob.glob("scenarios/*/*.yaml"))
+    n_configs = len(yaml.safe_load(open("spec/configs.yaml"))["configs"])
     artifacts = sorted(glob.glob(os.path.join(run_dir, "CB-VAL-*.json")))
-    assert len(artifacts) == 63  # 9 scenarios × 7 configs
+    assert len(artifacts) == n_scenarios * n_configs, (
+        f"expected {n_scenarios}x{n_configs}={n_scenarios*n_configs} artifacts, "
+        f"got {len(artifacts)}")
 
     for path in artifacts:
         artifact = json.load(open(path))
@@ -58,7 +64,7 @@ def test_full_pipeline(mocked_pipeline, tmp_path, capsys):
 
     verdicts_path = judge.main([run_dir])
     verdicts = json.load(open(verdicts_path))["verdicts"]
-    assert len(verdicts) == 63
+    assert len(verdicts) == n_scenarios * n_configs
 
     # both scoring passes executed; disagreement flagged, never swallowed
     judged = [r for v in verdicts for r in v["rounds"] if r["judge"]]
@@ -72,8 +78,8 @@ def test_full_pipeline(mocked_pipeline, tmp_path, capsys):
     metrics.main([run_dir, "--out", out])
     report = open(out).read()
     for name in ["contamination_rate", "seeded_recursion_rate",
-                 "provenance_error_rate",
-                 "staleness_rate", "compounding_factor_natural",
+                 "provenance_error_rate", "staleness_rate",
+                 "compounding_factor_natural",
                  "personalization_retention"]:
         assert name in report
     assert "total API calls" in report

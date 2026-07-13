@@ -44,16 +44,16 @@ human-review resolutions.
 git clone https://github.com/arananet/contam-bench.git
 cd contam-bench
 bash setup.sh                      # installs OpenSpec git hooks
-python -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 # 2. Configure API access (subject + judge models)
 export ANTHROPIC_API_KEY=sk-ant-...
 
 # 3. Run the full pipeline (all scenarios × all configs)
-python -m src.harness              # → runs/<timestamp>/
-python -m src.judge runs/<timestamp>    # deterministic + LLM judge scoring
-python -m src.metrics runs/<timestamp>  # aggregate → report/validation_report.md
+python3 -m src.harness              # → runs/<timestamp>/
+python3 -m src.judge runs/<timestamp>    # deterministic + LLM judge scoring
+python3 -m src.metrics runs/<timestamp>  # aggregate → report/validation_report.md
 
 # 4. Run tests (no API key needed — the API is mocked)
 pytest
@@ -66,7 +66,7 @@ pytest
 Score a single scenario against one memory configuration:
 
 ```bash
-python -m src.harness --scenario scenarios/validation/cb-val-001-semantic-drift.yaml --config arm_provenance
+python3 -m src.harness --scenario scenarios/validation/cb-val-001-semantic-drift.yaml --config arm_provenance
 ```
 
 Every run persists auditable artifacts (raw prompts, injected memory,
@@ -120,8 +120,6 @@ includes a `roles` block to assign responsibility (`implementer`,
 | Metric definitions | [`spec/metrics.md`](spec/metrics.md) |
 | Memory configurations (7) | [`spec/configs.yaml`](spec/configs.yaml) |
 | Frozen evidence runs | [`evidence/`](evidence/) |
-| Roadmap (v0.3+) | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
-| Open questions | [`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md) |
 | Spec-driven workflow | [`docs/OPENSPEC.md`](docs/OPENSPEC.md) |
 | Branch protection setup | [`docs/BRANCH_PROTECTION.md`](docs/BRANCH_PROTECTION.md) |
 | Architecture decisions | [`docs/adr/`](docs/adr/) |
