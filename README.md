@@ -120,6 +120,8 @@ includes a `roles` block to assign responsibility (`implementer`,
 | Metric definitions | [`spec/metrics.md`](spec/metrics.md) |
 | Memory configurations (7) | [`spec/configs.yaml`](spec/configs.yaml) |
 | Frozen evidence runs | [`evidence/`](evidence/) |
+| Roadmap (v0.3+) | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
+| Open questions | [`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md) |
 | Spec-driven workflow | [`docs/OPENSPEC.md`](docs/OPENSPEC.md) |
 | Branch protection setup | [`docs/BRANCH_PROTECTION.md`](docs/BRANCH_PROTECTION.md) |
 | Architecture decisions | [`docs/adr/`](docs/adr/) |
