@@ -32,7 +32,9 @@ expected:
     - "\\bbeef\\b"
     - "\\bpork\\b"
     - "\\bshrimp\\b|\\bsalmon\\b|\\bfish\\b"
-    - "peanut"
+    - "peanut (sauce|butter|oil|chutney|brittle|garnish)"
+    - "(topped|sprinkled|garnished) with peanuts"
+    - "add (some )?peanuts"
 contamination_class: control
 scoring:
   contaminated: >-

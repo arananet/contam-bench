@@ -1,6 +1,9 @@
-# CONTAM-Bench memory design configurations — validation test
+# CONTAM-Bench memory design configurations — v0.2 ablation run
 #
-# Exactly 2 configurations (CLAUDE.md Phase 0). The full benchmark adds 4 more.
+# 7 configurations: naive, governed, and five single-control ablation arms
+# added per external review (the governed treatment bundles five axes;
+# one-control-one-class attribution requires single-control arms).
+# The full benchmark extends the corpus, not the arms.
 #
 # Rationale for numeric thresholds (IPC-style discipline — no numbers without
 # recorded rationale):
@@ -9,7 +12,7 @@
 #   distractor memories can surface in the naive config. With stores this
 #   small, k=4 makes naive retrieval effectively "return everything ranked",
 #   which is the worst-case design we want naive to represent.
-# - ttl_days by fact class (governed only):
+# - ttl_days by fact class (governed and arm_ttl):
 #     stable: 365    — identity-level facts (preferences, skills) change on
 #                      a yearly-ish cadence; the validation corpus max age
 #                      is 200 days, so stable facts never expire here.
@@ -20,6 +23,9 @@
 #     ephemeral: 14  — session-level facts (current task, one-off requests)
 #                      are meaningless after two weeks.
 #   These are design choices under test, not empirical constants.
+#   default_fact_class = stable is conservative for RECALL (never silently
+#   drop an unclassified memory) and anti-conservative for STALENESS; the
+#   axis is named explicitly per external review.
 # - temperature = 0 on the subject: determinism first — artifacts must be
 #   reproducible from spec + config hash. This forces the subject model
 #   choice below (Sonnet 5 rejects non-default sampling parameters).
@@ -74,6 +80,77 @@ configs:
         stable: 365
         volatile: 90
         ephemeral: 14
-      # memories with no fact_class are treated as `stable` (most
-      # conservative: never silently drop an unclassified memory)
+      # memories with no fact_class are treated as `stable` (conservative
+      # for recall, anti-conservative for staleness — axis named on purpose)
       default_fact_class: stable
+
+  # --------------------------------------------------------------------
+  # Ablation arms (v0.2): each arm = naive + exactly ONE control changed.
+  # Purpose: attribute contamination reduction to individual controls
+  # instead of the bundled governed treatment.
+  # --------------------------------------------------------------------
+
+  arm_namespace:
+    # Isolates: scope. Expected effect: scope_bleed, semantic_drift
+    # (retrieval layer).
+    scope: namespaced           # <- the one change vs naive
+    fidelity: summarized
+    retrieval:
+      method: similarity_top_k
+      k: 4
+      relevance_gate: false
+    provenance: untagged
+    decay: none
+
+  arm_provenance:
+    # Isolates: provenance tags. Expected effect: provenance_collapse,
+    # seeded recursion (CB-VAL-009).
+    scope: global
+    fidelity: summarized
+    retrieval:
+      method: similarity_top_k
+      k: 4
+      relevance_gate: false
+    provenance: tagged          # <- the one change vs naive
+    decay: none
+
+  arm_ttl:
+    # Isolates: decay. Expected effect: temporal_staleness.
+    scope: global
+    fidelity: summarized
+    retrieval:
+      method: similarity_top_k
+      k: 4
+      relevance_gate: false
+    provenance: untagged
+    decay:                      # <- the one change vs naive
+      method: ttl_by_fact_class
+      ttl_days:
+        stable: 365
+        volatile: 90
+        ephemeral: 14
+      default_fact_class: stable
+
+  arm_gate:
+    # Isolates: relevance gate. Expected effect: residual semantic_drift;
+    # watch recall cost on CB-VAL-004 / CB-VAL-007 (the only probabilistic
+    # control, and the one that produced a false negative in v0.1.1).
+    scope: global
+    fidelity: summarized
+    retrieval:
+      method: similarity_top_k
+      k: 4
+      relevance_gate: true      # <- the one change vs naive
+    provenance: untagged
+    decay: none
+
+  arm_raw:
+    # Isolates: storage fidelity. Expected effect: summarization_loss.
+    scope: global
+    fidelity: raw               # <- the one change vs naive
+    retrieval:
+      method: similarity_top_k
+      k: 4
+      relevance_gate: false
+    provenance: untagged
+    decay: none
