@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from src.judge import deterministic_pass, resolve, validate_adjudications
+from src.judge import deterministic_pass, main, resolve, validate_adjudications
 
 
 def test_deterministic_case_insensitive():
@@ -60,3 +60,23 @@ def test_adjudications_require_a_complete_separate_record(tmp_path):
     }]}))
     with pytest.raises(ValueError, match="required fields"):
         validate_adjudications(str(path))
+
+
+def test_adjudication_queue_requires_unique_pending_rounds(tmp_path):
+    path = tmp_path / "adjudications.json"
+    record = {"artifact_hash": "abc", "round": 1, "status": "pending"}
+    path.write_text(json.dumps({"version": "v1", "adjudications": [],
+                                "review_queue": [record]}))
+    assert validate_adjudications(str(path))["review_queue"] == [record]
+
+    path.write_text(json.dumps({"version": "v1", "adjudications": [],
+                                "review_queue": [record, record]}))
+    with pytest.raises(ValueError, match="duplicate"):
+        validate_adjudications(str(path))
+
+
+def test_main_validates_adjudications_without_creating_a_client(tmp_path, monkeypatch):
+    path = tmp_path / "adjudications.json"
+    path.write_text(json.dumps({"version": "v1", "adjudications": []}))
+    monkeypatch.setattr("src.judge.make_client", lambda: pytest.fail("should not score"))
+    assert main(["unused-run-dir", "--adjudications", str(path)]) == str(path)

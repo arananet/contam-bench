@@ -13,6 +13,8 @@ import glob
 import json
 import os
 
+import yaml
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPORT_PATH = os.path.join(REPO_ROOT, "report", "validation_report.md")
 
@@ -135,12 +137,46 @@ def score_retrieval_assertions(round_artifact: dict) -> dict | None:
     return {"passed": all(results.values()), "assertions": results}
 
 
+def score_utility(round_artifact: dict) -> dict | None:
+    """Evaluate an optional deterministic utility oracle against a response."""
+    utility = round_artifact.get("expected", {}).get("utility")
+    if not utility:
+        return None
+    import re
+
+    response = round_artifact.get("response", "")
+    patterns = utility["must_include_patterns"]
+    matches = {pattern: bool(re.search(pattern, response, re.IGNORECASE))
+               for pattern in patterns}
+    return {"passed": all(matches.values()), "patterns": matches}
+
+
+def flagged_review_rows(verdicts: list[dict]) -> list[dict]:
+    """Return uniquely identifiable rows for unresolved machine verdicts."""
+    return [
+        {
+            "scenario_id": verdict["scenario_id"],
+            "config_name": verdict["config_name"],
+            "repetition": verdict.get("repetition", 1),
+            "artifact_hash": verdict.get("artifact_hash", "missing"),
+            "round": round_data["round"],
+            "reason": round_data["reason"],
+        }
+        for verdict in verdicts
+        for round_data in verdict["rounds"]
+        if round_data["resolved"] == "needs_human_review"
+    ]
+
+
 def gate_observability(run_dir: str) -> dict:
     """Observed per-candidate gate costs, read from persisted artifacts only."""
+    configs = yaml.safe_load(open(os.path.join(REPO_ROOT, "spec", "configs.yaml")))["configs"]
     diagnostics = []
     by_query_family: dict[str, dict] = {}
     for path in glob.glob(os.path.join(run_dir, "CB-VAL-*.json")):
         artifact = json.load(open(path))
+        if not configs[artifact["config_name"]]["retrieval"].get("relevance_gate"):
+            continue
         family = artifact.get("query_family") or "unlabeled"
         family_stats = by_query_family.setdefault(
             family, {"retrievals": 0, "gate_calls": 0,
@@ -195,8 +231,30 @@ def adjudicated_layer(run_dir: str, verdicts: list[dict]) -> dict:
                 rnd["resolved"] = consensus[key]
                 applied += 1
     return {"available": True, "version": data["version"],
-            "records": len(data["adjudications"]), "consensus": len(consensus),
+            "records": len(data["adjudications"]),
+            "review_queue": len(data.get("review_queue", [])),
+            "consensus": len(consensus),
             "applied": applied, "verdicts": layered}
+
+
+def call_accounting(run_dir: str, meta: dict, verdict_data: dict) -> dict:
+    """Reconcile immutable harness metadata through an additive correction file."""
+    judge_calls = sum(verdict_data.get("judge_call_counts", {}).values())
+    declared_total = meta["total_calls"] + judge_calls
+    correction_path = os.path.join(run_dir, "corrections", "call-count-v1.json")
+    if not os.path.exists(correction_path):
+        return {"harness_calls": meta["call_counts"], "judge_calls": judge_calls,
+                "total_calls": declared_total, "correction": None}
+    correction = json.load(open(correction_path))
+    corrected_total = correction["corrected_total_calls"]
+    if correction["original_total_calls"] != meta["total_calls"]:
+        raise ValueError("call-count correction does not match immutable run metadata")
+    if correction["judge_calls_omitted"] != judge_calls:
+        raise ValueError("call-count correction does not match persisted judge calls")
+    if corrected_total != declared_total:
+        raise ValueError("call-count correction total does not reconcile")
+    return {"harness_calls": meta["call_counts"], "judge_calls": judge_calls,
+            "total_calls": corrected_total, "correction": correction}
 
 
 def _excerpt(verdict_round: dict) -> str:
@@ -233,7 +291,7 @@ def build_report(run_dir: str) -> str:
         f"{meta['models']['subject_temperature']})",
         f"- judge/gate model: `{meta['models']['judge']}`",
         "",
-        "## Config comparison",
+        "## Machine-only config comparison",
         "",
         "| metric | " + " | ".join(configs) + " |",
         "|---|" + "---|" * len(configs),
@@ -245,7 +303,7 @@ def build_report(run_dir: str) -> str:
         lines.append(f"| {name} | " +
                      " | ".join(_fmt(m(c, name)) for c in configs) + " |")
 
-    lines += ["", "## Human-adjudicated comparison", ""]
+    lines += ["", "## Human-consensus config comparison", ""]
     if not human_layer["available"]:
         lines.append(f"- unavailable ({human_layer['reason']}); machine verdicts remain authoritative.")
     else:
@@ -255,6 +313,7 @@ def build_report(run_dir: str) -> str:
             for config in configs
         }
         lines += [f"- adjudication file version: `{human_layer['version']}`",
+                  f"- pending blinded review queue: {human_layer['review_queue']}",
                   f"- records: {human_layer['records']}; two-adjudicator consensus: "
                   f"{human_layer['consensus']}; applied to machine reviews: {human_layer['applied']}",
                   "| metric | " + " | ".join(configs) + " |",
@@ -262,8 +321,10 @@ def build_report(run_dir: str) -> str:
         for name in ["contamination_rate", "seeded_recursion_rate",
                      "provenance_error_rate", "staleness_rate",
                      "compounding_factor_natural", "personalization_retention"]:
-            lines.append(f"| {name} | " + " | ".join(
-                _fmt(human_per_config[config][name]) for config in configs) + " |")
+            values = ([_fmt(human_per_config[config][name]) for config in configs]
+                      if human_layer["consensus"]
+                      else ["null (no_two_adjudicator_consensus)"] * len(configs))
+            lines.append(f"| {name} | " + " | ".join(values) + " |")
 
     lines += ["", "## Per-scenario verdicts", "",
               "| scenario | class | query family | config | repetition | round | machine verdict | evidence |",
@@ -297,6 +358,26 @@ def build_report(run_dir: str) -> str:
     else:
         lines.append("- no retrieval assertions declared in these manifests")
 
+    utility_rows = []
+    for path in sorted(glob.glob(os.path.join(run_dir, "CB-VAL-*.json"))):
+        artifact = json.load(open(path))
+        for rnd in artifact["rounds"]:
+            scored = score_utility(rnd)
+            if scored is not None:
+                utility_rows.append((artifact, rnd, scored))
+    lines += ["", "## Utility layer", ""]
+    if utility_rows:
+        lines += ["| scenario | config | repetition | round | pass | details |",
+                  "|---|---|---|---|---|---|"]
+        for artifact, rnd, scored in utility_rows:
+            details = ", ".join(f"{pattern}={matched}" for pattern, matched
+                                in scored["patterns"].items())
+            lines.append(f"| {artifact['scenario_id']} | {artifact['config_name']} | "
+                         f"{artifact.get('repetition', 1)} | {rnd['round']} | "
+                         f"{scored['passed']} | {details} |")
+    else:
+        lines.append("- null (no_utility_oracles_declared)")
+
     lines += ["", "## Relevance-gate observability", ""]
     if "reason" in gate_stats:
         lines.append(f"- null ({gate_stats['reason']})")
@@ -313,13 +394,13 @@ def build_report(run_dir: str) -> str:
             lines.append(f"| {family} | {stats['retrievals']} | {stats['gate_calls']} | "
                          f"{stats['candidates']} | {stats['contradiction_overrides']} |")
 
-    flagged = [(v["scenario_id"], v["config_name"], r["round"], r["reason"])
-               for v in verdicts for r in v["rounds"]
-               if r["resolved"] == "needs_human_review"]
+    flagged = flagged_review_rows(verdicts)
     lines += ["", "## Flagged for human review", ""]
     if flagged:
-        lines += [f"- {sid} × {cfg} round {rnd}: {reason}"
-                  for sid, cfg, rnd, reason in flagged]
+        lines += [f"- {row['scenario_id']} × {row['config_name']} "
+                  f"r{row['repetition']} round {row['round']} "
+                  f"(artifact {row['artifact_hash']}): {row['reason']}"
+                  for row in flagged]
     else:
         lines.append("- none")
 
@@ -352,12 +433,15 @@ def build_report(run_dir: str) -> str:
         lines.append("- none recorded during this run "
                      "(record defects in runs/<ts>/defects.md)")
 
-    total = meta["total_calls"] + sum(data.get("judge_call_counts", {}).values())
+    calls = call_accounting(run_dir, meta, data)
     lines += ["", "## API spend", "",
-              f"- harness calls: {meta['call_counts']}",
+              f"- harness calls: {calls['harness_calls']}",
               f"- judge calls: {data.get('judge_call_counts', {})}",
-              f"- **total API calls: {total}** (budget: a few hundred)",
+              f"- **total API calls: {calls['total_calls']}** (budget: a few hundred)",
               ""]
+    if calls["correction"]:
+        lines[-1:-1] = [f"- versioned correction: `{calls['correction']['version']}`; "
+                        f"immutable run_meta.json omits {calls['correction']['judge_calls_omitted']} judge calls."]
     return "\n".join(lines)
 
 

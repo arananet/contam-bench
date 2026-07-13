@@ -56,10 +56,30 @@ Guidelines:
 
 ---
 
+## [0.3.0] — 2026-07-13
+
+### Added
+- Five-repetition ablation audit across 7 configurations and 9 scenarios, frozen in [`evidence/20260713T191740Z/`](evidence/20260713T191740Z/) (tag: `v0.3-repeated-ablation`)
+- Immutable machine verdicts, separately versioned adjudication support, retrieval assertions, and observed relevance-gate accounting
+- Reproducible v3 manuscript source and local PDF/arXiv build tooling under [`paper/v3/`](paper/v3/)
+
+### Changed
+- Paper and README distinguish the v0.2 single-run matrix from the v0.3 machine-only repeated audit
+
+### Fixed
+- Preserved `runs/` as ignored scratch space; publication artifacts are tracked only under `evidence/`
+
+## [0.2.0] — 2026-07-13
+
+### Added
+- Seven-configuration, nine-scenario single-run ablation frozen in [`evidence/20260713T084130Z/`](evidence/20260713T084130Z/) (tag: `v0.2-ablation`)
+
 ## [0.1.0] — YYYY-MM-DD
 
 ### Added
 - Initial release.
 
-[Unreleased]: https://github.com/arananet/contam-bench/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/arananet/contam-bench/compare/v0.3-repeated-ablation...HEAD
+[0.3.0]: https://github.com/arananet/contam-bench/releases/tag/v0.3-repeated-ablation
+[0.2.0]: https://github.com/arananet/contam-bench/releases/tag/v0.2-ablation
 [0.1.0]: https://github.com/arananet/contam-bench/releases/tag/v0.1.0

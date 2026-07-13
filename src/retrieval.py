@@ -73,7 +73,9 @@ def retrieve(client: CountingClient, models_config: dict, config: dict,
         if config["retrieval"].get("contradiction_policy") == "preserve_pairs":
             retained_sets = {entry.contradiction_set for entry in retrieved
                              if entry.contradiction_set}
-            preserved = [entry for entry in top_k(query, entries, config["retrieval"]["k"])
+            # The rail operates on the whole eligible store: top-k ranking must
+            # not hide a contradiction of a memory the gate chose to retain.
+            preserved = [entry for entry in entries
                          if entry.contradiction_set in retained_sets]
             if {id(entry) for entry in preserved} != {id(entry) for entry in retrieved}:
                 contradiction_override_fired = True

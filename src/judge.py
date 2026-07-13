@@ -45,6 +45,7 @@ ADJUDICATION_REQUIRED_FIELDS = {
     "artifact_hash", "round", "adjudicated_verdict", "rubric_version",
     "adjudicator", "blinded", "timestamp", "rationale",
 }
+REVIEW_QUEUE_REQUIRED_FIELDS = {"artifact_hash", "round", "status"}
 
 
 def validate_adjudications(path: str) -> dict:
@@ -63,6 +64,20 @@ def validate_adjudications(path: str) -> dict:
             raise ValueError("adjudicated_verdict must be clean or contaminated")
         if not isinstance(record["blinded"], bool):
             raise ValueError("adjudication blinded must be boolean")
+    queue = data.get("review_queue", [])
+    if not isinstance(queue, list):
+        raise ValueError("review_queue must be a list")
+    queue_keys = set()
+    for record in queue:
+        missing = REVIEW_QUEUE_REQUIRED_FIELDS - set(record)
+        if missing:
+            raise ValueError(f"review queue missing required fields: {sorted(missing)}")
+        if record["status"] != "pending":
+            raise ValueError("review queue status must be pending")
+        key = (record["artifact_hash"], record["round"])
+        if key in queue_keys:
+            raise ValueError("review queue contains duplicate artifact rounds")
+        queue_keys.add(key)
     return data
 
 
@@ -170,6 +185,8 @@ def main(argv: list[str] | None = None) -> str:
     args = parser.parse_args(argv)
     if args.adjudications:
         validate_adjudications(args.adjudications)
+        print(f"adjudications: {args.adjudications}")
+        return args.adjudications
 
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     models = yaml.safe_load(open(os.path.join(repo_root, "spec", "configs.yaml")))["models"]

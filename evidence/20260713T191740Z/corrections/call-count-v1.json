@@ -1,0 +1,9 @@
+{
+  "version": "call-count-correction-v1",
+  "published_at": "2026-07-13",
+  "scope": "append-only reconciliation; run_meta.json remains immutable",
+  "original_total_calls": 485,
+  "judge_calls_omitted": 175,
+  "corrected_total_calls": 660,
+  "basis": "verdicts.json judge_call_counts.judge"
+}

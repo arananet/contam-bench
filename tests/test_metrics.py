@@ -2,8 +2,9 @@
 
 import json
 
-from src.metrics import (adjudicated_layer, compounding_factor, compute_metrics,
-                         score_retrieval_assertions)
+from src.metrics import (adjudicated_layer, build_report, call_accounting, compounding_factor, compute_metrics,
+                         flagged_review_rows, gate_observability,
+                         score_retrieval_assertions, score_utility)
 
 
 def _verdict(sid, resolved, cls="semantic_drift", rounds=None):
@@ -106,6 +107,43 @@ def test_retrieval_assertions_score_selected_seed_ids_and_domains():
     }}
 
 
+def test_utility_oracle_is_separate_from_contamination_scoring():
+    artifact = {
+        "expected": {"utility": {"must_include_patterns": ["net-60", "payment"]}},
+        "response": "The payment terms are net-60 after acceptance.",
+    }
+    assert score_utility(artifact) == {"passed": True, "patterns": {
+        "net-60": True, "payment": True,
+    }}
+    assert score_utility({"expected": {}, "response": "anything"}) is None
+
+
+def test_gate_observability_uses_only_gate_enabled_retrievals(tmp_path):
+    for config_name, calls in [("arm_gate", 2), ("naive", 0)]:
+        (tmp_path / f"CB-VAL-001_{config_name}_r01.json").write_text(json.dumps({
+            "config_name": config_name,
+            "query_family": "test",
+            "rounds": [{"retrieval_diagnostics": {
+                "candidate_count": 2, "gate_call_count": calls,
+                "contradiction_override_fired": False,
+            }}],
+        }))
+    observed = gate_observability(str(tmp_path))
+    assert observed["retrievals"] == 1
+    assert observed["mean_gate_calls_per_retrieval"] == 2.0
+
+
+def test_flagged_review_rows_include_repetition_and_artifact_hash():
+    verdict = _verdict("CB-VAL-004", "needs_human_review")
+    verdict["repetition"] = 3
+    verdict["artifact_hash"] = "artifact-3"
+    assert flagged_review_rows([verdict]) == [{
+        "scenario_id": "CB-VAL-004", "config_name": "naive",
+        "repetition": 3, "artifact_hash": "artifact-3", "round": 1,
+        "reason": "deterministic_only",
+    }]
+
+
 def test_adjudicated_layer_requires_two_independent_matching_verdicts(tmp_path):
     verdict = _verdict("CB-VAL-001", "needs_human_review")
     verdict["artifact_hash"] = "artifact-1"
@@ -121,3 +159,36 @@ def test_adjudicated_layer_requires_two_independent_matching_verdicts(tmp_path):
     layer = adjudicated_layer(str(tmp_path), [verdict])
     assert layer["consensus"] == 1 and layer["applied"] == 1
     assert layer["verdicts"][0]["rounds"][0]["resolved"] == "clean"
+
+
+def test_report_human_table_is_null_without_two_adjudicator_consensus(tmp_path):
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    verdict = _verdict("CB-VAL-001", "needs_human_review")
+    verdict["artifact_hash"] = "artifact-1"
+    (run_dir / "verdicts.json").write_text(json.dumps({
+        "verdicts": [verdict], "judge_call_counts": {},
+    }))
+    (run_dir / "run_meta.json").write_text(json.dumps({
+        "run_dir": "runs/test", "models": {"subject": "subject", "subject_temperature": 0,
+        "judge": "judge"}, "total_calls": 0, "call_counts": {},
+    }))
+    (run_dir / "adjudications.json").write_text(json.dumps({
+        "version": "v1", "adjudications": [], "review_queue": [],
+    }))
+    report = build_report(str(run_dir))
+    assert "null (no_two_adjudicator_consensus)" in report
+
+
+def test_call_accounting_applies_only_a_reconciling_versioned_correction(tmp_path):
+    meta = {"total_calls": 485, "call_counts": {"subject": 350, "gate": 135}}
+    verdict_data = {"judge_call_counts": {"judge": 175}}
+    corrections = tmp_path / "corrections"
+    corrections.mkdir()
+    (corrections / "call-count-v1.json").write_text(json.dumps({
+        "version": "call-count-correction-v1", "original_total_calls": 485,
+        "judge_calls_omitted": 175, "corrected_total_calls": 660,
+    }))
+    calls = call_accounting(str(tmp_path), meta, verdict_data)
+    assert calls["total_calls"] == 660
+    assert calls["correction"]["version"] == "call-count-correction-v1"

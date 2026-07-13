@@ -111,6 +111,15 @@ personalization_retention(config) =
 
 Edge case: denominator 0 ⇒ `null`, reason `all_controls_need_review`.
 
+## Utility layer
+
+Contamination scoring cannot stand in for utility. A scenario may optionally
+declare `expected.utility.must_include_patterns`; the utility layer reports
+whether each persisted response satisfies every case-insensitive pattern. If
+no scenario declares a utility oracle, the report states `null`
+(`no_utility_oracles_declared`) rather than inferring utility from a clean
+contamination verdict.
+
 ## Reporting requirements
 
 `report/validation_report.md` must include:
@@ -129,3 +138,5 @@ Edge case: denominator 0 ⇒ `null`, reason `all_controls_need_review`.
    relevance-gate calls per retrieval. Under per-candidate gating, $k$ is an
    upper bound on calls per retrieval; reported cost uses observed calls. No
    batching is claimed.
+7. A utility-layer section, reporting declared deterministic utility oracles
+   separately from retrieval and response-layer contamination results.

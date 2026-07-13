@@ -192,3 +192,15 @@ definitions:
               type: string
           forbidden_domain_candidate:
             type: string
+      utility:
+        # Optional deterministic oracle for utility-layer behavior. This is
+        # intentionally separate from contamination scoring.
+        type: object
+        additionalProperties: false
+        required: [must_include_patterns]
+        properties:
+          must_include_patterns:
+            type: array
+            minItems: 1
+            items:
+              type: string

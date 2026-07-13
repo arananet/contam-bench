@@ -1,0 +1,47 @@
+title: "Presupposition capture and evidence-calibrated reporting"
+slug: "presupposition-capture-revision"
+type: feature
+status: approved
+
+roles:
+  implementer: "arananet"
+  reviewer: null
+  qa: null
+  product_owner: "arananet"
+
+description: >-
+  Make the gate failure mode an enforceable retrieval contract and align the
+  v3 manuscript and reports with machine-only repeated-run evidence. The
+  revision distinguishes deterministic retrieval effects from response-layer
+  verdicts and does not fabricate unavailable human adjudications, utility
+  results, or production-baseline evidence.
+
+acceptance_criteria:
+  - A relevance gate may not drop a memory that contradicts any retained
+    memory, including when the counterpart is ranked below top-k.
+  - Retrieval reports retain deterministic assertion outcomes independently
+    from machine and optional human-adjudicated response verdicts.
+  - The rendered human-review register identifies each flagged round by
+    scenario, configuration, repetition, round, and artifact hash.
+  - The report exposes a utility layer as unavailable when no scenario declares
+    a utility oracle, rather than treating clean contamination scoring as a
+    utility result.
+  - The manuscript names presupposition capture, states the contradiction-pair
+    contract, reports observed and worst-case gate cost separately, and limits
+    control claims to the layer supported by the frozen evidence.
+  - The manuscript identifies absent blinded adjudications and production
+    baselines as limitations or future work, not completed results.
+
+test_plan:
+  - >-
+    Run pytest -q; retrieval tests must prove that a retained contradiction
+    pair is restored even when its counterpart is outside top-k, and metrics
+    tests must cover the unavailable utility layer.
+  - >-
+    Run the paper build and package scripts; verify generated outputs remain
+    ignored and source remains under paper/v3.
+
+out_of_scope:
+  - Human adjudication without independent blinded reviewers.
+  - A new API-backed evaluation run or claims about production-memory defaults.
+  - Retrospective changes to frozen machine verdicts.

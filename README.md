@@ -10,13 +10,14 @@ collapse, scope bleed, temporal staleness, recursive compounding, and
 summarization loss. No attacker, no jailbreak: the threat model is the
 design of the memory system itself.
 
-This repository contains the **v0.2 ablation study**: 9 hand-authored
-scenarios × 7 memory configurations — a naive baseline, a governed bundle,
-and five single-control arms that attribute contamination reduction to
-individual controls (namespacing, provenance tags, TTL decay, relevance
-gating, raw fidelity). The active development configuration also includes an
-experimental guarded-gate arm (`arm_gate_preserve_pairs`) for the next repeated
-evaluation; it is not part of frozen v0.2 evidence.
+This repository contains the **v0.3 repeated-evaluation release**: 9
+hand-authored scenarios × 7 memory configurations × 5 repetitions. It retains
+the frozen v0.2 single-run ablation matrix — a naive baseline, a governed
+bundle, and five single-control arms — and adds a machine-only repeated audit
+of scorer disagreement, retrieval behavior, and gate cost. The active
+development configuration also includes an experimental guarded-gate arm
+(`arm_gate_preserve_pairs`) for a future repeated evaluation; it is not part
+of frozen v0.3 evidence.
 
 ---
 
@@ -29,6 +30,7 @@ this repository:
 
 | Run | Evidence | Tag | Backs |
 |---|---|---|---|
+| v0.3 repeated audit (7×9×5) | [`evidence/20260713T191740Z/`](evidence/20260713T191740Z/) | `v0.3-repeated-ablation` | Paper §5.3 (repeated audit), §5.5 (gate finding) |
 | v0.2 ablation (7×9) | [`evidence/20260713T084130Z/`](evidence/20260713T084130Z/) | `v0.2-ablation` | Paper §5 (ablation matrix, gate finding) |
 | v0.1.1 validation (2×8) | [`evidence/20260710T143558Z/`](evidence/20260710T143558Z/) | `v0.1.1-validation` | Prior validation run |
 
@@ -80,7 +82,7 @@ annotated tag; `runs/` itself is gitignored scratch space.
 
 ```mermaid
 graph LR
-    A[Scenario YAML] --> B[Memory store<br/>frozen v0.2: 7 configs;<br/>next run: guarded gate arm]
+    A[Scenario YAML] --> B[Memory store<br/>frozen v0.3: 7 configs x 5 repeats;<br/>next run: guarded gate arm]
     B --> C[Retrieval<br/>top-k + optional gate]
     C --> D[Harness<br/>subject model call]
     D --> E[Judge<br/>deterministic then LLM]

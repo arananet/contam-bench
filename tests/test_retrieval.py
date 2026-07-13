@@ -52,7 +52,7 @@ def test_retrieve_respects_gate_flag(fake_client):
     assert diagnostics["gate_call_count"] == 0
 
 
-def test_contradiction_policy_preserves_a_retained_pair():
+def test_contradiction_policy_preserves_a_retained_pair_beyond_top_k():
     class FirstOnlyGate:
         def __init__(self):
             self.calls = 0
@@ -66,8 +66,10 @@ def test_contradiction_policy_preserves_a_retained_pair():
                     "volatile", 0, "confirmed", "atlas-launch"),
         MemoryEntry("Atlas launch is tentative", "work", "user", 1,
                     "volatile", 1, "tentative", "atlas-launch"),
+        MemoryEntry("Atlas launch planning checklist", "work", "tool", 1,
+                    "volatile", 2, "checklist", None),
     ]
-    config = {"retrieval": {"method": "similarity_top_k", "k": 2,
+    config = {"retrieval": {"method": "similarity_top_k", "k": 1,
                             "relevance_gate": True,
                             "contradiction_policy": "preserve_pairs"}}
     kept, _, diagnostics = retrieve(FirstOnlyGate(), MODELS, config,
