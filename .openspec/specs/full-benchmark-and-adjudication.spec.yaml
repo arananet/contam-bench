@@ -1,0 +1,90 @@
+# Feature Spec — created by scripts/openspec scaffold
+# Fill in all sections before moving status to 'review'.
+# Acceptance criteria are your definition of done — be specific.
+
+title: "Full benchmark and blinded adjudication"
+slug: "full-benchmark-and-adjudication"
+type: feature
+status: review
+
+author: "Arananet"
+created_at: "2026-07-13"
+updated_at: "2026-07-13"
+
+roles:
+  implementer: "Arananet"
+  reviewer: null
+  qa: null
+  product_owner: "Arananet"
+
+description: |
+  Prepare the evidence expansion required to move CONTAM-Bench beyond its
+  mechanism-validation scope. The feature supplies blinded review packets and
+  consensus ingestion for the 52 unresolved v0.3 rounds, plus declarative
+  manifests and a cost-gated runner for a preregistered full benchmark with
+  broader scenarios, subject models, retrieval backends, baseline systems, and
+  utility measurement. It preserves immutable historical evidence and never
+  substitutes automated or author judgments for independent human review.
+
+acceptance_criteria:
+  - "Given the immutable v0.3 review queue, when blinded packets are generated, then every pending artifact-round appears exactly once with its response and rubric but without configuration, model, or machine-verdict identity."
+  - "Given two independently completed blinded review files, when they are ingested, then only matching verdicts from distinct named adjudicators become consensus; single, duplicate, malformed, or conflicting records remain unresolved."
+  - "Given an adjudication submission, when its schema or review-queue key is invalid, then validation fails without modifying verdicts, frozen evidence, or the source submission."
+  - "Given the full-benchmark manifests, when scenarios are validated, then every contamination class has at least five probes, each probe has a paired relevant-memory control, and provenance has pure-factor source, age, and domain arms."
+  - "Given the full-benchmark configuration matrix, when it is validated, then it declares at least two subject models, TF-IDF and learned-embedding retrieval as separately reported backends, production-memory baselines, and a declared utility oracle."
+  - "Given the dedicated gate-family suite, when it is run, then it measures precision, recall, and truth preservation on presupposition traps and verifies the contradiction-pair rail."
+  - "Given a planned API-backed run, when explicit user authorization and a documented call budget are absent, then the runner performs a dry-run estimate only and makes no model calls."
+  - "Given any completed run or adjudication release, when results are published, then original tags and frozen evidence remain unchanged and corrections or new results use a new immutable tag."
+
+test_plan:
+  - "Unit: packet generation covers all and only pending queue keys, excludes prohibited identity fields, and is deterministic for a fixed queue."
+  - "Unit: adjudication ingestion rejects missing fields, unblinded records, duplicate adjudicator submissions, queue-key mismatches, and conflicts; it accepts two matching independent records."
+  - "Unit: scenario and configuration schema validation rejects incomplete class coverage, missing paired controls, impure provenance arms, missing utility oracles, and unsupported backend/model matrices."
+  - "Integration: mocked full-benchmark dry run writes an execution plan and zero calls; authorized mocked execution persists phase-aware artifacts and separately reports every model and retrieval backend."
+  - "Integration: gate-family fixtures demonstrate a presupposition-capture candidate and prove the contradiction-pair rail prevents dropping its contradicting counterpart."
+
+qa_notes: |
+  Two external adjudicators must complete packets independently and while
+  blinded to configuration, model, deterministic verdict, judge verdict, and
+  one another's assessment. Their identities and review timestamps are
+  retained only in the versioned adjudication layer. API-backed execution
+  requires the product owner to record an explicit call budget and approval
+  before the non-dry-run command is invoked.
+
+out_of_scope:
+  - "Generating or claiming human adjudications on behalf of reviewers."
+  - "Rewriting v0.2 or v0.3 frozen artifacts, verdicts, reports, or tags."
+  - "Pooling TF-IDF and learned-embedding results into a single metric."
+  - "Treating personalization retention as a utility frontier without a declared utility oracle."
+  - "API-backed execution before explicit budget approval."
+
+implementation_skill: null
+  # Optional: name of the domain skill to invoke when implementing this spec.
+  # Overrides agents.implementation_skills.default in config.yaml.
+  # Examples: "frontend-pro", "backend-pro", "data-eng-pro", "devops-pro", "mobile-pro"
+
+eval_plan:
+  scenarios:
+    - "scenarios/full-benchmark/"
+    - "scenarios/gate-family/"
+  metrics:
+    - "contamination_rate"
+    - "personalization_retention"
+    - "utility_oracle_pass_rate"
+    - "gate_precision"
+    - "gate_recall"
+    - "truth_preservation"
+    - "cost_estimate"
+
+technical_notes: |
+  The initial implementation is deterministic tooling and declarative specs;
+  test fixtures must not call external APIs. Human submissions are append-only
+  JSON layers validated against the immutable review queue. The final run
+  command defaults to dry-run and requires an explicit --authorize-api flag
+  plus a matching documented budget to contact a model provider.
+
+linked_issues: []
+  # - "https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/issues/1"
+
+linked_prs: []
+  # - "https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/pull/1"

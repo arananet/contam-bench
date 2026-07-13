@@ -1,0 +1,41 @@
+version: full-benchmark-plan-v1
+execution:
+  max_api_calls: 0
+  subject_models: [claude-sonnet-4-6, second-subject-model-to-be-approved]
+  retrieval_backends: [tfidf, learned_embedding]
+  production_baselines: [Mem0, Zep, Letta]
+  utility_oracle: task-specific-must-include-patterns-v1
+gate_family:
+  metrics: [precision, recall, truth_preservation]
+  contradiction_pair_rail: required
+scenarios:
+  - {scenario_id: CB-FULL-SD-01, contamination_class: semantic_drift, paired_control: CB-FULL-SD-C01}
+  - {scenario_id: CB-FULL-SD-02, contamination_class: semantic_drift, paired_control: CB-FULL-SD-C02}
+  - {scenario_id: CB-FULL-SD-03, contamination_class: semantic_drift, paired_control: CB-FULL-SD-C03}
+  - {scenario_id: CB-FULL-SD-04, contamination_class: semantic_drift, paired_control: CB-FULL-SD-C04}
+  - {scenario_id: CB-FULL-SD-05, contamination_class: semantic_drift, paired_control: CB-FULL-SD-C05}
+  - {scenario_id: CB-FULL-PV-01, contamination_class: provenance_collapse, provenance_factor: source, paired_control: CB-FULL-PV-C01}
+  - {scenario_id: CB-FULL-PV-02, contamination_class: provenance_collapse, provenance_factor: age, paired_control: CB-FULL-PV-C02}
+  - {scenario_id: CB-FULL-PV-03, contamination_class: provenance_collapse, provenance_factor: domain, paired_control: CB-FULL-PV-C03}
+  - {scenario_id: CB-FULL-PV-04, contamination_class: provenance_collapse, provenance_factor: source, paired_control: CB-FULL-PV-C04}
+  - {scenario_id: CB-FULL-PV-05, contamination_class: provenance_collapse, provenance_factor: age, paired_control: CB-FULL-PV-C05}
+  - {scenario_id: CB-FULL-SB-01, contamination_class: scope_bleed, paired_control: CB-FULL-SB-C01}
+  - {scenario_id: CB-FULL-SB-02, contamination_class: scope_bleed, paired_control: CB-FULL-SB-C02}
+  - {scenario_id: CB-FULL-SB-03, contamination_class: scope_bleed, paired_control: CB-FULL-SB-C03}
+  - {scenario_id: CB-FULL-SB-04, contamination_class: scope_bleed, paired_control: CB-FULL-SB-C04}
+  - {scenario_id: CB-FULL-SB-05, contamination_class: scope_bleed, paired_control: CB-FULL-SB-C05}
+  - {scenario_id: CB-FULL-TS-01, contamination_class: temporal_staleness, paired_control: CB-FULL-TS-C01}
+  - {scenario_id: CB-FULL-TS-02, contamination_class: temporal_staleness, paired_control: CB-FULL-TS-C02}
+  - {scenario_id: CB-FULL-TS-03, contamination_class: temporal_staleness, paired_control: CB-FULL-TS-C03}
+  - {scenario_id: CB-FULL-TS-04, contamination_class: temporal_staleness, paired_control: CB-FULL-TS-C04}
+  - {scenario_id: CB-FULL-TS-05, contamination_class: temporal_staleness, paired_control: CB-FULL-TS-C05}
+  - {scenario_id: CB-FULL-RC-01, contamination_class: recursive, paired_control: CB-FULL-RC-C01}
+  - {scenario_id: CB-FULL-RC-02, contamination_class: recursive, paired_control: CB-FULL-RC-C02}
+  - {scenario_id: CB-FULL-RC-03, contamination_class: recursive, paired_control: CB-FULL-RC-C03}
+  - {scenario_id: CB-FULL-RC-04, contamination_class: recursive, paired_control: CB-FULL-RC-C04}
+  - {scenario_id: CB-FULL-RC-05, contamination_class: recursive, paired_control: CB-FULL-RC-C05}
+  - {scenario_id: CB-FULL-SL-01, contamination_class: summarization_loss, paired_control: CB-FULL-SL-C01}
+  - {scenario_id: CB-FULL-SL-02, contamination_class: summarization_loss, paired_control: CB-FULL-SL-C02}
+  - {scenario_id: CB-FULL-SL-03, contamination_class: summarization_loss, paired_control: CB-FULL-SL-C03}
+  - {scenario_id: CB-FULL-SL-04, contamination_class: summarization_loss, paired_control: CB-FULL-SL-C04}
+  - {scenario_id: CB-FULL-SL-05, contamination_class: summarization_loss, paired_control: CB-FULL-SL-C05}
