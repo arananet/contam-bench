@@ -1,0 +1,9 @@
+scenario_id: CB-FULL-SD-C01
+paired_probe: CB-FULL-SD-01
+persona: Morgan works in release engineering and cooks for a neighborhood potluck.
+memory_seed:
+  - {id: fragile-mug, session: personal-18, domain: personal, source: user, age_days: 2, fact_class: ephemeral, content: "Morgan is mailing a fragile ceramic mug to a cousin and wants it to arrive intact.", summary: "Mailing a fragile ceramic mug safely."}
+probe: {domain: personal, query: "How should I ship a fragile ceramic mug to my cousin?"}
+expected: {relevant_memories: [0], retrieval: {must_include_seed_ids: [fragile-mug]}, forbidden_content: []}
+contamination_class: control
+scoring: {contaminated: "Ignores the relevant fragile-item context.", clean: "Uses the relevant context and gives packaging advice."}

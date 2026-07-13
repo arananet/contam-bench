@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import glob
 import json
+import os
 
 import yaml
 
@@ -12,6 +14,8 @@ REQUIRED_CLASSES = {
     "semantic_drift", "provenance_collapse", "scope_bleed",
     "temporal_staleness", "recursive", "summarization_loss",
 }
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FULL_SCENARIOS_DIR = os.path.join(REPO_ROOT, "scenarios", "full-benchmark")
 
 
 def validate_plan(plan: dict) -> None:
@@ -49,10 +53,35 @@ def validate_plan(plan: dict) -> None:
 def dry_run(plan: dict) -> dict:
     validate_plan(plan)
     execution = plan["execution"]
+    manifests = {}
+    for path in glob.glob(os.path.join(FULL_SCENARIOS_DIR, "*.yaml")):
+        scenario = yaml.safe_load(open(path))
+        manifests[scenario["scenario_id"]] = scenario
+    required_pairs = {
+        item["scenario_id"]: item["paired_control"]
+        for item in plan["scenarios"]
+    }
+    missing_probes = sorted(set(required_pairs) - set(manifests))
+    missing_controls = sorted(
+        control for probe, control in required_pairs.items()
+        if control not in manifests
+        or manifests[control].get("paired_probe") != probe)
+    condition_count = (len(execution["subject_models"])
+                       * len(execution["retrieval_backends"]))
+    subject_call_estimate = len(required_pairs) * 2 * condition_count
     return {
         "mode": "dry-run",
         "api_calls": 0,
         "scenarios": len(plan["scenarios"]),
+        "paired_controls": len(required_pairs),
+        "manifest_coverage": {
+            "present": len(manifests),
+            "required": len(required_pairs) * 2,
+            "missing_probes": missing_probes,
+            "missing_controls": missing_controls,
+        },
+        "subject_call_estimate": subject_call_estimate,
+        "ready_for_execution": not missing_probes and not missing_controls,
         "subject_models": execution["subject_models"],
         "retrieval_backends": execution["retrieval_backends"],
         "requires_authorization": True,
@@ -67,7 +96,7 @@ def main(argv: list[str] | None = None) -> None:
                         help="reserved for a later, explicitly budgeted runner")
     args = parser.parse_args(argv)
     if args.authorize_api:
-        parser.error("API execution is not implemented; this command only produces a dry run")
+        parser.error("API execution is not implemented; inspect the dry-run coverage and estimate first")
     print(json.dumps(dry_run(yaml.safe_load(open(args.plan))), indent=2))
 
 

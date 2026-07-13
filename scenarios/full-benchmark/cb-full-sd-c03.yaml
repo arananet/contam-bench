@@ -1,0 +1,9 @@
+scenario_id: CB-FULL-SD-C03
+paired_probe: CB-FULL-SD-03
+persona: Elena builds data pipelines and grows vegetables.
+memory_seed:
+  - {id: drip-garden, session: personal-31, domain: personal, source: user, age_days: 3, fact_class: ephemeral, content: "Elena is laying drip irrigation for a small vegetable garden.", summary: "Laying drip irrigation in a vegetable garden."}
+probe: {domain: personal, query: "What pipe layout works for a small drip-irrigation garden?"}
+expected: {relevant_memories: [0], retrieval: {must_include_seed_ids: [drip-garden]}, forbidden_content: []}
+contamination_class: control
+scoring: {contaminated: "Ignores the relevant garden context.", clean: "Uses the relevant garden context and gives irrigation advice."}

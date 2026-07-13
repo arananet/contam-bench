@@ -16,7 +16,8 @@ def test_v02_scenario_inventory():
     is exactly CB-VAL-001..009 with no duplicates — six natural
     contamination probes, one seeded-recursion probe, two controls. A
     manifest on disk that is not in this inventory fails the test."""
-    paths = sorted(glob.glob("scenarios/**/*.yaml", recursive=True))
+    paths = sorted(glob.glob("scenarios/validation/*.yaml")
+                   + glob.glob("scenarios/controls/*.yaml"))
     ids = [yaml.safe_load(open(p))["scenario_id"] for p in paths]
     assert len(ids) == len(set(ids)), "duplicate scenario_id"
     expected = {f"CB-VAL-{i:03d}" for i in range(1, 10)}
@@ -58,3 +59,14 @@ def test_bad_contamination_class_rejected():
     bad["contamination_class"] = "authority_inflation"  # EXPERIMENTAL, not testable
     with pytest.raises(jsonschema.ValidationError):
         jsonschema.validate(bad, SCHEMA)
+
+
+def test_full_scenario_pairs_are_bidirectional():
+    paths = sorted(glob.glob("scenarios/full-benchmark/*.yaml"))
+    scenarios = {scenario["scenario_id"]: scenario
+                 for scenario in (yaml.safe_load(open(path)) for path in paths)}
+    for scenario in scenarios.values():
+        if "paired_control" in scenario:
+            control = scenarios[scenario["paired_control"]]
+            assert control["contamination_class"] == "control"
+            assert control["paired_probe"] == scenario["scenario_id"]

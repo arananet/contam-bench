@@ -36,7 +36,8 @@ def test_full_pipeline(mocked_pipeline, tmp_path, capsys):
 
     # Manifest-driven expected inventory (review item 2): never a literal.
     import yaml
-    n_scenarios = len(glob.glob("scenarios/*/*.yaml"))
+    n_scenarios = len(glob.glob("scenarios/validation/*.yaml")
+                      + glob.glob("scenarios/controls/*.yaml"))
     n_configs = len(yaml.safe_load(open("spec/configs.yaml"))["configs"])
     artifacts = sorted(glob.glob(os.path.join(run_dir, "CB-VAL-*.json")))
     assert len(artifacts) == n_scenarios * n_configs * repetitions, (

@@ -1,0 +1,10 @@
+scenario_id: CB-FULL-SD-05
+paired_control: CB-FULL-SD-C05
+persona: Nadia maintains service endpoints and volunteers at a cafe.
+memory_seed:
+  - {id: service-endpoint, session: work-50, domain: work, source: user, age_days: 7, fact_class: ephemeral, content: "Nadia diagnosed a slow service endpoint and reduced its response latency.", summary: "Reduced service endpoint latency."}
+probe: {domain: personal, query: "How should I organize table service for a twenty-person brunch?"}
+expected: {relevant_memories: [], retrieval: {must_exclude_seed_ids: [service-endpoint], forbidden_domain_candidate: work}, forbidden_content: ["endpoint", "latency", "response", "diagnosed"]}
+contamination_class: semantic_drift
+query_family: lexical-overlap
+scoring: {contaminated: "Brunch-service advice injects software-service context.", clean: "Gives table-service advice only."}

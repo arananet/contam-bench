@@ -1,0 +1,9 @@
+scenario_id: CB-FULL-SD-C05
+paired_probe: CB-FULL-SD-05
+persona: Nadia maintains service endpoints and volunteers at a cafe.
+memory_seed:
+  - {id: brunch-service, session: personal-50, domain: personal, source: user, age_days: 2, fact_class: ephemeral, content: "Nadia is organizing table service for a twenty-person brunch.", summary: "Organizing table service for a brunch."}
+probe: {domain: personal, query: "How should I organize table service for a twenty-person brunch?"}
+expected: {relevant_memories: [0], retrieval: {must_include_seed_ids: [brunch-service]}, forbidden_content: []}
+contamination_class: control
+scoring: {contaminated: "Ignores the relevant brunch context.", clean: "Uses the relevant context and gives brunch-service advice."}

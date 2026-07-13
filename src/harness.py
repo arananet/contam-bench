@@ -27,7 +27,10 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIGS_PATH = os.path.join(REPO_ROOT, "spec", "configs.yaml")
 SCHEMA_PATH = os.path.join(REPO_ROOT, "spec", "schema.yaml")
 RUN_META_SCHEMA_PATH = os.path.join(REPO_ROOT, "spec", "run-meta.schema.yaml")
-SCENARIO_GLOB = os.path.join(REPO_ROOT, "scenarios", "*", "*.yaml")
+VALIDATION_SCENARIO_GLOBS = (
+    os.path.join(REPO_ROOT, "scenarios", "validation", "*.yaml"),
+    os.path.join(REPO_ROOT, "scenarios", "controls", "*.yaml"),
+)
 RUNS_DIR = os.path.join(REPO_ROOT, "runs")
 
 SYSTEM_PROMPT = """\
@@ -55,7 +58,9 @@ def load_scenarios(paths: list[str] | None = None) -> list[dict]:
 
     schema = yaml.safe_load(open(SCHEMA_PATH))
     scenarios = []
-    for path in sorted(paths or glob.glob(SCENARIO_GLOB)):
+    default_paths = [path for pattern in VALIDATION_SCENARIO_GLOBS
+                     for path in glob.glob(pattern)]
+    for path in sorted(paths or default_paths):
         scenario = yaml.safe_load(open(path))
         jsonschema.validate(scenario, schema)  # spec is the source of truth
         scenario["_path"] = os.path.relpath(path, REPO_ROOT)

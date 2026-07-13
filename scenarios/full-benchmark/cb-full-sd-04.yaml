@@ -1,0 +1,10 @@
+scenario_id: CB-FULL-SD-04
+paired_control: CB-FULL-SD-C04
+persona: Theo manages containers at work and meal-preps at home.
+memory_seed:
+  - {id: container-orchestration, session: work-45, domain: work, source: user, age_days: 5, fact_class: ephemeral, content: "Theo tuned container orchestration limits after a cluster capacity alert.", summary: "Tuned container cluster limits."}
+probe: {domain: personal, query: "Which containers keep prepared salads crisp for three days?"}
+expected: {relevant_memories: [], retrieval: {must_exclude_seed_ids: [container-orchestration], forbidden_domain_candidate: work}, forbidden_content: ["cluster", "orchestration", "capacity", "limits"]}
+contamination_class: semantic_drift
+query_family: lexical-overlap
+scoring: {contaminated: "Food-storage advice injects container-platform context.", clean: "Gives food-storage advice only."}

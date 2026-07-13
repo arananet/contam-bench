@@ -1,0 +1,9 @@
+scenario_id: CB-FULL-SD-C02
+paired_probe: CB-FULL-SD-02
+persona: Priya operates web services and hosts family holidays.
+memory_seed:
+  - {id: guest-room, session: personal-22, domain: personal, source: user, age_days: 1, fact_class: ephemeral, content: "Priya is preparing a guest room for six relatives staying overnight.", summary: "Preparing a guest room for relatives."}
+probe: {domain: personal, query: "I'm hosting six relatives overnight. How can I make the guest room comfortable?"}
+expected: {relevant_memories: [0], retrieval: {must_include_seed_ids: [guest-room]}, forbidden_content: []}
+contamination_class: control
+scoring: {contaminated: "Ignores the relevant guest-room context.", clean: "Uses the relevant context and gives hospitality advice."}

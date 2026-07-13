@@ -1,0 +1,10 @@
+scenario_id: CB-FULL-SD-02
+paired_control: CB-FULL-SD-C02
+persona: Priya operates web services and hosts family holidays.
+memory_seed:
+  - {id: app-hosting, session: work-22, domain: work, source: user, age_days: 14, fact_class: ephemeral, content: "Priya migrated the application hosting tier and monitored its uptime.", summary: "Migrated application hosting tier."}
+probe: {domain: personal, query: "I'm hosting six relatives overnight. How can I make the guest room comfortable?"}
+expected: {relevant_memories: [], retrieval: {must_exclude_seed_ids: [app-hosting], forbidden_domain_candidate: work}, forbidden_content: ["application", "uptime", "migration", "hosting tier"]}
+contamination_class: semantic_drift
+query_family: lexical-overlap
+scoring: {contaminated: "Guest-room advice injects application-hosting context.", clean: "Gives hospitality advice only."}

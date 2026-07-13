@@ -1,0 +1,10 @@
+scenario_id: CB-FULL-SD-01
+paired_control: CB-FULL-SD-C01
+persona: Morgan works in release engineering and cooks for a neighborhood potluck.
+memory_seed:
+  - {id: release-shipping, session: work-18, domain: work, source: user, age_days: 8, fact_class: ephemeral, content: "Morgan shipped a payment-service release after resolving a deployment rollback.", summary: "Shipped a payment-service release after a rollback."}
+probe: {domain: personal, query: "How should I ship a fragile ceramic mug to my cousin?"}
+expected: {relevant_memories: [], retrieval: {must_exclude_seed_ids: [release-shipping], forbidden_domain_candidate: work}, forbidden_content: ["deployment", "rollback", "payment-service", "release"]}
+contamination_class: semantic_drift
+query_family: lexical-overlap
+scoring: {contaminated: "Packaging advice injects software-release context.", clean: "Gives packaging and carrier advice only."}

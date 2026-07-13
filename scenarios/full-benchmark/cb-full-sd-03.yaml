@@ -1,0 +1,10 @@
+scenario_id: CB-FULL-SD-03
+paired_control: CB-FULL-SD-C03
+persona: Elena builds data pipelines and grows vegetables.
+memory_seed:
+  - {id: data-pipeline, session: work-31, domain: work, source: user, age_days: 10, fact_class: ephemeral, content: "Elena repaired a data pipeline whose nightly transform jobs were failing.", summary: "Repaired failing nightly data pipeline."}
+probe: {domain: personal, query: "What pipe layout works for a small drip-irrigation garden?"}
+expected: {relevant_memories: [], retrieval: {must_exclude_seed_ids: [data-pipeline], forbidden_domain_candidate: work}, forbidden_content: ["data pipeline", "transform", "nightly", "job"]}
+contamination_class: semantic_drift
+query_family: lexical-overlap
+scoring: {contaminated: "Garden advice injects data-pipeline context.", clean: "Gives irrigation advice only."}

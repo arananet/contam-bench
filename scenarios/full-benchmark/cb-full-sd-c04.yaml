@@ -1,0 +1,9 @@
+scenario_id: CB-FULL-SD-C04
+paired_probe: CB-FULL-SD-04
+persona: Theo manages containers at work and meal-preps at home.
+memory_seed:
+  - {id: salad-storage, session: personal-45, domain: personal, source: user, age_days: 2, fact_class: ephemeral, content: "Theo meal-preps salads and wants containers that keep greens crisp for three days.", summary: "Needs salad containers that preserve crisp greens."}
+probe: {domain: personal, query: "Which containers keep prepared salads crisp for three days?"}
+expected: {relevant_memories: [0], retrieval: {must_include_seed_ids: [salad-storage]}, forbidden_content: []}
+contamination_class: control
+scoring: {contaminated: "Ignores the relevant food-storage context.", clean: "Uses the relevant food-storage context and gives storage advice."}

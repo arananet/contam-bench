@@ -54,6 +54,10 @@ def test_full_benchmark_plan_dry_run():
     plan = yaml.safe_load(open("spec/full-benchmark.plan.yaml"))
     result = dry_run(plan)
     assert result["api_calls"] == 0
+    assert result["subject_call_estimate"] == 240
+    assert result["ready_for_execution"] is False
+    assert len(result["manifest_coverage"]["missing_probes"]) == 25
+    assert len(result["manifest_coverage"]["missing_controls"]) == 25
     assert result["retrieval_backends"][1]["learned_embedding"] == {
         "provider": "fastembed", "model": "BAAI/bge-small-en-v1.5",
         "execution": "local_onnx",
