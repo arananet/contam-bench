@@ -56,6 +56,14 @@ Guidelines:
 
 ---
 
+## [0.3.1] — 2026-07-13
+
+### Added
+- Append-only evidence correction bundle reconciling the v0.3 total to 660 API calls and publishing a 52-round pending adjudication queue (tag: `v0.3.1-evidence-corrections`)
+
+### Changed
+- New runs record harness and full-pipeline call totals separately after the judge phase; frozen v0.3 metadata remains unchanged
+
 ## [0.3.0] — 2026-07-13
 
 ### Added
@@ -79,7 +87,8 @@ Guidelines:
 ### Added
 - Initial release.
 
-[Unreleased]: https://github.com/arananet/contam-bench/compare/v0.3-repeated-ablation...HEAD
+[Unreleased]: https://github.com/arananet/contam-bench/compare/v0.3.1-evidence-corrections...HEAD
+[0.3.1]: https://github.com/arananet/contam-bench/releases/tag/v0.3.1-evidence-corrections
 [0.3.0]: https://github.com/arananet/contam-bench/releases/tag/v0.3-repeated-ablation
 [0.2.0]: https://github.com/arananet/contam-bench/releases/tag/v0.2-ablation
 [0.1.0]: https://github.com/arananet/contam-bench/releases/tag/v0.1.0

@@ -26,6 +26,7 @@ from .retrieval import retrieve
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIGS_PATH = os.path.join(REPO_ROOT, "spec", "configs.yaml")
 SCHEMA_PATH = os.path.join(REPO_ROOT, "spec", "schema.yaml")
+RUN_META_SCHEMA_PATH = os.path.join(REPO_ROOT, "spec", "run-meta.schema.yaml")
 SCENARIO_GLOB = os.path.join(REPO_ROOT, "scenarios", "*", "*.yaml")
 RUNS_DIR = os.path.join(REPO_ROOT, "runs")
 
@@ -181,9 +182,17 @@ def main(argv: list[str] | None = None) -> str:
         "run_dir": os.path.relpath(run_dir, REPO_ROOT),
         "models": spec["models"],
         "repetitions": args.repetitions,
+        "harness_call_counts": client.counts,
+        "harness_total_calls": client.total_calls,
+        "pipeline_call_counts": None,
+        "total_pipeline_calls": None,
+        # Compatibility fields retained for report readers of pre-v0.3.1 runs.
         "call_counts": client.counts,
         "total_calls": client.total_calls,
     }
+    import jsonschema
+
+    jsonschema.validate(meta, yaml.safe_load(open(RUN_META_SCHEMA_PATH)))
     with open(os.path.join(run_dir, "run_meta.json"), "w") as f:
         json.dump(meta, f, indent=2)
     print(f"artifacts: {run_dir}")

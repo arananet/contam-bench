@@ -177,6 +177,21 @@ def score_artifact(client: CountingClient, models: dict, artifact: dict) -> dict
     }
 
 
+def update_pipeline_call_metadata(run_dir: str, judge_call_counts: dict) -> None:
+    """Finalize full-pipeline call metadata for a generated run directory."""
+    path = os.path.join(run_dir, "run_meta.json")
+    meta = json.load(open(path))
+    harness_counts = meta.get("harness_call_counts", meta["call_counts"])
+    harness_total = meta.get("harness_total_calls", meta["total_calls"])
+    pipeline_counts = dict(harness_counts)
+    for role, count in judge_call_counts.items():
+        pipeline_counts[role] = pipeline_counts.get(role, 0) + count
+    meta["pipeline_call_counts"] = pipeline_counts
+    meta["total_pipeline_calls"] = harness_total + sum(judge_call_counts.values())
+    with open(path, "w") as f:
+        json.dump(meta, f, indent=2)
+
+
 def main(argv: list[str] | None = None) -> str:
     parser = argparse.ArgumentParser(description="CONTAM-Bench judge")
     parser.add_argument("run_dir", help="runs/<timestamp> directory to score")
@@ -204,6 +219,7 @@ def main(argv: list[str] | None = None) -> str:
     with open(out_path, "w") as f:
         json.dump({"verdicts": verdicts, "judge_call_counts": client.counts},
                   f, indent=2, ensure_ascii=False)
+    update_pipeline_call_metadata(args.run_dir, client.counts)
     print(f"verdicts: {out_path}")
     print(f"API calls (judge phase): {client.counts} (total {client.total_calls})")
     return out_path

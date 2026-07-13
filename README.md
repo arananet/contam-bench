@@ -30,6 +30,7 @@ this repository:
 
 | Run | Evidence | Tag | Backs |
 |---|---|---|---|
+| v0.3.1 evidence corrections | [`correction bundle`](evidence/20260713T191740Z/corrections/) and [`pending review queue`](evidence/20260713T191740Z/adjudications.json) | `v0.3.1-evidence-corrections` | Append-only 660-call reconciliation; 52 pending rounds, 0 human adjudications, 0 consensuses |
 | v0.3 repeated audit (7×9×5) | [`evidence/20260713T191740Z/`](evidence/20260713T191740Z/) | `v0.3-repeated-ablation` | Paper §5.3 (repeated audit), §5.5 (gate finding) |
 | v0.2 ablation (7×9) | [`evidence/20260713T084130Z/`](evidence/20260713T084130Z/) | `v0.2-ablation` | Paper §5 (ablation matrix, gate finding) |
 | v0.1.1 validation (2×8) | [`evidence/20260710T143558Z/`](evidence/20260710T143558Z/) | `v0.1.1-validation` | Prior validation run |
@@ -37,7 +38,14 @@ this repository:
 Each evidence directory contains the raw per-scenario artifacts (prompts,
 injected memories, gate decisions, responses), `verdicts.json`,
 `validation_report.md`, and `defects.md` with authored defect reports and
-human-review resolutions.
+versioned adjudication or resolution layers when present.
+
+The original v0.3 `validation_report.md` is preserved as a frozen machine-only
+record and therefore still reports that adjudications were absent. The v0.3.1
+append-only correction bundle provides the reconciled 660-call report and a
+52-round pending review queue. It contains no human adjudication records and
+no two-adjudicator consensus, so it does not strengthen empirical results or
+support a human-adjudicated claim.
 
 ---
 

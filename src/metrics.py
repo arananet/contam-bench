@@ -240,20 +240,24 @@ def adjudicated_layer(run_dir: str, verdicts: list[dict]) -> dict:
 def call_accounting(run_dir: str, meta: dict, verdict_data: dict) -> dict:
     """Reconcile immutable harness metadata through an additive correction file."""
     judge_calls = sum(verdict_data.get("judge_call_counts", {}).values())
-    declared_total = meta["total_calls"] + judge_calls
+    harness_counts = meta.get("harness_call_counts", meta["call_counts"])
+    harness_total = meta.get("harness_total_calls", meta["total_calls"])
+    declared_total = meta.get("total_pipeline_calls")
+    if declared_total is None:
+        declared_total = harness_total + judge_calls
     correction_path = os.path.join(run_dir, "corrections", "call-count-v1.json")
     if not os.path.exists(correction_path):
-        return {"harness_calls": meta["call_counts"], "judge_calls": judge_calls,
+        return {"harness_calls": harness_counts, "judge_calls": judge_calls,
                 "total_calls": declared_total, "correction": None}
     correction = json.load(open(correction_path))
     corrected_total = correction["corrected_total_calls"]
-    if correction["original_total_calls"] != meta["total_calls"]:
+    if correction["original_total_calls"] != harness_total:
         raise ValueError("call-count correction does not match immutable run metadata")
     if correction["judge_calls_omitted"] != judge_calls:
         raise ValueError("call-count correction does not match persisted judge calls")
     if corrected_total != declared_total:
         raise ValueError("call-count correction total does not reconcile")
-    return {"harness_calls": meta["call_counts"], "judge_calls": judge_calls,
+    return {"harness_calls": harness_counts, "judge_calls": judge_calls,
             "total_calls": corrected_total, "correction": correction}
 
 

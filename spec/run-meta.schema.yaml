@@ -1,0 +1,47 @@
+# Run metadata schema. Harness writes its phase totals first; judge fills the
+# pipeline fields after scoring without altering frozen historical metadata.
+"$schema": "http://json-schema.org/draft-07/schema#"
+title: CONTAM-Bench run metadata
+type: object
+required:
+  - run_dir
+  - models
+  - repetitions
+  - harness_call_counts
+  - harness_total_calls
+  - pipeline_call_counts
+  - total_pipeline_calls
+properties:
+  run_dir:
+    type: string
+  models:
+    type: object
+  repetitions:
+    type: integer
+    minimum: 1
+  harness_call_counts:
+    "$ref": "#/definitions/call_counts"
+  harness_total_calls:
+    type: integer
+    minimum: 0
+  pipeline_call_counts:
+    anyOf:
+      - "$ref": "#/definitions/call_counts"
+      - type: "null"
+  total_pipeline_calls:
+    anyOf:
+      - type: integer
+        minimum: 0
+      - type: "null"
+  # Compatibility fields retained during migration from v0.3 artifacts.
+  call_counts:
+    "$ref": "#/definitions/call_counts"
+  total_calls:
+    type: integer
+    minimum: 0
+definitions:
+  call_counts:
+    type: object
+    additionalProperties:
+      type: integer
+      minimum: 0
