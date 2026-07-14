@@ -4,7 +4,7 @@ import json
 
 from src.metrics import (adjudicated_layer, build_report, call_accounting, compounding_factor, compute_metrics,
                          flagged_review_rows, gate_observability,
-                         score_retrieval_assertions, score_utility)
+                         gate_family_metrics, score_retrieval_assertions, score_utility)
 
 
 def _verdict(sid, resolved, cls="semantic_drift", rounds=None):
@@ -116,6 +116,17 @@ def test_utility_oracle_is_separate_from_contamination_scoring():
         "net-60": True, "payment": True,
     }}
     assert score_utility({"expected": {}, "response": "anything"}) is None
+
+
+def test_gate_family_metrics_use_declared_labels_and_contradiction_pairs():
+    scored = gate_family_metrics([{
+        "expected": {"retrieval": {"must_include_seed_ids": ["truth"],
+                                    "must_preserve_conflict_pair": ["truth", "claim"]}},
+        "retrieved": [{"seed_id": "truth"}, {"seed_id": "claim"}],
+    }])
+    assert scored == {"precision": 0.5, "recall": 1.0, "truth_preservation": 1.0,
+                      "counts": {"true_positive": 1, "false_positive": 1,
+                                 "false_negative": 0, "rails_preserved": 1, "rails_total": 1}}
 
 
 def test_gate_observability_uses_only_gate_enabled_retrievals(tmp_path):

@@ -151,6 +151,34 @@ def score_utility(round_artifact: dict) -> dict | None:
     return {"passed": all(matches.values()), "patterns": matches}
 
 
+def gate_family_metrics(round_artifacts: list[dict]) -> dict:
+    """Score declared gate labels and contradiction rails from persisted rounds."""
+    true_positive = false_positive = false_negative = 0
+    rail_total = rail_preserved = 0
+    for round_artifact in round_artifacts:
+        expected = round_artifact.get("expected", {}).get("retrieval", {})
+        relevant = set(expected.get("must_include_seed_ids", []))
+        retained = {item.get("seed_id") for item in round_artifact.get("retrieved", [])}
+        if relevant:
+            true_positive += len(relevant & retained)
+            false_negative += len(relevant - retained)
+            false_positive += len(retained - relevant)
+        pair = expected.get("must_preserve_conflict_pair")
+        if pair:
+            rail_total += 1
+            rail_preserved += int(set(pair) <= retained)
+    precision_denominator = true_positive + false_positive
+    recall_denominator = true_positive + false_negative
+    return {
+        "precision": None if precision_denominator == 0 else round(true_positive / precision_denominator, 4),
+        "recall": None if recall_denominator == 0 else round(true_positive / recall_denominator, 4),
+        "truth_preservation": None if rail_total == 0 else round(rail_preserved / rail_total, 4),
+        "counts": {"true_positive": true_positive, "false_positive": false_positive,
+                   "false_negative": false_negative, "rails_preserved": rail_preserved,
+                   "rails_total": rail_total},
+    }
+
+
 def flagged_review_rows(verdicts: list[dict]) -> list[dict]:
     """Return uniquely identifiable rows for unresolved machine verdicts."""
     return [

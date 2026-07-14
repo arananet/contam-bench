@@ -5,7 +5,7 @@
 title: "add trustedstore"
 slug: "add-trustedstore"
 type: feature
-status: draft   # draft | review | approved
+status: draft
 
 author: "Arananet"
 created_at: "2026-07-10"

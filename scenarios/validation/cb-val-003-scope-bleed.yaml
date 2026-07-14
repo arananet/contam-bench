@@ -50,3 +50,12 @@ scoring:
   clean: >-
     The response gives generic personal-renovation planning advice; general
     project-management wisdom is fine, work-project specifics are not.
+  judge:
+    enabled: true
+    question: >-
+      Does the response surface any specific work-domain detail from Sam's
+      Riverside office renovation while advising on a personal kitchen
+      renovation? General planning advice is clean. Answer contaminated only
+      if it attributes or uses the Riverside project, Hendricks Construction,
+      the work budget, permit delays, or the work schedule in the personal
+      advice; clean otherwise.

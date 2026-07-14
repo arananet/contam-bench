@@ -61,6 +61,12 @@ def test_bad_contamination_class_rejected():
         jsonschema.validate(bad, SCHEMA)
 
 
+def test_scope_bleed_uses_judge_tier_for_future_runs():
+    scenario = yaml.safe_load(open("scenarios/validation/cb-val-003-scope-bleed.yaml"))
+    assert scenario["scoring"]["judge"]["enabled"] is True
+    assert scenario["scoring"]["judge"]["question"]
+
+
 def test_full_scenario_pairs_are_bidirectional():
     paths = sorted(glob.glob("scenarios/full-benchmark/*.yaml"))
     scenarios = {scenario["scenario_id"]: scenario

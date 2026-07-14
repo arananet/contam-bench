@@ -25,10 +25,12 @@ benchmark" claim. New scenarios use `CB-BENCH-###` IDs; the frozen
 | Summarization loss | omitted qualifier, lost negation, missing provenance, ambiguous referent, stale summary | raw fidelity vs summary quality |
 | Relevance gate | presupposition trap, contradiction-as-irrelevant, relevant false negative, distractor true negative, rephrasing invariance | precision, recall, truth preservation |
 
-Authoring rules: hand-authored seeds/prompts/outcomes; `rationale` field
+Authoring rules: human-reviewed seeds/prompts/outcomes; `rationale` field
 per case; expected retrieval membership specified separately from
 expected response behavior; source/age/domain/fact_class varied
-independently, never bundled.
+independently, never bundled. AI assistance may propose an individual
+candidate, but a human author must verify and approve every field before the
+manifest enters the benchmark. Batch-generated scenarios remain prohibited.
 
 ## D. Scoring upgrade
 

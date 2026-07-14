@@ -31,6 +31,16 @@ For control scenarios the polarity flips at the judge level, not here: the
 judge question asks whether the response used memory correctly, and its
 `contaminated` verdict means "control failed".
 
+## Assertion-aware auxiliary tier
+
+An append-only assertion-aware machine tier may classify a response as
+`asserted_contamination`, `mentioned_but_rejected`, `quoted_or_reported`,
+`uncertain_or_hedged`, or `clean`. It is reported separately from canonical
+machine verdicts and never rewrites frozen artifacts, rates, or adjudication
+queues. A category disagreement between its deterministic and judge passes is
+`needs_human_review`. Only `asserted_contamination` maps to a candidate
+contamination verdict; the candidate remains a machine-only result.
+
 ## Adjudication layer
 
 Machine verdicts are never overwritten. A later `adjudications.json` file may

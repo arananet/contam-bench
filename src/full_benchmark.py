@@ -9,6 +9,8 @@ import os
 
 import yaml
 
+from .scenario_review import reviewed_candidates
+
 
 REQUIRED_CLASSES = {
     "semantic_drift", "provenance_collapse", "scope_bleed",
@@ -16,6 +18,8 @@ REQUIRED_CLASSES = {
 }
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FULL_SCENARIOS_DIR = os.path.join(REPO_ROOT, "scenarios", "full-benchmark")
+SCENARIO_REVIEWS_PATH = os.path.join(REPO_ROOT, "spec", "full-benchmark-candidates.yaml")
+GATE_FAMILY_PATH = os.path.join(REPO_ROOT, "spec", "gate-family.yaml")
 
 
 def validate_plan(plan: dict) -> None:
@@ -66,6 +70,20 @@ def dry_run(plan: dict) -> dict:
         control for probe, control in required_pairs.items()
         if control not in manifests
         or manifests[control].get("paired_probe") != probe)
+    required_ids = set(required_pairs) | set(required_pairs.values())
+    review_coverage = reviewed_candidates(SCENARIO_REVIEWS_PATH, required_ids)
+    missing_utility_oracles = sorted(
+        scenario_id for scenario_id, scenario in manifests.items()
+        if "utility" not in scenario.get("expected", {}))
+    gate_family = yaml.safe_load(open(GATE_FAMILY_PATH))
+    required_gate_metrics = set(plan["gate_family"]["metrics"])
+    declared_gate_metrics = set(gate_family.get("metrics", []))
+    gate_fixtures = gate_family.get("fixtures", [])
+    gate_family_ready = (
+        required_gate_metrics <= declared_gate_metrics
+        and any(fixture.get("required_retrieval_assertion") == "must_preserve_conflict_pair"
+                for fixture in gate_fixtures)
+    )
     condition_count = (len(execution["subject_models"])
                        * len(execution["retrieval_backends"]))
     subject_call_estimate = len(required_pairs) * 2 * condition_count
@@ -81,7 +99,19 @@ def dry_run(plan: dict) -> dict:
             "missing_controls": missing_controls,
         },
         "subject_call_estimate": subject_call_estimate,
-        "ready_for_execution": not missing_probes and not missing_controls,
+        "review_coverage": review_coverage,
+        "utility_oracles": {
+            "declared": len(manifests) - len(missing_utility_oracles),
+            "missing_scenario_ids": missing_utility_oracles,
+        },
+        "gate_family": {
+            "ready": gate_family_ready,
+            "fixtures": len(gate_fixtures),
+            "missing_metrics": sorted(required_gate_metrics - declared_gate_metrics),
+        },
+        "ready_for_execution": (not missing_probes and not missing_controls
+                                and not review_coverage["missing_approval"]
+                                and not missing_utility_oracles and gate_family_ready),
         "subject_models": execution["subject_models"],
         "retrieval_backends": execution["retrieval_backends"],
         "requires_authorization": True,

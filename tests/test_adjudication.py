@@ -3,7 +3,7 @@ import hashlib
 
 import pytest
 
-from src.adjudication import generate_packets, merge_submissions
+from src.adjudication import generate_packets, main as adjudication_main, merge_submissions
 from src.full_benchmark import dry_run, validate_plan
 
 
@@ -49,6 +49,35 @@ def test_duplicate_or_unblinded_submission_is_rejected(tmp_path):
         merge_submissions(str(queue_path), [str(path)])
 
 
+def test_adjudication_cli_generates_packets_and_writes_consensus(tmp_path, capsys):
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    artifact = {
+        "artifact_hash": "artifact-1", "scoring": {"contaminated": "claims X", "clean": "does not claim X"},
+        "rounds": [{"round": 1, "response": "The response."}],
+    }
+    (evidence / "CB-TEST.json").write_text(json.dumps(artifact))
+    queue = {"version": "queue-v1", "review_queue": [{"artifact_hash": "artifact-1", "round": 1, "status": "pending"}]}
+    queue_path = tmp_path / "queue.json"
+    queue_path.write_text(json.dumps(queue))
+    packets_dir = tmp_path / "packets"
+
+    adjudication_main(["packets", str(evidence), str(queue_path), str(packets_dir)])
+    assert json.loads(capsys.readouterr().out)["packets"] == 1
+    packet = json.loads(next(packets_dir.iterdir()).read_text())
+    reviewer_a = {"packet_id": packet["packet_id"], "adjudicator": "a", "blinded": True,
+                  "verdict": "clean", "timestamp": "2026-07-14T00:00:00Z", "rationale": "x"}
+    reviewer_b = {**reviewer_a, "adjudicator": "b"}
+    submission_a, submission_b = tmp_path / "a.json", tmp_path / "b.json"
+    submission_a.write_text(json.dumps(reviewer_a))
+    submission_b.write_text(json.dumps(reviewer_b))
+    output = tmp_path / "consensus.json"
+
+    adjudication_main(["merge", str(queue_path), str(output), str(submission_a), str(submission_b)])
+    assert json.loads(capsys.readouterr().out)["adjudications"] == 2
+    assert len(json.loads(output.read_text())["adjudications"]) == 2
+
+
 def test_full_benchmark_plan_dry_run():
     import yaml
     plan = yaml.safe_load(open("spec/full-benchmark.plan.yaml"))
@@ -58,6 +87,9 @@ def test_full_benchmark_plan_dry_run():
     assert result["ready_for_execution"] is False
     assert len(result["manifest_coverage"]["missing_probes"]) == 25
     assert len(result["manifest_coverage"]["missing_controls"]) == 25
+    assert len(result["review_coverage"]["missing_approval"]) == 60
+    assert result["utility_oracles"]["declared"] == 0
+    assert result["gate_family"]["ready"] is True
     assert result["retrieval_backends"][1]["learned_embedding"] == {
         "provider": "fastembed", "model": "BAAI/bge-small-en-v1.5",
         "execution": "local_onnx",

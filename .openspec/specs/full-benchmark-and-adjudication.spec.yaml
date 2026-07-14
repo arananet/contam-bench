@@ -83,7 +83,10 @@ technical_notes: |
   test fixtures must not call external APIs. Human submissions are append-only
   JSON layers validated against the immutable review queue. The final run
   command defaults to dry-run and requires an explicit --authorize-api flag
-  plus a matching documented budget to contact a model provider.
+  plus a matching documented budget to contact a model provider. AI assistance
+  may draft individual scenario candidates only when a human author verifies
+  and approves every manifest field before inclusion; batch-generated
+  scenarios are prohibited.
 
 linked_issues: []
   # - "https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/issues/1"

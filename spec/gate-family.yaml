@@ -1,0 +1,6 @@
+version: gate-family-v1
+metrics: [precision, recall, truth_preservation]
+fixtures:
+  - id: presupposition-capture-pair
+    required_retrieval_assertion: must_preserve_conflict_pair
+    success_condition: both contradicting memories remain after gating

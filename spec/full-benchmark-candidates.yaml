@@ -1,0 +1,5 @@
+version: full-benchmark-candidate-review-v1
+# Human approval is required before a candidate manifest can enter execution.
+# This registry begins empty: existing semantic-drift fixtures remain planning
+# manifests until their author records individual review here.
+candidates: []

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -102,3 +103,34 @@ def merge_submissions(queue_path: str, submission_paths: list[str]) -> dict:
         "adjudications": adjudications,
         "review_queue": queue["review_queue"],
     }
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Generate blinded packets or merge independent reviewer submissions."""
+    parser = argparse.ArgumentParser(description="CONTAM-Bench blinded adjudication operations")
+    commands = parser.add_subparsers(dest="command", required=True)
+
+    packets = commands.add_parser("packets", help="generate one blinded packet per pending review")
+    packets.add_argument("evidence_dir")
+    packets.add_argument("queue_path")
+    packets.add_argument("output_dir")
+
+    merge = commands.add_parser("merge", help="merge independent blinded submissions")
+    merge.add_argument("queue_path")
+    merge.add_argument("output_path")
+    merge.add_argument("submission_paths", nargs="+")
+
+    args = parser.parse_args(argv)
+    if args.command == "packets":
+        generated = generate_packets(args.evidence_dir, args.queue_path, args.output_dir)
+        print(json.dumps({"packets": len(generated), "output_dir": args.output_dir}))
+        return
+
+    consensus = merge_submissions(args.queue_path, args.submission_paths)
+    with open(args.output_path, "w") as file:
+        json.dump(consensus, file, indent=2, ensure_ascii=False)
+    print(json.dumps({"adjudications": len(consensus["adjudications"]), "output_path": args.output_path}))
+
+
+if __name__ == "__main__":
+    main()

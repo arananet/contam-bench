@@ -1,4 +1,6 @@
-name: metrics-adjusted
+title: "Metrics adjusted"
+slug: "metrics-adjusted"
+type: feature
 status: review
 description: >-
   Replace hardcoded scenario-ID lists in src/metrics.py with membership
@@ -28,7 +30,10 @@ acceptance_criteria:
     controls, natural+seeded recursion pair, five single-probe classes;
     an on-disk manifest outside the inventory fails the test.
 
-test_plan: >-
-  pytest -q: test_schema.py inventory invariant plus existing schema
-  validation; regression check by recomputing metrics against the frozen
-  v0.2 verdicts.json and comparing to the published ablation table.
+test_plan:
+  - >-
+    Run pytest -q, including the test_schema.py inventory invariant and
+    existing schema validation.
+  - >-
+    Recompute metrics against the frozen v0.2 verdicts.json and compare them
+    with the published ablation table.

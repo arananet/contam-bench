@@ -117,6 +117,15 @@ properties:
             type: boolean
           question:
             type: string
+      assertion_tier:
+        # Optional input for a separately reported assertion-aware machine tier.
+        # It never replaces the canonical deterministic-plus-judge verdict.
+        type: object
+        additionalProperties: false
+        required: [enabled]
+        properties:
+          enabled:
+            type: boolean
 
   write_back:
     # recursive scenarios only: persist the round-1 response into the

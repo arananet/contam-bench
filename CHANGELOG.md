@@ -19,6 +19,7 @@ Guidelines:
 ## [Unreleased]
 
 ### Added
+- Reproducible v3 manuscript inputs are now included under `paper/v3/`; generated PDF and arXiv archives remain ignored.
 - Roles section in spec templates (`implementer`, `reviewer`, `qa`, `product_owner`) for per-spec responsibility assignment
 - `roles.default_*` block in `.openspec/config.yaml` and `.openspec/defaults.yaml` for repo-wide default role assignments
 - `scripts/openspec scaffold` now reads `roles.default_*` from config and pre-fills new specs
@@ -40,7 +41,7 @@ Guidelines:
 - `CLAUDE.md` Step 6 now instructs Claude to clean up template-internal specs
 
 ### Changed
--
+- `CB-VAL-003` enables the separate judge tier for future scope-bleed runs; the frozen v0.2/v0.3 evidence and its machine-only verdicts are unchanged.
 
 ### Deprecated
 -
