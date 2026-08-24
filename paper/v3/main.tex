@@ -1,0 +1,903 @@
+\documentclass[11pt]{article}
+
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[expansion=false]{microtype}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{listings}
+
+\lstset{basicstyle=\ttfamily\small, breaklines=true, frame=single, framesep=4pt}
+
+
+\title{Benign Memory Contamination in LLM Agents:\\
+A Taxonomy, Benchmark, and Contract-Level Mitigations}
+
+\author{Eduardo Arana}
+
+\date{July 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Persistent memory makes LLM assistants persistent collaborators, but it also
+creates an unmanaged input channel into future responses. We study \emph{benign
+memory contamination}: degradation caused by ordinary memory-system behavior,
+without an attacker, jailbreak, or poisoned record. We contribute a taxonomy
+of six mechanisms: semantic drift, provenance collapse, scope bleed, temporal
+staleness, recursive compounding, and summarization loss. We also introduce
+CONTAM-Bench, an open, spec-driven benchmark of hand-authored scenarios with a
+personalization-retention control, and a contract-level mitigation architecture
+based on scoped namespaces, provenance tags, raw fidelity, and decay by fact
+class.
+
+We report a mechanism-isolation ablation over seven configurations: a naive
+baseline, a governed bundle, and five single-control arms. In a five-repetition
+audit, namespacing excluded cross-domain distractors and TTL excluded stale
+facts in every retrieval assertion. At the machine-resolved response layer,
+provenance tags and raw fidelity each yielded five clean, zero contaminated,
+and zero flagged provenance outcomes. Raw storage therefore identifies
+provenance collapse as substantially a summarization problem. The relevance
+gate produced the central negative result: it discarded a premise-denying
+memory and retained a contaminated write-back because the latter better matched
+the probe's presupposition. We call this \emph{presupposition capture}. A
+probabilistic gate is not part of the prescribed baseline; if deployed, it
+requires a deterministic contradiction-preservation rail. The benchmark and
+code are available at \url{https://github.com/arananet/contam-bench}.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Memory transforms an LLM assistant from a stateless tool into a persistent
+collaborator. It is also an unmanaged input channel into every future
+response. The failure mode studied here requires no adversary: an
+assistant's own retrieval pipeline injects semantically similar but
+task-irrelevant context from past sessions, producing wrong assumptions,
+provenance errors, and, when contaminated outputs are written back to the
+store, compounding degradation over time. We call this \emph{benign
+memory contamination} to distinguish it from adversarial memory poisoning,
+where malicious records are deliberately injected~\cite{chen2024agentpoison,
+dong2025minja}.
+
+The problem is not hypothetical, and it is not confined to consumer
+personalization. Recent survey work on harness engineering argues that the
+realistic near-term path to recursive self-improvement runs through the
+harness layer, including workflow design, tool orchestration, evaluation, and
+context and memory lifecycle management, rather than direct
+weight modification~\cite{weng2026harness}. That survey explicitly lists
+memory and context degradation in long-horizon agent loops as an unresolved
+structural challenge. This paper addresses precisely that gap: it names the
+non-adversarial degradation mechanism, decomposes it into a testable
+taxonomy, and prescribes the contract-level controls the harness literature
+assumes but does not specify.
+
+A live illustration motivated this work. During the drafting of this very
+paper, an LLM assistant with persistent memory retrieved the author's own
+open-source specification proposal from a prior session and, unprompted,
+elevated it to ``the agentic memory standard,'' a status-inflation and
+provenance error produced by similarity-based cross-session retrieval,
+exhibiting two of the taxonomy classes defined in
+Section~\ref{sec:taxonomy} before the benchmark existed to name them.
+
+\paragraph{Contributions.}
+\begin{enumerate}[leftmargin=*, itemsep=2pt]
+  \item A taxonomy of six benign contamination mechanisms, each defined by
+        its causal mechanism and a falsifiable contamination criterion,
+        plus one documented experimental class
+        (Section~\ref{sec:taxonomy}).
+  \item CONTAM-Bench, an open, spec-driven benchmark: hand-authored YAML
+        scenario manifests, a pluggable memory store spanning five design
+        axes, deterministic-first scoring with subject/judge model
+        separation, and six metrics including a personalization-retention
+        control (Section~\ref{sec:benchmark}).
+  \item A prescriptive mitigation architecture expressed as declarative
+      memory contracts, including scoping, provenance, gating, and decay,
+      placed
+        deliberately outside the mutable memory loop
+        (Section~\ref{sec:architecture}).
+  \item A seven-configuration, single-control mechanism-isolation ablation
+        and a separately reported five-repetition audit on a Sonnet-class
+        subject model
+        (Section~\ref{sec:results}).
+\end{enumerate}
+
+\section{Related Work}
+\label{sec:related}
+
+Three bodies of work border this paper; none occupies it.
+
+\paragraph{Adversarial memory poisoning.}
+AgentPoison demonstrated backdoor attacks that poison agent long-term memory
+and RAG knowledge bases~\cite{chen2024agentpoison}; MINJA showed malicious
+records can be injected purely through query-level
+interaction~\cite{dong2025minja}; subsequent work has extended the attack
+surface. This literature assumes an attacker and optimizes defenses
+accordingly. Benign contamination has no attacker to defend against: the
+threat model is the design of the memory system itself.
+
+\paragraph{Measurement of non-adversarial memory risk.}
+The closest neighbor is \emph{Remembering More, Risking
+More}~\cite{altawaha2026remembering}, which measures memory-induced
+violation rates exceeding no-memory baselines, increasing with exposure
+length, and driven by cross-context contamination, identifying retrieval
+scope and summarization level as amplifying design choices. Complementary
+diagnosis work finds most memory failures stem from irrelevant retrieval
+rather than memory construction. In the multi-agent setting, Wang et
+al.~\cite{wang2026state} demonstrate \emph{memory laundering}: toxic
+context compressed into memory summaries evades standard detectors while
+still influencing downstream generations, and mitigation depends on
+intervening before compression into persistent state. Their focus is
+toxicity propagation; this paper's is task-correctness and attribution
+degradation from memory operating as designed, but both establish that
+contamination survives below detection thresholds. These papers establish
+that the benign problem is real and measurable. They do not name its
+distinct mechanisms, and they stop short of prescribing an architecture.
+
+\paragraph{Retrieval noise and context failure.}
+The retrieval-layer half of this paper's phenomenon has a single-shot
+ancestor: Cuconasu et al.\ show that irrelevant passages in RAG divide
+into random ones, which do not degrade answer quality, and
+\emph{distracting} ones, which do~\cite{cuconasu2024power}, and
+follow-on work quantifies a passage's distracting effect as a graded
+severity measure. This paper's contribution relative to that line is the
+persistence layer and the verdict split: memory adds write-back, decay,
+and provenance dynamics that single-shot retrieval does not have, and
+the retrieval-layer/response-layer dissociation of
+Section~\ref{sec:twolayer} is measured across that loop. The distracting
+effect is a candidate severity proxy for the full benchmark, superior to
+forbidden-pattern hit counts. Separately, practitioner taxonomies of
+context failure, notably Breunig's context rot classes of poisoning,
+distraction, confusion, and clash~\cite{breunig2025context}, overlap
+with several classes here at the symptom level; the differentiator of
+this taxonomy is that it is memory-scoped, mechanism-causal (each class
+is defined by the design property that produces it), and bound to a
+prescriptive control.
+
+\paragraph{Memory systems and their evaluation.}
+A rich systems literature builds agent memory capability: hierarchical
+context management~\cite{packer2023memgpt}, forgetting-curve
+decay~\cite{zhong2024memorybank}, temporal knowledge
+graphs~\cite{rasmussen2025zep}, and production memory
+stacks~\cite{chhikara2025mem0, xu2025amem}. Evaluation has followed:
+MemBench~\cite{tan2025membench} measures memory effectiveness, and Zhou et
+al.~\cite{zhou2026agentnative} systematically benchmark twelve memory
+systems from a data-management perspective, decomposing memory into
+storage, extraction, retrieval, and maintenance modules and finding that no
+single architecture dominates. Closest in spirit to this paper's concern,
+Xiong et al.~\cite{xiong2025experiencefollowing} empirically characterize
+experience-following behavior, showing how past records steer agent
+decisions without any adversary. These works decompose the \emph{system}
+and measure capability, robustness, and cost; this paper decomposes the
+\emph{failure mode} and measures contamination per class against
+prescriptive design contracts.
+
+\paragraph{Harness engineering.}
+A recent survey organizes the design space of agent harnesses, including workflow
+automation, filesystem-backed memory, sub-agent orchestration, and
+self-improving harness loops such as ACE, Meta-Harness, Self-Harness, and
+the Darwin G\"odel Machine~\cite{weng2026harness, zhang2025dgm}. The survey
+treats memory hygiene as an open problem and predicts that harness
+configuration and interface protocols will standardize industry-wide.
+
+The positioning is therefore: surveys map the territory; poisoning papers
+defend the border; measurement papers quantify the internal decay; this
+paper names the decay's mechanisms and prescribes the architecture.
+
+\section{A Taxonomy of Benign Contamination}
+\label{sec:taxonomy}
+
+Benign memory contamination is the degradation of assistant responses caused
+by persistent memory operating as designed. Every class below arises from
+ordinary usage patterns. The classes index onto the four stages of the
+memory loop, which is also where their contracts bind: summarization loss
+is a \emph{write-time} failure; semantic drift, scope bleed, and temporal
+staleness are \emph{retrieve-time} failures; authority inflation is an
+\emph{inject-time} dynamic; and recursive contamination is a
+\emph{write-back} dynamic that compounds whichever of the others is
+present. Recursion is thus not a peer of the static classes but a loop
+over them, which is why it is tested both naturally (does the subject
+generate the error?) and seeded (what happens when one exists?). Six classes are tested in the validation run; a
+seventh is documented as experimental. Each class is defined by
+(a)~its causal mechanism and (b)~a falsifiable contamination criterion used
+verbatim by the benchmark's judge.
+
+\subsection{Semantic drift (\texttt{semantic\_drift})}
+Retrieval surfaces a memory because of surface-token overlap, not semantic
+relevance, and the response is steered by the irrelevant memory.
+\emph{Mechanism:} lexical or embedding similarity between unrelated topics
+(``containers'' in Kubernetes vs.\ cooking; ``hosting'' a service vs.\ a
+dinner). \emph{Contaminated when:} the response injects the unrelated
+technical context into the answer.
+
+\subsection{Provenance collapse (\texttt{provenance\_collapse})}
+An assistant-sourced statement is later replayed as if it were a user-stated
+fact or preference; the memory system dropped or never recorded who said it.
+\emph{Mechanism:} untagged storage erases the user/assistant/tool
+distinction; a suggestion becomes a preference on replay.
+\emph{Contaminated when:} the response asserts the assistant's suggestion as
+the user's own stated preference.
+
+\subsection{Scope bleed (\texttt{scope\_bleed})}
+Memory from one life domain (e.g.\ work) leaks into responses in another
+domain (e.g.\ personal) on the strength of topical overlap.
+\emph{Mechanism:} a global, non-namespaced store retrieves across domain
+boundaries. \emph{Contaminated when:} work-specific details surface in the
+personal answer (or the inverse).
+
+\subsection{Temporal staleness (\texttt{temporal\_staleness})}
+An outdated fact wins over, or blends with, its newer replacement because
+the store has no recency or expiry mechanism. \emph{Mechanism:} no decay;
+similarity ranking is blind to age; older, richer memories can outrank newer
+corrections. \emph{Contaminated when:} the response acts on the stale fact.
+
+\subsection{Recursive contamination (\texttt{recursive})}
+A mildly contaminated response is written back to the store and compounds:
+the system consumes its own error as ground truth in later rounds.
+\emph{Mechanism:} write-back of assistant output; second-round retrieval
+surfaces the first-round contamination alongside the original seeds.
+\emph{Contaminated when:} the second-round output repeats or amplifies the
+first-round error, measured by the compounding factor
+(Section~\ref{sec:metrics}).
+
+This class gains external support from two independent results. First, the
+STOP experiments showed that recursive self-improvement scaffolds improved
+outcomes with strong models but \emph{degraded} them with weak
+ones~\cite{zelikman2023stop}: recursion amplifies whatever is underneath.
+CONTAM-Bench accordingly measures compounding per model rather than
+assuming a constant. Second, the harness literature warns that when a
+program can edit its own operating layer, abstraction boundaries break and
+safety controls must live outside the loop~\cite{weng2026harness}, an
+argument this paper extends from code to memory in
+Section~\ref{sec:architecture}.
+
+\subsection{Summarization loss (\texttt{summarization\_loss})}
+Storing a summary instead of the raw memory drops the disambiguating
+detail; a later probe hinging on that detail gets a wrong or overconfident
+answer. \emph{Mechanism:} lossy compression at write time; the detail needed
+later was not predictable at summarization time. \emph{Contaminated when:}
+the response asserts the wrong disambiguation or invents the missing detail.
+
+\subsection{Authority inflation (experimental, untested)}
+A tool- or assistant-sourced memory acquires unwarranted epistemic authority
+through repetition: each retrieval-and-restatement cycle makes the fact look
+more established (``as we've discussed several times\ldots''), even though
+it traces to a single low-confidence origin. Distinguishing this cleanly
+from provenance collapse (origin \emph{lost}) and recursive contamination
+(error \emph{amplified}) requires multi-round scenarios with citation-count
+probes that are out of scope for the validation test; the class is
+documented in the benchmark taxonomy and excluded from all metrics.
+
+\section{CONTAM-Bench}
+\label{sec:benchmark}
+
+CONTAM-Bench is a spec-driven benchmark: all scenarios are YAML manifests
+validated against a published schema; the harness reads specs and never
+hardcodes scenario logic; every run artifact, including raw prompts, injected
+memory, responses, and judge verdicts, is persisted as JSON for audit. This
+paper reports the scaled-down validation corpus. The base corpus is
+\emph{eight} hand-authored scenarios: six contamination probes, one per
+taxonomy class, plus two controls. The ablation of
+Section~\ref{sec:results} adds a ninth, seeded-recursion scenario,
+yielding nine scenarios against seven memory configurations. Hand-authoring
+matters: a contamination pipeline cannot be validated with LLM-generated
+scenarios without introducing contamination into its own ground truth.
+
+\subsection{Scenarios}
+Each contamination scenario seeds a memory store with hand-authored items
+(each carrying content, source, age in days, domain, and fact class) and
+then issues a probe query whose correct answer must not draw on the seeded
+distractors. Expected outcomes are encoded as forbidden-content patterns.
+Two controls complete the corpus: one where memory is genuinely relevant and
+the correct behavior is to \emph{use} it, and one with an empty store, which
+verifies the pipeline itself induces no artifacts.
+
+\subsection{Memory design configurations}
+The initial validation compared two bundled configurations across five design
+axes (scope, storage fidelity, retrieval, provenance, decay). The v0.2
+mechanism-isolation study adds five single-control arms to that comparison.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Axis & \texttt{naive} & \texttt{governed} \\
+\midrule
+Scope & global store & namespaced by domain \\
+Fidelity & summarized & raw \\
+Retrieval & similarity top-$k$ ($k{=}4$) & top-$k$ + relevance gate \\
+Provenance & untagged & tagged \texttt{[source: \ldots]} \\
+Decay & none & TTL by fact class (365/90/14 d) \\
+\bottomrule
+\end{tabular}
+\caption{Memory configurations under test. TTL classes: stable (365 days),
+volatile (90), ephemeral (14); unclassified memories default to stable, the
+recall-conservative and staleness-permissive choice. All thresholds are design
+choices under test, not empirical constants; rationale is recorded in the
+public spec.}
+\label{tab:configs}
+\end{table}
+
+\subsection{Models and determinism}
+The subject model under test is \texttt{claude-sonnet-4-6} at temperature~0;
+the judge and relevance gate are \texttt{claude-haiku-4-5}. Subject and
+judge are required to differ: a model never judges its own output. The
+reported validation runs use TF-IDF cosine similarity, a documented
+substitution because the public API exposes no embeddings endpoint. The
+successor-study implementation additionally provides a local ONNX embedding
+condition (\texttt{fastembed} with \texttt{BAAI/bge-small-en-v1.5}), reported
+separately from TF-IDF; this paper reports no learned-embedding result.
+
+\subsection{Verdict resolution and metrics}
+\label{sec:metrics}
+
+Scoring is deterministic-first. Each (scenario $\times$ configuration
+$\times$ round) artifact receives exactly one verdict: a case-insensitive
+regex pass over the scenario's forbidden-content patterns; a match yields
+\texttt{contaminated}, otherwise a provisional \texttt{clean} that the LLM
+judge may confirm. When deterministic and judge verdicts disagree, the
+artifact is flagged \texttt{needs\_human\_review} and is never
+auto-resolved; flagged artifacts are excluded from both numerator and
+denominator of every rate, and every exclusion is listed in the report.
+
+Six metrics are computed per configuration from persisted artifacts only;
+no metric is ever invented, and an uncomputable metric is reported as null
+with a machine-readable reason:
+
+\begin{description}[leftmargin=*, itemsep=2pt]
+  \item[Contamination rate.] Fraction of contamination probes judged
+        contaminated. For the recursive scenario, the second-round verdict
+        is used.
+  \item[Provenance error rate.] The same rate restricted to provenance
+        probes.
+  \item[Staleness rate.] The same rate restricted to temporal-staleness
+        probes. A retrieval assertion can establish that TTL removed a stale
+        memory; a response-layer comparison remains null when its comparator
+        is flagged for human review.
+  \item[Compounding factor.] Ratio of second-round to first-round
+        contamination severity for the recursive scenario, with severity
+        measured as the count of distinct forbidden-content patterns
+        matched. Values above~1 indicate amplification, 1 persistence,
+        below~1 attenuation. A clean first round yields null: there is
+        nothing to compound, which is the desired outcome.
+  \item[Seeded-recursion rate.] Contamination rate for the separately
+        reported seeded-recursion scenario. It is never pooled into the
+        natural-probe contamination rate.
+  \item[Personalization retention.] Fraction of control scenarios where the
+      subject behaved correctly, using genuinely relevant memory and
+        answering normally from an empty store without hallucinating
+        remembered context. This control exists so that a design cannot
+        ``solve'' contamination by never using memory.
+\end{description}
+
+\section{Ablation Study}
+\label{sec:results}
+
+Following external review of an earlier draft, the empirical section was
+redesigned from a two-configuration validation into a single-control
+ablation: the run reported here executes nine scenarios (the eight of
+Section~\ref{sec:benchmark} plus a seeded-recursion scenario described
+below) against seven configurations: \texttt{naive}, \texttt{governed},
+and five arms that each add exactly one control to the naive
+baseline.\footnote{Complete run artifacts are published at
+\texttt{evidence/20260713T084130Z} in the benchmark repository, frozen at
+tag \texttt{v0.2-ablation}. Every number in this section is recomputable
+from those artifacts.} We characterize this study honestly: it is a
+mechanism-isolation experiment on a small hand-authored corpus, designed
+to validate the pipeline and attribute effects to individual controls, not as
+a utility frontier. The latter requires the full corpus and is named as
+successor work in Section~\ref{sec:discussion}. The run cost 132 API
+calls (70 subject, 27 gate, 35 judge). The naive and governed
+configuration hashes are unchanged from the prior validation run,
+preserving comparability.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Evidence release & Immutable tag & Backs in this paper \\
+\midrule
+v0.2 ablation & \texttt{v0.2-ablation} & Table~\ref{tab:matrix} single-run matrix \\
+v0.3 repeated audit & \texttt{v0.3-repeated-ablation} & Tables~\ref{tab:repeated} and \ref{tab:retrieval} \\
+v0.3.1 corrections & \texttt{v0.3.1-evidence-corrections} & call reconciliation and review queue \\
+\bottomrule
+\end{tabular}
+\caption{Evidence lineage. Releases are not pooled: v0.2 is the frozen
+single-run mechanism matrix; v0.3 is the repeated machine-resolved audit;
+v0.3.1 is append-only accounting and adjudication metadata.}
+\label{tab:lineage}
+\end{table}
+
+\paragraph{Seeded recursion (CB-VAL-009).} The natural recursion scenario
+(CB-VAL-005) measures whether the subject \emph{generates} a round-1
+error; with a strong subject it reliably does not, yielding a null
+compounding factor. This is a model-strength result, not a mechanism test. The
+seeded variant removes that dependence: the store is seeded directly with
+an already-contaminated assistant-attributed write-back (``launch is
+confirmed\ldots leadership has signed off,'' 2 days old) alongside the
+user-sourced ground truth (``tentative Q4, nothing decided,'' 15 days
+old), and the probe asks for the confirmed date. This measures write-back
+propagation of the recursive mechanism, independent of subject-model
+strength.
+
+\subsection{The ablation matrix}
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+Scenario (class) & \texttt{naive} & \texttt{ns} & \texttt{prov} & \texttt{ttl} & \texttt{gate} & \texttt{raw} & \texttt{gov} \\
+\midrule
+001 drift        & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+002 provenance   & \(\times\) & \(\times\) & \(\circ\) & \(\times\) & \(\times\) & \(\circ\) & \(\circ\) \\
+003 scope bleed  & \(\times\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+004 staleness    & r & r & \(\circ\) & \(\circ\) & r & r & \(\circ\) \\
+005 recursion (natural) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+006 summarization & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+009 recursion (seeded) & r & r & \(\circ\) & r & \(\boldsymbol{\times}\) & r & r \\
+\midrule
+007 control (retention) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & r \\
+008 control (empty)     & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+\midrule
+Contamination rate (natural probes) & 2/5 & 1/5 & \textbf{0/6} & 1/6 & 1/5 & 0/5 & 0/6 \\
+Seeded recursion (009), separate & r & r & \textbf{0/1} & r & 1/1 & r & r \\
+\bottomrule
+\end{tabular}
+\caption{Resolved verdicts per scenario and configuration
+(\(\circ\)~clean, \(\times\)~contaminated, r~flagged
+\texttt{needs\_human\_review} and excluded from rates per the metric
+specification). Arms: \texttt{ns}~namespacing, \texttt{prov}~provenance
+tags, \texttt{ttl}~decay, \texttt{gate}~relevance gate,
+\texttt{raw}~raw fidelity; each is \texttt{naive} plus exactly that
+control. Denominator policy (stated, not implied): the contamination rate
+is computed over the six natural probes only; the seeded-recursion
+scenario is reported as its own metric and never merged into the headline
+rate. All rates show resolved counts; flagged artifacts are excluded from
+numerator and denominator.}
+\label{tab:matrix}
+\end{table}
+
+In the frozen v0.2 snapshot, ten artifacts were flagged for manual
+inspection.
+Most were quotation-or-negation cases: the subject \emph{quoted} a
+forbidden claim while debunking it (``the memory says confirmed, but
+nothing has actually been decided''), which fires the deterministic pattern
+even when the response appears substantively clean. The accompanying v0.2
+defect notes record an author's post-hoc assessment, not a blinded,
+independent adjudication under a preregistered rubric. The v0.3 audit below
+therefore replaces any inference from this small historical set with an
+explicit repeated-run accounting of scorer disagreement.
+
+\subsection{Repeated-evaluation audit and scoring defects}
+\label{sec:repeatedaudit}
+
+Table~\ref{tab:matrix} is the frozen v0.2 single-run ablation. We do not
+pool it with the subsequent v0.3 repeated-evaluation audit: the latter ran
+the same nine scenarios and seven configurations five times, producing 350
+scored rounds, and is published separately at
+\texttt{evidence/20260713T191740Z} under the tag in
+Table~\ref{tab:lineage}. Its purpose is to quantify scorer ambiguity,
+execution cost, and per-cell outcome distributions rather than replace the
+matrix with an unqualified aggregate.
+
+Fifty-two of the 350 rounds (14.9\%) required human review:
+three provenance-attribution rounds had a
+deterministic-clean/judge-contaminated disagreement; twenty staleness rounds
+had a deterministic-contaminated/judge-clean disagreement; and twenty-nine
+seeded-recursion rounds disagreed (twenty-eight in the latter direction, one
+in the former). The dominant false positive is assertion-versus-mention:
+the response quotes or rejects a stale or contaminated claim while the regex
+detects its tokens. The false negatives are provenance-sensitive assertions
+that do not match a forbidden string. Per the scoring contract, these rounds
+are excluded from machine-only rates.
+
+Table~\ref{tab:repeated} reports repeated outcome distributions for the
+load-bearing cells. Each entry is clean/contaminated/flagged across five
+repetitions; non-flagged counts are machine-resolved only. The provenance
+separation persists without flags: provenance tags, raw fidelity, and the
+governed bundle are each 5/0/0, while naive is 0/4/1. The three provenance
+disagreements occur only in \texttt{arm\_gate} (repetitions 1 and 5) and
+\texttt{naive} (repetition 4), not in the tag, raw, or governed conditions.
+Their artifact hashes are respectively \texttt{12e31cb370551aee},
+\texttt{d4a2659218ff8d5d}, and \texttt{5e87b7133e0a98a5}.
+This supports the provenance finding in the machine-resolved tier, but does
+not substitute for the pending blinded human adjudications.
+
+\begin{table}[p]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Configuration & 002 provenance & 003 scope & 004 staleness & 009 seeded recursion \\
+\midrule
+naive & 0/4/1 & 1/4/0 & 0/0/5 & 0/0/5 \\
+namespace & 0/5/0 & 5/0/0 & 0/0/5 & 0/0/5 \\
+provenance & 5/0/0 & 4/1/0 & 5/0/0 & 0/2/3 \\
+ttl & 0/5/0 & 2/3/0 & 5/0/0 & 0/0/5 \\
+gate & 0/3/2 & 5/0/0 & 0/0/5 & 0/4/1 \\
+raw & 5/0/0 & 3/2/0 & 0/0/5 & 0/0/5 \\
+governed & 5/0/0 & 5/0/0 & 5/0/0 & 0/0/5 \\
+\bottomrule
+\end{tabular}
+\caption{Repeated v0.3 outcome distributions, reported as
+clean/contaminated/flagged across five repetitions. Flagged means
+\texttt{needs\_human\_review}; all other counts are machine-resolved.
+Scenarios are not pooled into a population estimate.}
+\label{tab:repeated}
+\end{table}
+
+The v0.3 evidence now includes a separately versioned queue for all 52
+unresolved artifact rounds, but it contains no human verdicts. Therefore this
+paper makes no human-consensus claim and does not silently adopt the judge
+verdict. The rendered report now labels its machine-only and human-consensus
+tables separately and identifies review rows by repetition and artifact hash.
+The immutable original report still records the missing-adjudications state;
+the append-only correction bundle and pending queue are identified in
+Table~\ref{tab:lineage}.
+
+The repeated audit used 660 API calls: 350 subject calls, 135 gate calls, and
+175 judge calls. This exceeds the validation plan's stated ``few hundred
+calls'' target. We report the overrun as an operational cost limitation; it
+does not invalidate the persisted artifacts or their recorded results.
+
+\subsection{The two-layer dissociation persists}
+\label{sec:twolayer}
+
+As in the prior validation run, retrieval-layer and response-layer
+contamination dissociate: under every configuration lacking scope control,
+the semantic-drift distractors entered the prompt, and under every
+configuration the response ignored them, with the subject model masking
+retrieval-layer contamination for classes whose irrelevance is detectable
+from context. We therefore report three non-interchangeable layers:
+deterministic retrieval assertions for drift and scope; response verdicts
+for attribution, staleness, and write-back propagation; and a utility layer
+for summarization, which is \texttt{null} in this corpus because no utility
+oracle has yet been declared. A clean response verdict is not a utility
+measurement.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+Retrieval assertion & naive & ns & prov & ttl & gate & raw & gov \\
+\midrule
+001 exclude drift distractor & 0/5 & 5/5 & 0/5 & 0/5 & 5/5 & 0/5 & 5/5 \\
+003 exclude cross-domain distractor & 0/5 & 5/5 & 0/5 & 0/5 & 5/5 & 0/5 & 5/5 \\
+004 exclude stale fact & 0/5 & 0/5 & 0/5 & 5/5 & 0/5 & 0/5 & 0/5 \\
+\bottomrule
+\end{tabular}
+\caption{Deterministic v0.3 retrieval assertions passed / attempted across
+five repetitions. A zero in a non-target arm is expected: only namespacing,
+the gate, and the governed bundle exclude cross-domain distractors, while TTL
+removes the stale fact. For nongated arms, retrieval is a deterministic
+function of the manifest, configuration, and TF-IDF backend, so the five
+repetitions re-observe an invariant result; gated rows remain repeated
+observations of a model-mediated decision.}
+\label{tab:retrieval}
+\end{table}
+
+\subsection{Attribution: what the cells support}
+
+The single-control arms support only the claims their evidence layer can
+bear. In resolved response rounds, provenance tags and raw fidelity
+eliminated provenance collapse. Semantic drift remains a response-layer tie:
+all configurations resolved clean, while retrieval assertions distinguish the
+candidate sets. Scope bleed separates at the response layer: naive resolved
+one clean and four contaminated repetitions, whereas namespacing resolved five
+clean and zero contaminated repetitions, with no flags in either cell. The
+corresponding contamination proportions are 4/5 (exact 95\% Clopper--Pearson
+interval [0.284, 0.995]) and 0/5 ([0.000, 0.522]); these intervals are
+descriptive at validation scale, not population estimates. Staleness remains
+retrieval-layer evidence because its response-layer comparators are flagged.
+The summarization probe has no utility oracle, so it cannot establish a
+utility gain from raw fidelity.
+
+The off-diagonal cells contain the study's two discoveries. First,
+\emph{raw fidelity preserves provenance in-band}: the raw store retains
+the sentence ``the assistant suggested that Maria could try\ldots,'' and
+the subject attributed correctly with no tags present. Provenance
+collapse is thus substantially a summarization phenomenon, destroyed at
+write time when the summary erases the speaker. Two independent controls
+repair it: explicit tags, or raw storage. Second, an implementation
+confound we report rather than hide: the provenance tag as implemented
+carries age and domain metadata (\texttt{[source: user | age: 200d |
+domain: personal]}), so the provenance arm also resolved staleness because
+the subject discounted the 200-day-old fact by its visible age. The tag
+bundles three annotations; a stricter ablation would separate them, and
+the full benchmark will.
+
+\subsection{The gate amplified seeded recursion}
+\label{sec:gatefinding}
+
+The central negative result: the relevance-gate arm was the only
+configuration whose seeded-recursion verdict resolved contaminated, with
+deterministic and judge passes in agreement. The mechanism is visible in
+the gate's own logged decisions. Asked for the ``confirmed launch
+date,'' the gate kept the contaminated write-back (``confirms Atlas
+launch timing\ldots directly answers the query'') and discarded the
+user-sourced ground truth as irrelevant, reasoning that it ``explicitly
+states the launch date is tentative and not confirmed.'' The gate judged
+relevance against the question's presupposition, stripped the
+contradicting context, and handed the subject only the contamination;
+the subject then asserted the confirmed launch as fact. Under naive
+retrieval, with both memories present and no filter, the same subject
+flagged the conflict and declined.
+
+We call this \emph{presupposition capture}: query-aligned relevance is not
+truth preservation, because a memory affirming a false premise can be more
+responsive to the query than a memory that corrects it. The enforceable rail
+is a retrieval contract: a probabilistic filter may never drop a memory that
+contradicts a retained memory; contradiction sets are retained atomically.
+The contract is implemented and unit-tested, but has not yet been evaluated
+in a dedicated repeated run, so it is a safeguard proposal rather than an
+efficacy result.
+
+We scope this claim carefully: in this seeded-recursion validation
+scenario, this relevance gate as implemented retained the contaminated
+write-back and discarded the contradicting user context; generalizing to
+relevance gates as a class requires the gate-family scenarios named in
+future work. This suggests a structural risk when relevance is judged against a
+presuppositional query: a relevance filter optimizes for answering the
+question as asked, and a contaminated write-back is often the most
+``relevant'' item in the store for precisely the question it contaminates.
+The gate-family scenarios of the future-work contract
+are designed to test. This is the strongest
+evidence in the study for the ordering of
+Section~\ref{sec:architecture}: the three
+deterministic controls (namespacing, tags, decay) showed target-aligned
+retrieval or resolved-response effects in this corpus at zero inference cost.
+The measured personalization-retention control resolved clean for six of
+seven configurations, indicating that these observed effects did not arise
+merely from suppressing relevant memory. This is a design rationale, not a
+general ordering of mitigation efficacy. The one
+probabilistic control both produced the recall false negative of the
+prior run and, here, actively amplified the failure mode it sat closest
+to.
+
+\subsection{Controls, retention, and remaining defects}
+\label{sec:defects}
+
+The anti-gaming control executed this run. With the over-broad pattern
+from the prior run rebound to peanut-as-ingredient, the personalization
+control resolved clean on six of seven configurations. All six
+configurations with a machine-resolved retention result used relevant memory
+correctly; the governed retention control remains flagged and is not counted
+as a resolved success. This rules out the trivial win of suppression for the
+six resolved configurations. The residual flag (governed) is a
+negation case. The response mentioned a peanut ingredient in order to
+warn against it, yet remains \texttt{needs\_human\_review} in the frozen
+machine layer. The v0.2 defect note describes it as clean, but that note is
+not a blinded, independent adjudication and is not used as a formal result.
+It instead records the scoring defect: pattern-based scoring cannot see
+negation or quotation, which is also the cause of the ten flagged artifacts
+above. Deterministic patterns remain the first pass for auditability, but
+assertion-versus-mention is precisely where the judge earns its place, and
+the full benchmark will pair patterns with graded rubrics.
+
+Two further honest observations. The natural-recursion compounding
+factor is again null (\texttt{round1\_clean}) across all seven
+configurations, so the seeded scenario now carries the mechanism test,
+which is why it exists. And the borderline scope-bleed pattern
+(\texttt{permit delays?}) fired under naive but not under three arms
+whose prompts for that scenario are byte-identical to naive's:
+temperature-0 sampling is not bit-reproducible across calls, so
+borderline pattern hits are stochastic. The benchmark's reproducibility
+claim attaches to the persisted artifacts, not to re-execution, and the
+full benchmark averages repeated runs.
+
+\section{A Contract-Level Mitigation Architecture}
+\label{sec:architecture}
+
+\paragraph{Declaration of interest.} The governed configuration instantiates
+controls from the author's open COGNITION.md proposal. This paper therefore
+reports a mechanism-isolation comparison, not an independent evaluation of
+that proposal.
+
+The taxonomy's six mechanisms share a root cause: the memory loop of
+writing, retrieving, injecting, and writing back carries no declarative
+constraints.
+Each baseline control in Table~\ref{tab:configs} is a contract-level answer
+to a specific class: namespacing answers scope bleed; provenance tags answer
+provenance collapse; decay by fact class answers temporal staleness; and
+raw-fidelity storage preserves the information needed to assess
+summarization loss. Relevance gating is not a baseline mitigation: it is an
+optional residual-risk experiment that must obey the contradiction-pair rail
+above before deployment.
+
+The architectural principle is that these controls are \emph{contracts
+external to the mutable store}, not behaviors the store is trusted to
+exhibit. This is not a new principle; it is the reference monitor applied
+to memory: a mediation layer that is tamperproof, always invoked, and
+small enough to verify~\cite{anderson1972}, together with complete
+mediation and the separation of policy from
+mechanism~\cite{saltzer1975protection}. The harness literature reaches
+the same conclusion for self-modifying code: when a system can edit its
+own operating layer, safety controls must live outside the
+loop~\cite{weng2026harness}. Besanson's SARC framework makes the analogous
+case for tool-using agents: constraints should be first-class specifications
+with explicit runtime enforcement sites and auditable traces~\cite{besanson2026sarc}.
+Memory is the other self-editable surface.
+
+The ablation motivates constraints, not an efficacy ordering. Namespacing,
+provenance tags, TTL decay, and raw fidelity are deterministic, auditable by
+inspection, and free at inference time, but their observed effects occur at
+different evidence layers and in different classes. Relevance gating is a
+probabilistic filter on the critical path. The repeated audit observed 135
+gate calls over 100 gated retrievals, or 1.35 calls per gated retrieval; its
+$k{=}4$ worst-case bound is 4{,}000 calls per thousand gated retrievals. No
+batching is used. It is the only control that produced a recall false negative
+in the validation run and active amplification of seeded recursion here
+(Section~\ref{sec:gatefinding}). A deterministic, contract-enforced design
+without a gate is therefore a reasonable baseline recommendation, not a
+proven general mitigation ordering; a gate remains an unvalidated
+residual-risk experiment, with logged decisions and mandatory contradiction
+preservation. Relocating a probabilistic filter from the subject model into
+the harness makes it auditable, but does not make it deterministic. This
+aligns with the operating-system analogy in that literature: encapsulate
+complex logic behind simple interfaces, and expect configuration and
+interface protocols to standardize. The author's open specification
+proposal, COGNITION.md~\cite{arana2026cognition}, is one such
+standardization proposal for the memory subsystem specifically: scoping,
+provenance, relevance gating, and decay expressed as first-class elements of
+a declarative memory contract.
+
+Production platforms are converging on the same controls from the
+deployment side. This is a demand signal for memory lifecycle governance, not
+evidence of correctness; only evaluation of the kind attempted here can
+provide that. Anthropic's managed memory stores ship per-user and
+per-team store scoping, read-only versus read-write access modes, and
+immutable memory versions with audit trails~\cite{anthropic2026memory};
+its Dreams feature performs asynchronous memory consolidation, motivated
+explicitly by stores accumulating ``duplicates, contradictions, and stale
+entries'' across sessions~\cite{anthropic2026dreams}. This productizes
+staleness and recursive accumulation. What the platforms do not yet provide is a
+contamination-specific evaluation or a declarative contract binding each
+control to the failure class it answers, which is the gap this paper
+addresses. Consolidation is a contamination-generating transform: it
+summarizes and rewrites at store scale, and can erase provenance before
+retrieval. Its apparent mitigation benefit must therefore be benchmarked
+against the summarization-loss and provenance mechanisms of
+Section~\ref{sec:taxonomy}.
+
+\section{Discussion and Limitations}
+
+\subsection{Validity statements}
+
+Five limits bound what this study can claim, stated as validity
+conditions rather than footnotes. (1)~Regex scoring detects
+\emph{mention}, not assertion: quotation, negation, correction, and
+refusal can match a forbidden phrase while being clean. In the v0.3
+repeated audit, 52 of 350 rounds disagreed between deterministic and judge
+scoring. Those rounds remain unresolved and excluded from machine-only
+rates: the versioned adjudication queue assigns no human verdicts, so this
+paper does not claim a judge-plus-human consensus for them. The correction
+bundle records 0 adjudications and 0 two-adjudicator consensuses. (2)~The
+provenance arm is confounded: its tag emits source, age, and domain
+together, so its staleness result cannot be attributed to source
+attribution alone. (3)~TF-IDF is a documented retrieval substitution; nothing here is evidence
+about learned-embedding retrieval behavior. (4)~Temperature~0 reduces but
+does not remove output variance, observed directly within this run on
+byte-identical prompts. (5)~One subject
+model cannot establish model-independent behavior, for compounding or
+anything else. Rates from one probe per mechanism are mechanism
+demonstrations with stated resolved counts, not population estimates. The
+repeated audit's 660 API calls exceed the validation plan's ``few hundred
+calls'' target; this is a cost limitation, not a reason to discard the
+persisted artifacts. The review register identifies every flagged artifact by
+repetition and hash.
+
+\subsection{Future-work contract}
+
+The next experiment is a preregistered full-benchmark study with at least
+five scenarios per contamination class and paired relevant-memory controls,
+repeated trials with per-repetition artifacts and variance reporting, at
+least two subject models, and a learned-embedding retrieval backend reported
+separately from TF-IDF. It will use pure-factor provenance arms,
+production-default baselines (for example Mem0, Zep, and Letta), and a
+declared utility oracle rather than treating retention as general utility.
+It will also apply assertion-aware judge rubrics (asserted,
+mentioned-but-rejected, quoted, hedged, or clean) and a preregistered,
+blinded two-adjudicator protocol for every pending round, retaining only
+independent matching verdicts as consensus. A dedicated gate-family suite
+will measure precision, recall, and truth preservation under presupposition
+traps, including the contradiction-pair rail. Together these measurements
+will support a contamination-versus-retention frontier instead of the seven
+mechanism-isolation points reported here.
+
+The repository now includes a fail-closed preflight for this successor study:
+it checks the planned 30 probes and 30 paired controls before authorization,
+reports missing manifests, and estimates 240 subject calls for the two-model,
+two-retrieval-condition matrix. At the time of writing, the semantic-drift
+block supplies five probes and five paired controls; the remaining manifests,
+gate-family suite, production-baseline adapters, and authorized execution are
+not results and are not used by any claim in this paper.
+
+\label{sec:discussion}
+
+\paragraph{Scale.} The corpus is deliberately small: nine hand-authored
+scenarios, one probe per class plus controls and the seeded variant,
+designed to validate the pipeline and isolate mechanisms. The full
+benchmark plan, versioned in the repository's roadmap and summarized
+in the future-work contract above, extends the corpus to at least five
+scenarios per class with paired controls, and extends the configuration
+set with pure-factor arms; rates computed on single-probe classes take
+values in $\{0, 1, \text{null}\}$ and are reported as rates only so the
+formulas scale unchanged.
+
+\paragraph{Severity proxy.} The compounding factor uses deterministic hit
+counts as a coarse severity proxy; the full benchmark may adopt a graded
+judge rubric.
+
+\paragraph{Similarity substitution.} TF-IDF cosine similarity differs from
+learned embeddings. A local ONNX learned-embedding condition is implemented
+for the successor study, but it has not been run as part of the evidence
+release. The hypothesis that learned embeddings may expose more semantic-drift
+distractors therefore still requires a separately reported experiment; this
+study makes no directional claim.
+
+\paragraph{Single subject model.} Compounding is expected to be
+model-dependent~\cite{zelikman2023stop}; the full benchmark evaluates
+multiple subject models.
+
+\paragraph{TTL classification.} Decay by fact class presupposes a
+classifier that assigns the class at write time, and this paper does not
+specify one. The default for unclassified memories (stable, 365 days) is
+conservative for recall and anti-conservative for staleness. The axis
+must be named because the two pull opposite ways. If an LLM assigns fact
+classes, a probabilistic component enters the write path and class
+misassignment becomes a failure mode not yet in the taxonomy; the full
+benchmark must test it.
+
+\paragraph{Toward the frontier.} Seven single-control arms are seven
+points, not a curve. The prescriptive question is how much contamination is
+bought down per unit of personalization surrendered. That trade-off is a
+frontier, and mapping it (by sweeping control combinations, plotting
+contamination rate against retention, locating the knee) is the successor
+study this benchmark's full corpus is designed
+for.
+
+\paragraph{Reproducibility.} Temperature-0 sampling reduces but does not
+guarantee bit-identical responses across executions of the same prompt.
+The benchmark's reproducibility claim therefore attaches to the persisted
+artifacts, since every verdict is recomputable from the frozen run, rather
+than to re-execution, and the full benchmark averages over repeated runs.
+
+\paragraph{Future work.} Contamination in self-improving harness loops is
+the natural extension: when a harness curates its own context from its own
+trajectories, provenance collapse becomes a first-class risk of the
+optimization loop itself. The experimental authority-inflation class
+requires the multi-round, citation-count scenario design sketched in the
+public taxonomy.
+
+\section{Conclusion}
+
+Benign memory contamination is a design problem, not a security incident.
+It needs no attacker, arises from ordinary usage, and compounds when systems
+consume their own outputs. This paper gave it a taxonomy, a benchmark with
+auditable artifacts and a personalization-retention control, and a
+contract-level architecture whose controls live outside the mutable memory
+loop. Prior work measured the problem or defended against adversaries; the
+mechanisms and the prescription are the contribution here. The benchmark,
+specifications, and validation scenarios are public at
+\url{https://github.com/arananet/contam-bench}.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

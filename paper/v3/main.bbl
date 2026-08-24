@@ -1,0 +1,138 @@
+\begin{thebibliography}{10}
+
+\bibitem{altawaha2026remembering}
+Ahmad Al-Tawaha, Shangding Gu, Peizhi Niu, Ruoxi Jia, and Ming Jin.
+\newblock Remembering more, risking more: Longitudinal safety risks in
+  memory-equipped {LLM} agents.
+\newblock {\em arXiv preprint arXiv:2605.17830}, 2026.
+
+\bibitem{anderson1972}
+James~P. Anderson.
+\newblock Computer security technology planning study.
+\newblock Technical Report ESD-TR-73-51, U.S. Air Force Electronic Systems
+  Division, 1972.
+
+\bibitem{anthropic2026dreams}
+{Anthropic}.
+\newblock Dreams: Asynchronous memory consolidation.
+\newblock \url{https://platform.claude.com/docs/en/managed-agents/dreams},
+  2026.
+\newblock Claude Platform documentation, accessed July 2026.
+
+\bibitem{anthropic2026memory}
+{Anthropic}.
+\newblock Memory stores.
+\newblock \url{https://platform.claude.com/docs/en/managed-agents/memory},
+  2026.
+\newblock Claude Platform documentation, accessed July 2026.
+
+\bibitem{arana2026cognition}
+Eduardo Arana.
+\newblock {COGNITION.md}: A declarative contract for agentic memory
+  architecture.
+\newblock \url{https://github.com/arananet/cognition.md}, 2026.
+
+\bibitem{breunig2025context}
+Drew Breunig.
+\newblock How long contexts fail.
+\newblock
+  \url{https://www.dbreunig.com/2025/06/22/how-contexts-fail-and-how-to-fix-them.html},
+  2025.
+
+\bibitem{chen2024agentpoison}
+Zhaorun Chen, Zhen Xiang, Chaowei Xiao, Dawn Song, and Bo~Li.
+\newblock Agentpoison: Red-teaming {LLM} agents via poisoning memory or
+  knowledge bases.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)},
+  2024.
+
+\bibitem{chhikara2025mem0}
+Prateek Chhikara, Dev Khant, Saket Aryan, Taranjeet Singh, and Deshraj Yadav.
+\newblock Mem0: Building production-ready {AI} agents with scalable long-term
+  memory.
+\newblock {\em arXiv preprint arXiv:2504.19413}, 2025.
+
+\bibitem{cuconasu2024power}
+Florin Cuconasu, Giovanni Trappolini, Federico Siciliano, Simone Filice, Cesare
+  Campagnano, Yoelle Maarek, Nicola Tonellotto, and Fabrizio Silvestri.
+\newblock The power of noise: Redefining retrieval for {RAG} systems.
+\newblock In {\em Proceedings of the 47th International ACM SIGIR Conference on
+  Research and Development in Information Retrieval}, 2024.
+
+\bibitem{dong2025minja}
+Shen Dong, Shaocheng Xu, Pengfei He, Yige Li, Jiliang Tang, Tianming Liu, Hui
+  Liu, and Zhen Xiang.
+\newblock Memory injection attacks on {LLM} agents via query-only interaction.
+\newblock {\em arXiv preprint arXiv:2503.03704}, 2025.
+
+\bibitem{packer2023memgpt}
+Charles Packer, Vivian Fang, Shishir~G. Patil, Kevin Lin, Sarah Wooders, and
+  Joseph~E. Gonzalez.
+\newblock {MemGPT}: Towards {LLMs} as operating systems.
+\newblock {\em arXiv preprint arXiv:2310.08560}, 2023.
+
+\bibitem{rasmussen2025zep}
+Preston Rasmussen, Pavlo Paliychuk, Travis Beauvais, Jack Ryan, and Daniel
+  Chalef.
+\newblock Zep: A temporal knowledge graph architecture for agent memory.
+\newblock {\em arXiv preprint arXiv:2501.13956}, 2025.
+
+\bibitem{saltzer1975protection}
+Jerome~H. Saltzer and Michael~D. Schroeder.
+\newblock The protection of information in computer systems.
+\newblock {\em Proceedings of the IEEE}, 63(9):1278--1308, 1975.
+
+\bibitem{tan2025membench}
+Haoran Tan, Zeyu Zhang, Chen Ma, Xu~Chen, Quanyu Dai, and Zhenhua Dong.
+\newblock {MemBench}: Towards more comprehensive evaluation on the memory of
+  {LLM}-based agents.
+\newblock In {\em Findings of the Association for Computational Linguistics:
+  ACL 2025}, 2025.
+
+\bibitem{wang2026state}
+Yian Wang, Agam Goyal, et~al.
+\newblock State contamination in memory-augmented {LLM} agents.
+\newblock {\em arXiv preprint arXiv:2605.16746}, 2026.
+
+\bibitem{weng2026harness}
+Lilian Weng.
+\newblock Harness engineering for self-improvement.
+\newblock {\em lilianweng.github.io}, July 2026.
+
+\bibitem{xiong2025experiencefollowing}
+Zidi Xiong, Yuping Lin, Wenya Xie, Pengfei He, Jiliang Tang, Himabindu
+  Lakkaraju, and Zhen Xiang.
+\newblock How memory management impacts {LLM} agents: An empirical study of
+  experience-following behavior.
+\newblock {\em arXiv preprint arXiv:2505.16067}, 2025.
+
+\bibitem{xu2025amem}
+Wujiang Xu, Zujie Liang, Kai Mei, Hang Gao, Juntao Tan, and Yongfeng Zhang.
+\newblock A-mem: Agentic memory for {LLM} agents.
+\newblock {\em arXiv preprint arXiv:2502.12110}, 2025.
+
+\bibitem{zelikman2023stop}
+Eric Zelikman, Eliana Lorch, Lester Mackey, and Adam~Tauman Kalai.
+\newblock Self-taught optimizer ({STOP}): Recursively self-improving code
+  generation.
+\newblock {\em arXiv preprint arXiv:2310.02304}, 2023.
+
+\bibitem{zhang2025dgm}
+Jenny Zhang, Shengran Hu, Cong Lu, Robert Lange, and Jeff Clune.
+\newblock Darwin {G}\"odel machine: Open-ended evolution of self-improving
+  agents.
+\newblock {\em arXiv preprint arXiv:2505.22954}, 2025.
+
+\bibitem{zhong2024memorybank}
+Wanjun Zhong, Lianghong Guo, Qiqi Gao, He~Ye, and Yanlin Wang.
+\newblock {MemoryBank}: Enhancing large language models with long-term memory.
+\newblock {\em Proceedings of the AAAI Conference on Artificial Intelligence},
+  38(17):19724--19731, 2024.
+
+\bibitem{zhou2026agentnative}
+Wei Zhou, Xuanhe Zhou, Shaokun Han, Hongming Xu, Guoliang Li, Zhiyu Li, Feiyu
+  Xiong, and Fan Wu.
+\newblock Are we ready for an agent-native memory system?
+\newblock {\em arXiv preprint arXiv:2606.24775}, 2026.
+
+\end{thebibliography}
