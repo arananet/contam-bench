@@ -1,6 +1,6 @@
 name: Release
 
-# Tag-driven release pipeline:
+# Paused release pipeline (see docs/OPENSPEC.md):
 #   1. Validate the repo is configured (no {{PLACEHOLDER}} tokens).
 #   2. Build a reproducible source tarball from the tagged commit.
 #   3. Generate a CycloneDX SBOM.
@@ -8,12 +8,9 @@ name: Release
 #   5. Produce SLSA build-provenance attestations.
 #   6. Publish a GitHub Release with everything attached.
 #
-# Companion to sbom.yml: this workflow is the *creator* of releases,
-# sbom.yml runs on `release: published` for ad-hoc SBOM regeneration.
+# Automatic publication is disabled pending repair and explicit re-enablement.
 
 on:
-  push:
-    tags: ["v*"]
   workflow_dispatch:
     inputs:
       tag:

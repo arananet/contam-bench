@@ -1,0 +1,23 @@
+title: "Scope CI to the Python research repository"
+slug: ci-maintenance
+type: bugfix
+status: review
+description: |
+  Remove unused CodeQL languages, repair the markdownlint configuration input,
+  and pause optional Release, SBOM, and Scorecard automation while their
+  upstream and publication defects remain unresolved. Keep Python scanning,
+  lint, secret scanning, tests, and spec checks enabled.
+acceptance_criteria:
+  - "CodeQL analyzes Python only; Go and JavaScript are not scheduled."
+  - "Markdownlint uses a checked-in configuration file and passes on maintained documentation without rewriting frozen evidence."
+  - "Release, SBOM, and Scorecard have manual-only triggers and are disabled in GitHub until explicitly repaired and re-enabled."
+  - "Documentation explains the pause and does not claim automated signing, SBOM publication, or Scorecard checks are active."
+  - "Existing tags, releases, and frozen evidence remain unchanged."
+test_plan:
+  - "Validate OpenSpec and assert workflow triggers, CodeQL languages, and markdownlint config path."
+  - "Run markdownlint-cli2 with the same version and configuration as CI."
+  - "Run workflow YAML lint and the offline pytest suite."
+  - "After push, verify the three GitHub workflows are disabled and the new commit is on origin/main."
+out_of_scope:
+  - "Repairing or executing the paused publication and Scorecard workflows."
+  - "Changing historical evidence, tags, or releases."

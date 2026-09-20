@@ -1,4 +1,4 @@
-# Generate a CycloneDX SBOM on every release and attach it to the release.
+# Paused SBOM workflow pending repair (see docs/OPENSPEC.md).
 # Docs: https://github.com/anchore/sbom-action
 #
 # CycloneDX is chosen over SPDX because it's better supported by vulnerability
@@ -7,8 +7,6 @@
 name: SBOM
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
 
 permissions: read-all

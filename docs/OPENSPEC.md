@@ -80,8 +80,26 @@ stateDiagram-v2
 | CI — doc drift | Every PR | Source change must touch README/CHANGELOG/docs |
 | CI — DCO | Every PR | Every commit needs `Signed-off-by:` |
 | CI — security | Every PR | CodeQL SAST, gitleaks, dependency review |
-| CI — supply chain | Every release | CycloneDX SBOM, cosign signing, SLSA provenance |
-| CI — scorecard | Weekly | OSSF Scorecard supply-chain analysis |
+| CI — supply chain | Paused | Release and SBOM automation require repair before re-enablement |
+| CI — scorecard | Paused | Upstream Scorecard container cannot currently be pulled |
+
+### CI maintenance status
+
+Release, SBOM, and OSSF Scorecard are paused as of 2026-09-20. Their workflows
+retain manual-only triggers and are disabled in GitHub. Re-enabling requires
+repairing the invalid release-action reference, isolating SBOM generation from
+release uploads in read-only jobs, and updating the unavailable Scorecard
+container dependency. Automatic signing and attestations are not currently
+provided. Publish manually after `make release-check`; do not rerun the paused
+publisher against historical releases.
+
+Python CodeQL remains enabled; unused Go and JavaScript matrix entries were
+removed. Secret scanning, workflow/shell/YAML lint, tests, and spec checks remain
+enabled. Markdownlint uses `.markdownlint-cli2.jsonc`, allowing established
+heading/list spacing, list numbering, bare URLs, emphasis headings, and
+unlabelled code fences. Structural checks remain enabled. Frozen evidence,
+generated validation reports, local environments, and build/run outputs are
+excluded rather than reformatted.
 
 ---
 
