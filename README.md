@@ -140,6 +140,7 @@ includes a `roles` block to assign responsibility (`implementer`,
 | Metric definitions | [`spec/metrics.md`](spec/metrics.md) |
 | Memory configurations | [`spec/configs.yaml`](spec/configs.yaml) |
 | Frozen evidence runs | [`evidence/`](evidence/) |
+| External reproduction protocol | [`docs/REPRODUCTION.md`](docs/REPRODUCTION.md) |
 | Spec-driven workflow | [`docs/OPENSPEC.md`](docs/OPENSPEC.md) |
 | Branch protection setup | [`docs/BRANCH_PROTECTION.md`](docs/BRANCH_PROTECTION.md) |
 | Architecture decisions | [`docs/adr/`](docs/adr/) |

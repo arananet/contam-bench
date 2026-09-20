@@ -1,0 +1,146 @@
+name: Reproduction report
+description: Report an independent attempt to reproduce CONTAM-Bench evidence.
+title: "[reproduction]: "
+labels: ["reproduction", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for attempting to reproduce CONTAM-Bench.
+
+        This report records evidence, including negative or incomplete attempts.
+        Please do not upload API keys, raw personal data, or unreviewed response
+        content. See [docs/REPRODUCTION.md](../../blob/main/docs/REPRODUCTION.md)
+        for the protocol and expected artifacts.
+
+  - type: dropdown
+    id: independence
+    attributes:
+      label: Independence
+      description: Was this run performed by a person and environment independent of the development run?
+      options:
+        - Yes - independent person and fresh environment
+        - Partly - person or environment was not fully independent
+        - No - maintainer or development rerun
+    validations:
+      required: true
+
+  - type: input
+    id: commit
+    attributes:
+      label: Commit SHA tested
+      placeholder: "40-character git SHA"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, Python version, architecture, and whether the checkout was fresh.
+      placeholder: |
+        - OS: macOS 15.x / Ubuntu 24.04 / Windows WSL2
+        - Python: 3.12.x
+        - Architecture: arm64 / x86_64
+        - Fresh clone or container: yes/no
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Reproduction scope
+      options:
+        - Smoke tests only
+        - One scenario and one configuration
+        - Validation matrix
+        - Repeated evaluation
+        - Evidence bundle and report regeneration
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: commands
+    attributes:
+      label: Exact commands run
+      description: Paste commands exactly as executed, including setup and test commands.
+      placeholder: |
+        python3 -m venv .venv
+        pip install -r requirements.txt
+        pytest
+        python3 -m src.harness ...
+      render: bash
+    validations:
+      required: true
+
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      options:
+        - Positive - expected result reproduced
+        - Negative - a prerequisite or expected check failed
+        - Inconclusive - run stopped or differed before the claim was tested
+        - Divergent - a result differed on the same commit
+    validations:
+      required: true
+
+  - type: textarea
+    id: results
+    attributes:
+      label: Results and comparison
+      description: State observed test counts, metrics, verdicts, errors, and the expected values you compared against.
+      placeholder: |
+        - Tests: 123 passed, 0 failed
+        - Scenario/configuration: ...
+        - Observed metric or verdict: ...
+        - Expected from the frozen evidence/report: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Evidence artifacts and hashes
+      description: List only files actually generated; include sha256 values where practical. Do not attach secrets.
+      placeholder: |
+        - Artifact: runs/<timestamp>/run_meta.json
+          sha256: ...
+        - Artifact: evidence/<timestamp>/validation_report.md
+          sha256: ...
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: deviations
+    attributes:
+      label: Deviations, failures, or missing prerequisites
+      description: Record anything that differed from docs/REPRODUCTION.md, including a failed setup. "None" is valid.
+      placeholder: None
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Explain anything needed to interpret the run without making claims beyond the artifacts.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checklist
+      options:
+        - label: I did not include API keys, credentials, or secrets.
+          required: true
+        - label: I did not include unreviewed personal or sensitive data.
+          required: true
+        - label: I have reported the tested commit and exact commands.
+          required: true
+        - label: I understand this report records an attempt and does not automatically validate a paper claim.
+          required: true
