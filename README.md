@@ -24,9 +24,11 @@ of frozen v0.3 evidence.
 ## Paper and evidence
 
 The study is written up in *Benign Memory Contamination in LLM Agents: A
-Taxonomy, Benchmark, and Contract-Level Mitigations* (arXiv link pending).
-Every number in the paper is recomputable from frozen run artifacts in
-this repository:
+Taxonomy, Benchmark, and Contract-Level Mitigations*. The manuscript is a
+pilot study; the previous arXiv submission was declined and no accepted arXiv
+version is available. Recorded counts and aggregates can be recomputed from
+the frozen artifacts and saved verdicts below; this does not independently
+validate those verdicts or guarantee identical outputs from new model calls:
 
 | Run | Evidence | Tag | Backs |
 |---|---|---|---|
@@ -67,8 +69,14 @@ python3 -m src.harness              # → runs/<timestamp>/
 python3 -m src.judge runs/<timestamp>    # deterministic + LLM judge scoring
 python3 -m src.metrics runs/<timestamp>  # aggregate → report/validation_report.md
 
-# 4. Run tests (no API key needed — the API is mocked)
-pytest
+# 4. Run deterministic repository checks (no API key needed)
+make validate
+
+# 5. Validate and emit read-only frozen-evidence provenance
+make release-check                 # → out/reproducibility-report.json
+
+# Optional: validate the exact source archive submitted to arXiv
+make arxiv-check
 ```
 
 ### Local Embedding Backend
@@ -141,6 +149,9 @@ includes a `roles` block to assign responsibility (`implementer`,
 | Memory configurations | [`spec/configs.yaml`](spec/configs.yaml) |
 | Frozen evidence runs | [`evidence/`](evidence/) |
 | External reproduction protocol | [`docs/REPRODUCTION.md`](docs/REPRODUCTION.md) |
+| Adjudication operations and reviewer recruitment | [`docs/ADJUDICATION.md`](docs/ADJUDICATION.md) |
+| Neutral reviewer instructions | [`docs/REVIEWER_GUIDE.md`](docs/REVIEWER_GUIDE.md) |
+| Offline scoring audit (coordinator only) | [`report/SCORING-AUDIT.md`](report/SCORING-AUDIT.md) |
 | Spec-driven workflow | [`docs/OPENSPEC.md`](docs/OPENSPEC.md) |
 | Branch protection setup | [`docs/BRANCH_PROTECTION.md`](docs/BRANCH_PROTECTION.md) |
 | Architecture decisions | [`docs/adr/`](docs/adr/) |

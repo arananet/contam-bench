@@ -1,0 +1,60 @@
+title: "Deterministic research release check"
+slug: research-release-check
+type: feature
+status: review
+
+author: "Arananet"
+created_at: "2026-09-20"
+updated_at: "2026-09-20"
+
+roles:
+  implementer: "@arananet"
+  reviewer: null
+  qa: null
+  product_owner: "@arananet"
+
+description: |
+  Provide a local, deterministic release workflow for checking the repository's
+  specifications, tests, scenario schema, and frozen evidence without invoking
+  live model APIs or mutating evidence. The workflow emits a machine-readable
+  reproducibility report and pairs it with a concise, manually maintained final
+  audit that states which claims are supported and which validation remains
+  pending.
+
+acceptance_criteria:
+  - "make validate runs OpenSpec validation, the configured pytest suite, and scenario-schema validation without invoking the harness or a live model API."
+  - "A reproducibility-report command writes JSON containing repository revision, runtime environment, dependency versions, evidence-file SHA-256 hashes, check outcomes, and explicit limitations."
+  - "The report generator reads evidence without modifying it and returns a non-zero status for missing or malformed required run metadata."
+  - "make release-check runs validation and produces the reproducibility report at an ignored generated-output path."
+  - "report/FINAL-AUDIT.md distinguishes verified repository checks, frozen-evidence limitations, and the pending status of independent external reproduction."
+  - "Focused tests cover report generation and malformed evidence metadata; scripts/openspec check and pytest pass."
+
+test_plan:
+  - "Run make check after adding the specification."
+  - "Run focused pytest coverage for the reproducibility report generator, including malformed metadata."
+  - "Run make release-check and inspect the generated JSON without changes beneath evidence/."
+  - "Run the full pytest suite and scripts/openspec check."
+
+qa_notes: |
+  The workflow validates repository structure and hashes frozen inputs; it does
+  not reproduce nondeterministic subject or judge responses. It must not turn
+  local maintainer checks into a claim of independent validation.
+
+out_of_scope:
+  - "Executing the harness, judge, retrieval gate, or any live model API."
+  - "Rewriting, normalizing, or otherwise mutating frozen evidence."
+  - "Treating a passing release check as an independent external reproduction."
+
+implementation_skill: null
+eval_plan:
+  scenarios: []
+  metrics: []
+
+technical_notes: |
+  The generator should use only Python standard-library facilities for
+  provenance collection and SHA-256 calculation. It should report package
+  versions when discoverable and record unavailable fields explicitly rather
+  than fabricating values.
+
+linked_issues: []
+linked_prs: []

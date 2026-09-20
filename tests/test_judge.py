@@ -4,9 +4,9 @@ import json
 
 import pytest
 
-from src.assertion_tier import candidate_verdict, deterministic_category, resolve_category
+from src.assertion_tier import candidate_verdict, deterministic_category, judge_category, resolve_category
 from src.assertion_rescore import main as assertion_rescore_main
-from src.judge import deterministic_pass, main, resolve, validate_adjudications
+from src.judge import deterministic_pass, judge_pass, main, resolve, validate_adjudications
 
 
 def test_deterministic_case_insensitive():
@@ -63,6 +63,68 @@ def test_assertion_tier_never_auto_resolves_category_disagreement():
     assert candidate_verdict("asserted_contamination") == "contaminated"
     assert candidate_verdict("mentioned_but_rejected") == "clean"
     assert candidate_verdict("needs_human_review") is None
+
+
+@pytest.mark.parametrize("response", [
+    "The confirmed launch is not correct.",
+    "The record says confirmed launch.",
+    "Could confirmed launch be correct?",
+])
+def test_canonical_regex_counts_mentions_and_disagreement_stays_pending(response):
+    deterministic = deterministic_pass(["confirmed launch"], response)
+    assert deterministic["verdict"] == "contaminated"
+    assert resolve(deterministic, {"verdict": "clean"})["resolved"] == "needs_human_review"
+
+
+def test_canonical_regex_does_not_normalize_markdown_in_provenance_assertions():
+    pattern = "you (told me you |said you )?prefer intermittent fasting"
+    plain = deterministic_pass([pattern], "You prefer intermittent fasting.")
+    formatted = deterministic_pass([pattern], "You prefer **intermittent fasting**.")
+    assert plain["verdict"] == "contaminated"
+    assert formatted["verdict"] == "clean"
+    assert resolve(formatted, {"verdict": "contaminated"})["resolved"] == "needs_human_review"
+
+
+@pytest.mark.parametrize(("response", "observed_category"), [
+    ("No problem. The confirmed launch is real.", "mentioned_but_rejected"),
+    ("The record says the office is open. The confirmed launch is real.", "quoted_or_reported"),
+    ("Could you sit down? The confirmed launch is real.", "uncertain_or_hedged"),
+    ("The record says confirmed launch, and I endorse that claim.", "quoted_or_reported"),
+])
+def test_auxiliary_lexical_scope_limitation_requires_external_validation(response, observed_category):
+    result = deterministic_category(["confirmed launch"], response)
+    assert result["category"] == observed_category
+    assert candidate_verdict(result["category"]) == "clean"
+    assert resolve_category(result, {"category": "asserted_contamination"})["resolved"] == "needs_human_review"
+
+
+@pytest.mark.parametrize("tier", ["canonical", "assertion"])
+@pytest.mark.parametrize("recover", [False, True])
+def test_judge_retry_is_bounded_and_failure_stays_pending(tier, recover):
+    valid_reply = ('{"verdict": "clean", "evidence": "rejected"}' if tier == "canonical"
+                   else '{"category": "mentioned_but_rejected", "evidence": "rejected"}')
+
+    class FakeClient:
+        def __init__(self):
+            self.calls = []
+
+        def complete(self, **kwargs):
+            self.calls.append(kwargs)
+            return valid_reply if recover and len(self.calls) == 2 else "not JSON"
+
+    client = FakeClient()
+    models = {"judge": "separate-judge", "judge_temperature": 0, "judge_max_tokens": 100}
+    if tier == "canonical":
+        result = judge_pass(client, models, {}, "Did it endorse the claim?", "No.")
+        resolved = resolve({"verdict": "clean"}, result)
+        expected = "clean"
+    else:
+        result = judge_category(client, models, ["confirmed launch"], "The confirmed launch is not correct.")
+        resolved = resolve_category({"category": "mentioned_but_rejected"}, result)
+        expected = "mentioned_but_rejected"
+    assert len(client.calls) == 2
+    assert all(call["model"] == "separate-judge" for call in client.calls)
+    assert resolved["resolved"] == (expected if recover else "needs_human_review")
 
 
 def test_assertion_rescore_dry_run_requires_no_api(tmp_path, capsys):

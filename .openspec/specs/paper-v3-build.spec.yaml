@@ -26,6 +26,11 @@ acceptance_criteria:
     main.tex, references.bib, and main.bbl without build products.
   - The packaging script validates required inputs and lists the archive before
     completing.
+  - check-arxiv.sh packages the manuscript, rejects unexpected archive inputs,
+    extracts the archive into a temporary directory, and compiles main.tex from
+    that extracted package without undefined citations or references.
+  - make arxiv-check runs the archive-level check, and make release-check
+    includes it after deterministic repository validation.
   - Generated build and dist directories remain ignored by Git.
 
 test_plan:
@@ -33,6 +38,8 @@ test_plan:
   - Run package-arxiv.sh and inspect its archive listing.
   - Run build-paper.sh where a TeX distribution is installed; otherwise verify
     its prerequisite error is explicit and nonzero.
+  - Run check-arxiv.sh where a TeX distribution is installed and verify it
+    compiles from the extracted source archive.
 
 out_of_scope:
   - arXiv submission or venue-specific metadata.

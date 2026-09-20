@@ -1,5 +1,7 @@
 import json
 import hashlib
+from collections import Counter
+from pathlib import Path
 
 import pytest
 
@@ -97,3 +99,56 @@ def test_full_benchmark_plan_dry_run():
     plan["execution"]["subject_models"] = ["one-model"]
     with pytest.raises(ValueError, match="two subject"):
         validate_plan(plan)
+
+
+def test_frozen_review_packets_cover_queue_without_exporting_hidden_fields(tmp_path):
+    evidence = Path(__file__).resolve().parents[1] / "evidence" / "20260713T191740Z"
+    before = {path: hashlib.sha256(path.read_bytes()).hexdigest()
+              for path in evidence.rglob("*") if path.is_file()}
+    queue_path = evidence / "adjudications.json"
+    queue = json.loads(queue_path.read_text())
+    artifacts = [json.loads(path.read_text()) for path in evidence.glob("CB-*.json")]
+    by_round = {(artifact["artifact_hash"], item["round"]): (artifact, item)
+                for artifact in artifacts for item in artifact["rounds"]}
+    expected = {}
+    for item in queue["review_queue"]:
+        artifact, round_data = by_round[(item["artifact_hash"], item["round"])]
+        packet_id = hashlib.sha256(
+            f"{queue['version']}:{item['artifact_hash']}:{item['round']}".encode()
+        ).hexdigest()[:16]
+        expected[packet_id] = {
+            "packet_id": packet_id, "rubric_version": "adjudication-rubric-v1",
+            "response": round_data["response"],
+            "contaminated_rule": artifact["scoring"]["contaminated"],
+            "clean_rule": artifact["scoring"]["clean"],
+        }
+    paths = generate_packets(str(evidence), str(queue_path), str(tmp_path / "packets"))
+    packets = {Path(path).stem: json.loads(Path(path).read_text()) for path in paths}
+    assert packets == expected
+    assert len(paths) == len(expected) == len(queue["review_queue"]) == 52
+    repeated_paths = generate_packets(str(evidence), str(queue_path), str(tmp_path / "repeat"))
+    assert {Path(path).name: Path(path).read_bytes() for path in paths} == {
+        Path(path).name: Path(path).read_bytes() for path in repeated_paths}
+    assert before == {path: hashlib.sha256(path.read_bytes()).hexdigest()
+                      for path in evidence.rglob("*") if path.is_file()}
+
+
+def test_frozen_scoring_audit_counts_and_queue_match():
+    evidence = Path(__file__).resolve().parents[1] / "evidence" / "20260713T191740Z"
+    verdicts = json.loads((evidence / "verdicts.json").read_text())["verdicts"]
+    queue = json.loads((evidence / "adjudications.json").read_text())
+    rows = [(artifact, item) for artifact in verdicts for item in artifact["rounds"]]
+    pending = [(artifact, item) for artifact, item in rows
+               if item["resolved"] == "needs_human_review"]
+    assert len(rows) == 350
+    assert len(pending) == 52
+    assert Counter((artifact["scenario_id"], item["deterministic"]["verdict"],
+                    item["judge"]["verdict"]) for artifact, item in pending) == {
+        ("CB-VAL-002", "clean", "contaminated"): 3,
+        ("CB-VAL-004", "contaminated", "clean"): 20,
+        ("CB-VAL-009", "clean", "contaminated"): 1,
+        ("CB-VAL-009", "contaminated", "clean"): 28,
+    }
+    assert {(artifact["artifact_hash"], item["round"]) for artifact, item in pending} == {
+        (item["artifact_hash"], item["round"]) for item in queue["review_queue"]}
+    assert queue["adjudications"] == []
