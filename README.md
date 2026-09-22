@@ -1,6 +1,6 @@
 # contam-bench
 
-![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white) ![OpenSpec](https://img.shields.io/badge/OpenSpec-enforced-blueviolet) ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22859806.svg)](https://doi.org/10.5281/zenodo.22859806)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white) ![OpenSpec](https://img.shields.io/badge/OpenSpec-enforced-blueviolet) ![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22859806.svg)](https://doi.org/10.5281/zenodo.22859806)
 
 > Ablation benchmark measuring benign memory contamination in LLM assistants with persistent memory.
 
@@ -168,4 +168,4 @@ This repository is archived on Zenodo with the following DOI:
 
 ## License
 
-[MIT](LICENSE)
+[Apache 2.0](LICENSE)
