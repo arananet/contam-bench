@@ -25,10 +25,10 @@ of frozen v0.3 evidence.
 
 The study is written up in *Benign Memory Contamination in LLM Agents: A
 Taxonomy, Benchmark, and Contract-Level Mitigations*. The manuscript is a
-pilot study; the previous arXiv submission was declined and no accepted arXiv
-version is available. Recorded counts and aggregates can be recomputed from
-the frozen artifacts and saved verdicts below; this does not independently
-validate those verdicts or guarantee identical outputs from new model calls:
+pilot study; no arXiv version is available yet. Recorded counts and
+aggregates can be recomputed from the frozen artifacts and saved verdicts
+below; this does not independently validate those verdicts or guarantee
+identical outputs from new model calls:
 
 | Run | Evidence | Tag | Backs |
 |---|---|---|---|
