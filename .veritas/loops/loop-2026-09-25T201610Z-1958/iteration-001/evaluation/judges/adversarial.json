@@ -1,0 +1,95 @@
+{
+  "judge": "adversarial",
+  "status": "fail",
+  "summary": "The paper is candid about several limitations, but the frozen evidence is not reproducible from the supplied current manifests: the saved verdicts omit judge outputs for a scenario whose manifest enables judging. In addition, the gate-cost reporting uses inconsistent denominators, and the provenance ablation bundles multiple factors. These issues prevent the headline ablation results from being treated as a clean, reproducible mechanism-isolation study.",
+  "findings": [
+    {
+      "id": "ADVERSARIAL-001",
+      "title": "Frozen verdicts are inconsistent with the supplied scenario manifests",
+      "severity": "major",
+      "category": "reproducibility / artifact discrepancy",
+      "description": "The current CB-VAL-003 manifest enables an LLM judge, but every CB-VAL-003 round in both supplied frozen verdict files has `judge: null` and is resolved by the deterministic pass alone. Under the supplied `src/judge.py`, `scoring.judge.enabled` causes a judge call for every such round. Therefore the published evidence cannot be regenerated from the supplied manifest and scoring code without changing either the manifest, the evidence, or the scoring pipeline. This directly affects the scope-bleed response-layer result and the claimed 175 judge calls in the repeated audit.",
+      "location": "scenarios/validation/cb-val-003-scope-bleed.yaml (`scoring.judge.enabled: true`); evidence/20260713T191740Z/verdicts.json, all CB-VAL-003 records; src/judge.py, `score_artifact`; evidence/20260713T191740Z/validation_report.md, `judge_call_counts` and per-scenario verdict table",
+      "evidence": [
+        "The CB-VAL-003 manifest states `judge: enabled: true` and supplies a judge question.",
+        "The repeated-evidence verdict records for CB-VAL-003 show deterministic verdicts but `\"judge\": null` for every configuration and repetition.",
+        "`src/judge.py` calls `judge_pass` whenever `judge_config.get(\"enabled\")` is true.",
+        "The repeated report claims 175 judge calls, while its CB-VAL-003 records contain no judge verdicts."
+      ],
+      "recommendation": "Freeze and publish the exact scenario manifests used to generate the evidence, or regenerate the frozen verdicts from the supplied manifests. Reconcile the per-scenario judge records, judge-call counts, and report before relying on the scope-bleed response results.",
+      "confidence": 0.99,
+      "source": "adversarial",
+      "disposition": "artifact",
+      "original_severity": null
+    },
+    {
+      "id": "ADVERSARIAL-002",
+      "title": "Gate-cost reporting uses incompatible retrieval denominators",
+      "severity": "major",
+      "category": "metrics / reporting",
+      "description": "The paper reports 135 gate calls over 100 gated retrievals, yielding 1.35 calls per gated retrieval. The supplied repeated validation report instead states 350 retrievals and a mean of 0.3857 gate calls per retrieval. The implementation explains the discrepancy: `gate_observability` appends diagnostics for all retrievals, including configurations with no gate, while summing gate calls only for gated configurations. Thus the report's displayed mean is not the claimed per-gated-retrieval cost, and the paper and generated report are not reporting the same metric.",
+      "location": "paper/v3/main.tex, \u00a76 `The two-layer dissociation persists` / \u00a77 gate architecture; evidence/20260713T191740Z/validation_report.md, `Relevance-gate observability`; src/metrics.py, `gate_observability`",
+      "evidence": [
+        "The paper states: `135 gate calls over 100 gated retrievals, or 1.35 calls per gated retrieval`.",
+        "The frozen report states: `retrievals: 350`, `observed gate calls: 135`, and `mean gate calls per retrieval: 0.3857`.",
+        "`src/metrics.py` appends every `retrieval_diagnostics` record to `diagnostics`, but only gated records contribute to `by_query_family` gate-call totals."
+      ],
+      "recommendation": "Define the denominator explicitly and make the generated report and manuscript use the same quantity. Separate total retrievals from gated retrievals, and recompute all displayed gate-cost statistics from the corrected aggregation.",
+      "confidence": 0.98,
+      "source": "adversarial",
+      "disposition": "artifact",
+      "original_severity": null
+    },
+    {
+      "id": "ADVERSARIAL-003",
+      "title": "The provenance ablation does not isolate provenance",
+      "severity": "minor",
+      "category": "experimental design / confounding",
+      "description": "The arm presented as the provenance single-control arm changes more than provenance: tagged memories also expose age and domain. The paper itself acknowledges that the provenance arm resolved temporal staleness because the subject could see the age, so the five clean provenance outcomes cannot establish that source tags caused the improvement. This undermines the mechanism-isolation interpretation of the provenance result and also complicates comparisons with the raw-fidelity arm.",
+      "location": "spec/configs.yaml, `arm_provenance`; paper/v3/main.tex, \u00a75.5 `Attribution: what the cells support`; evidence/20260713T084130Z/defects.md, D5",
+      "evidence": [
+        "`arm_provenance` is configured with `provenance: tagged`, while the tag format is documented as `[source: ... | age: ... | domain: ...]`.",
+        "The paper states: `the provenance tag as implemented carries age and domain metadata ... so the provenance arm also resolved staleness because the subject discounted the 200-day-old fact by its visible age.`",
+        "The paper nevertheless presents the arm as a single-control provenance intervention and reports five clean machine outcomes on the provenance probe."
+      ],
+      "recommendation": "Do not interpret the current arm as a pure provenance effect. Report it only as a bundled metadata intervention, or rerun with source-only, age-only, and domain-only factors before making mechanism-attribution claims.",
+      "confidence": 0.99,
+      "source": "adversarial",
+      "disposition": "declared",
+      "original_severity": "major"
+    },
+    {
+      "id": "ADVERSARIAL-004",
+      "title": "The headline response-level scope result is based on a brittle lexical detector in the supplied evidence",
+      "severity": "major",
+      "category": "measurement validity",
+      "description": "The scope-bleed response comparison is treated as a contamination result, but the relevant evidence is deterministic regex scoring, and the artifact itself documents that the `permit delays?` hit is stochastic even for byte-identical prompts. The supplied scope-bleed records have no judge verdicts, despite the manifest enabling one. Consequently, the reported 4/5 versus 0/5 response separation is not independently checked for assertion versus mention and may reflect detector behavior rather than actual contamination.",
+      "location": "paper/v3/main.tex, \u00a75.5 `Attribution: what the cells support`; evidence/20260713T191740Z/verdicts.json, CB-VAL-003 records; evidence/20260713T191740Z/defects.md, D6; scenarios/validation/cb-val-003-scope-bleed.yaml",
+      "evidence": [
+        "The paper reports `naive resolved one clean and four contaminated repetitions, whereas namespacing resolved five clean and zero contaminated repetitions`.",
+        "The CB-VAL-003 verdict records show only deterministic verdicts and `judge: null`.",
+        "The defect report states that the `permit delays?` pattern fired under naive but not under byte-identical prompts and that temperature-0 calls are not bit-reproducible.",
+        "The scoring specification defines contamination as any regex match, while the paper acknowledges regex scoring detects mention rather than assertion."
+      ],
+      "recommendation": "Treat this result as a deterministic-pattern observation, not a validated response-contamination effect, until the exact evidence is rescored with the enabled judge or independently adjudicated under an assertion-aware rubric.",
+      "confidence": 0.97,
+      "source": "adversarial",
+      "disposition": "artifact",
+      "original_severity": null
+    }
+  ],
+  "claims": [],
+  "evidence": [],
+  "metadata": {
+    "judge_version": "1",
+    "model_role": "adversarial",
+    "model": "gpt-5.6-luna",
+    "provider": "openai",
+    "usage": {
+      "input_tokens": 187177,
+      "output_tokens": 3627,
+      "total_tokens": 190804,
+      "model": "gpt-5.6-luna"
+    }
+  }
+}

@@ -7,5 +7,8 @@ authors:
   given-names: Eduardo
   orcid: https://orcid.org/0009-0000-6435-6872
 repository-code: https://github.com/arananet/contam-bench
+# This CFF `license` describes the cited manuscript/content work. Code is
+# Apache-2.0; manuscript, figures, data, and evidence are CC-BY-4.0 as
+# specified in LICENSING.md.
 license: CC-BY-4.0
 doi: 10.5281/zenodo.22859806

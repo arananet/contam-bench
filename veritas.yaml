@@ -32,14 +32,19 @@ artifact:
     - evidence/20260713T084130Z/validation_report.md
     - evidence/20260713T084130Z/verdicts.json
     - evidence/20260713T084130Z/defects.md
-    - evidence/20260713T084130Z/run_meta.json
+      - evidence/20260713T084130Z/run_meta.json
+  withheld:
+    - evidence/20260713T191740Z/CB-VAL-*
+    - evidence/20260713T084130Z/CB-VAL-*
+    - evidence/20260710T143558Z/**
+  withheld_reason: "Per-repetition raw traces, archived with the release; too large to fit the judges' token-per-minute limit. Aggregates are supplied."
 
 judge_paths:
-  citations:       [paper/v3/main.tex, paper/v3/references.bib]
-  archival:        [paper/v3/main.tex, README.md, CITATION.cff, LICENSING.md, docs/REPRODUCTION.md]
-  methodology:     [paper/v3/main.tex, spec, scenarios, docs/SCENARIO_REVIEW.md]
-  repo-consistency: [paper/v3/main.tex, src, tests, spec, README.md]
-  # statistics, evidence, reproducibility y adversarial: todo, incluido verdicts.json
+  citations:        [paper/v3/main.tex, paper/v3/references.bib]
+  archival:         [paper/v3/main.tex, README.md, CITATION.cff, LICENSING.md, docs/REPRODUCTION.md]
+  methodology:      [paper/v3/main.tex, spec, scenarios, docs/SCENARIO_REVIEW.md]
+  repo-consistency: [paper/v3/main.tex, src, tests, spec, scenarios, README.md]
+  # statistics, evidence, adversarial...: sin entrada = leen todo el artefacto
 
 # Secrets never live here. Only environment variable names and model ids do.
 # Copy .env.example from the Veritas repository and set the values there.
@@ -96,10 +101,7 @@ gate:
       reason: "Per-repetition artifacts exceed the review token budget; aggregates are supplied and the raw files are archived."
 
 thesis:
-  - "Ordinary memory-system behaviour, with no attacker or poisoned record, can degrade later responses through six distinct mechanisms, each with a falsifiable contamination criterion: semantic drift, provenance collapse, scope bleed, temporal staleness, recursive compounding and summarization loss."
-  - "In a nine-scenario pilot with one subject model and TF-IDF retrieval, scoped namespaces excluded cross-domain distractors and TTL decay excluded the stale fact on the targeted probes in all five repetitions."
-  - "On the provenance probe, provenance tags and raw fidelity each yielded five machine-resolved clean outcomes, consistent with preserving source information lost during summarization in that case."
-  - "In a seeded-recursion case, logged relevance-gate decisions discarded premise-denying context while retaining a contaminated write-back (presupposition capture); contradiction preservation is proposed as a safeguard whose efficacy is untested."
+  - "We propose a taxonomy of six mechanisms by which ordinary memory-system behaviour, with no attacker or poisoned record, could degrade later responses, each with a falsifiable contamination criterion: semantic drift, provenance collapse, scope bleed, temporal staleness, recursive compounding and summarization loss. The pilot exercises a subset of them; the taxonomy is a conceptual contribution, not an empirical result."
 
 # Nothing executes unless it is listed here.
 execution:

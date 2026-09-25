@@ -1,0 +1,8 @@
+{
+  "check": "archival-files",
+  "status": "pass",
+  "summary": "all 3 required paths present",
+  "findings": [],
+  "duration_seconds": 0.0,
+  "metadata": {}
+}

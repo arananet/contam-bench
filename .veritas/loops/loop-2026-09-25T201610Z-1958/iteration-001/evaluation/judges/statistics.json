@@ -1,0 +1,114 @@
+{
+  "judge": "statistics",
+  "status": "warning",
+  "summary": "The manuscript is appropriately framed as a small pilot and explicitly discloses the single subject model, one probe per mechanism, unresolved scorer disagreements, and lack of population-level inference. The repeated audit reports five repetitions per cell and outcome distributions, but most comparative quantitative claims lack uncertainty intervals or formal statistical comparisons; this limits inferential strength rather than invalidating the descriptive pilot results.",
+  "findings": [
+    {
+      "id": "STATISTICS-001",
+      "title": "Most repeated comparisons lack uncertainty estimates",
+      "severity": "minor",
+      "category": "variance reporting",
+      "description": "The v0.3 audit reports five-repetition clean/contaminated/flagged counts, but uncertainty intervals are provided only for the scope-bleed comparison. Claims about provenance, staleness, seeded recursion, and other configuration differences therefore remain descriptive without confidence intervals or another uncertainty summary. The manuscript itself acknowledges that future work will add variance reporting.",
+      "location": "paper/v3/main.tex, \u00a75.3 'Repeated-evaluation audit and scoring defects' and \u00a75.5 'Attribution: what the cells support'; Table 'Repeated v0.3 outcome distributions'",
+      "evidence": [
+        "Table entries are reported as 'clean/contaminated/flagged across five repetitions'.",
+        "The only displayed intervals are for scope bleed: '4/5 (exact 95% Clopper--Pearson interval [0.284, 0.995]) and 0/5 ([0.000, 0.522])'.",
+        "The future-work contract requires 'repeated trials with per-repetition artifacts and variance reporting'."
+      ],
+      "recommendation": "For every repeated comparative result emphasized in the abstract, results, or conclusion, report the underlying per-repetition counts together with an uncertainty interval or explicitly label the result as an unquantified descriptive observation.",
+      "confidence": 0.96,
+      "source": "statistics",
+      "disposition": "artifact",
+      "original_severity": null
+    },
+    {
+      "id": "STATISTICS-002",
+      "title": "No formal statistical comparison or effect-size framework for mitigation claims",
+      "severity": "minor",
+      "category": "statistical testing",
+      "description": "The manuscript compares configurations using terms such as 'excluded', 'yielded', 'separates', and 'supports', but does not conduct statistical tests or report a systematic effect-size measure for the repeated comparisons. With only five repetitions and substantial unresolved outcomes, formal inference may not be warranted, but the manuscript should consistently distinguish descriptive differences from evidence of mitigation effects.",
+      "location": "paper/v3/main.tex, abstract; \u00a75.3; \u00a75.5; Table 'Repeated v0.3 outcome distributions'",
+      "evidence": [
+        "The abstract states that 'the namespacing arm excluded cross-domain distractors and the TTL arm excluded the stale fact in all five repetitions'.",
+        "The results state that 'the tag and raw-fidelity arms each had five machine-resolved clean outcomes'.",
+        "No p-values, paired comparison tests, or standardized effect-size estimates are reported for these comparisons.",
+        "The manuscript limits the interpretation by stating: 'These are within-scenario observations, not estimates of real-world prevalence or model-independent mitigation efficacy.'"
+      ],
+      "recommendation": "Retain explicitly descriptive wording for these comparisons, or add a prespecified paired analysis and effect-size definition if inferential mitigation claims are intended.",
+      "confidence": 0.91,
+      "source": "statistics",
+      "disposition": "declared",
+      "original_severity": null
+    },
+    {
+      "id": "STATISTICS-003",
+      "title": "Very small and non-independent effective sample for mechanism-level rates",
+      "severity": "minor",
+      "category": "sample size",
+      "description": "Each mechanism is represented by one hand-authored scenario, with five repeated API executions. Thus the repeated observations do not provide five independent scenario-level replications, and the effective mechanism diversity remains one probe per class. This makes rates such as 0/5 or 5/5 unsuitable for general claims about a mechanism or mitigation. The manuscript explicitly recognizes this limitation.",
+      "location": "paper/v3/main.tex, \u00a72 'Validity statements' and \u00a77 'Scale'; evidence/20260713T191740Z/defects.md, 'Evidence scope'",
+      "evidence": [
+        "The manuscript states: 'Rates from one probe per mechanism are mechanism demonstrations with stated resolved counts, not population estimates.'",
+        "It states: 'Repeated calls do not add scenario diversity.'",
+        "The repeated audit is documented as 'Repetitions: 5; Configurations: 7; Scored rounds: 350', while the paper describes only one probe per mechanism.",
+        "The paper reports the intended successor design as 'at least five scenarios per contamination class'."
+      ],
+      "recommendation": "Keep all mechanism-level rates explicitly labeled as within-scenario pilot observations and avoid interpreting five repetitions as five independent experimental subjects or scenario replications.",
+      "confidence": 0.99,
+      "source": "statistics",
+      "disposition": "declared",
+      "original_severity": null
+    },
+    {
+      "id": "STATISTICS-004",
+      "title": "Unresolved rounds materially limit several aggregate rates",
+      "severity": "minor",
+      "category": "missing observations",
+      "description": "Fifty-two of 350 repeated rounds are excluded from rate denominators because deterministic and judge scorers disagree. This leaves some headline metrics null and means the reported rates condition on the subset of rounds resolved by the machine rule. The manuscript discloses this clearly, so the issue is a declared limitation rather than an undisclosed statistical error.",
+      "location": "paper/v3/main.tex, abstract; \u00a75.3; \u00a76.1 'Validity statements'; evidence/20260713T191740Z/validation_report.md, 'Human-adjudicated comparison' and config comparison table",
+      "evidence": [
+        "The abstract states: 'Of 350 scored rounds, 52 remain unresolved pending human review.'",
+        "The manuscript states that disputed rounds 'are excluded from machine-only rates'.",
+        "The validation report shows 'staleness_rate null (probe_needs_human_review)' for multiple configurations.",
+        "evidence/20260713T191740Z/adjudications.json contains 'adjudications': [] and 52 pending queue entries."
+      ],
+      "recommendation": "Continue presenting the reported rates as machine-only conditional summaries, and do not use them for stronger comparative or inferential claims until adjudication or a prespecified sensitivity analysis is available.",
+      "confidence": 0.99,
+      "source": "statistics",
+      "disposition": "declared",
+      "original_severity": null
+    },
+    {
+      "id": "STATISTICS-005",
+      "title": "The v0.2 matrix contains single-run cell results",
+      "severity": "minor",
+      "category": "run count",
+      "description": "The manuscript includes a historical v0.2 ablation matrix whose individual scenario-configuration cells are based on one run, with flagged cells excluded. Those results are clearly separated from the repeated v0.3 audit, but any comparison drawn from the v0.2 matrix has no run-to-run variance and should not be treated as replicated evidence.",
+      "location": "paper/v3/main.tex, \u00a75 'Ablation Study', Table 'The ablation matrix' and Table 'Evidence lineage'",
+      "evidence": [
+        "The lineage table labels v0.2 as the 'single-run matrix'.",
+        "The manuscript states: 'The frozen v0.2 single-run ablation' and reports 'ten artifacts were flagged for manual inspection.'",
+        "The v0.2 validation report gives one round for each scenario/configuration cell."
+      ],
+      "recommendation": "Restrict v0.2 claims to historical single-run observations and ensure that any headline comparison is explicitly attributed to the repeated v0.3 audit instead.",
+      "confidence": 0.97,
+      "source": "statistics",
+      "disposition": "declared",
+      "original_severity": null
+    }
+  ],
+  "claims": [],
+  "evidence": [],
+  "metadata": {
+    "judge_version": "1",
+    "model_role": "statistics",
+    "model": "gpt-5.6-luna",
+    "provider": "openai",
+    "usage": {
+      "input_tokens": 187145,
+      "output_tokens": 2981,
+      "total_tokens": 190126,
+      "model": "gpt-5.6-luna"
+    }
+  }
+}

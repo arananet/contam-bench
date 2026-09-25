@@ -81,11 +81,11 @@ make arxiv-check
 
 ### Local Embedding Backend
 
-The full-benchmark plan reports TF-IDF and a learned embedding backend as
-separate conditions. The learned backend uses local ONNX inference through
-`fastembed` with `BAAI/bge-small-en-v1.5`; the approximately 67 MB model is
-downloaded on its first use and makes no embedding-provider API calls. It is
-not used by the frozen v0.1--v0.3 evidence releases.
+The full-benchmark plan names TF-IDF and a learned embedding backend as
+separate planned conditions. The repository contains local ONNX embedding
+helper code using `fastembed` with `BAAI/bge-small-en-v1.5`, but the supplied
+benchmark retrieval path does not select it. It is not used by the frozen
+v0.1--v0.3 evidence releases.
 
 ---
 
@@ -168,4 +168,7 @@ This repository is archived on Zenodo with the following DOI:
 
 ## License
 
-[Apache 2.0](LICENSE)
+Repository code is [Apache 2.0](LICENSE). The manuscript, figures, data, and
+evidence records are CC-BY-4.0; see [LICENSING.md](LICENSING.md) for the
+component-level SPDX map. The CFF license field applies to the cited
+manuscript/content work, not repository code.

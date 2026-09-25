@@ -1,0 +1,1498 @@
+{
+  "loop_id": "loop-2026-09-25T201610Z-1958",
+  "profile": "scientific-paper",
+  "artifact_id": "contam-bench",
+  "mode": "autopilot",
+  "started_at": "2026-09-25T20:16:10.862676Z",
+  "finished_at": "2026-09-25T20:25:52.564723Z",
+  "iterations": [
+    {
+      "iteration": 1,
+      "evaluation_run_id": "2026-09-25T201610Z",
+      "gate": {
+        "status": "REVISE",
+        "critical": 0,
+        "major": 9,
+        "minor": 21,
+        "info": 0,
+        "blocking_findings": [
+          "ADVERSARIAL-001",
+          "ADVERSARIAL-002",
+          "ADVERSARIAL-004",
+          "ARCHIVAL-001",
+          "ARCHIVAL-002",
+          "CITATIONS-001",
+          "CLAIM-001",
+          "METHODOLOGY-001",
+          "REPRODUCIBILITY-001"
+        ],
+        "failed_checks": [],
+        "judge_errors": [],
+        "accepted_risks": [],
+        "accepted_findings": [],
+        "stale_accepted_risks": [
+          "category=reproducibility location=evidence/20260713T191740Z"
+        ],
+        "reasons": [
+          "9 major finding(s) exceed the limit of 0.",
+          "1 accepted risk(s) no longer match any finding or have expired: category=reproducibility location=evidence/20260713T191740Z"
+        ]
+      },
+      "plan": {
+        "evaluation_run_id": "2026-09-25T201610Z",
+        "iteration": 1,
+        "actions": [
+          {
+            "id": "ACTION-001",
+            "finding_ids": [
+              "ADVERSARIAL-001"
+            ],
+            "priority": "blocking",
+            "action_type": "documentation",
+            "instruction": "Problem: The current CB-VAL-003 manifest enables an LLM judge, but every CB-VAL-003 round in both supplied frozen verdict files has `judge: null` and is resolved by the deterministic pass alone. Under the supplied `src/judge.py`, `scoring.judge.enabled` causes a judge call for every such round. Therefore the published evidence cannot be regenerated from the supplied manifest and scoring code without changing either the manifest, the evidence, or the scoring pipeline. This directly affects the scope-bleed response-layer result and the claimed 175 judge calls in the repeated audit.\n\nRequired action: Freeze and publish the exact scenario manifests used to generate the evidence, or regenerate the frozen verdicts from the supplied manifests. Reconcile the per-scenario judge records, judge-call counts, and report before relying on the scope-bleed response results.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - The CB-VAL-003 manifest states `judge: enabled: true` and supplies a judge question.\n  - The repeated-evidence verdict records for CB-VAL-003 show deterministic verdicts but `\"judge\": null` for every configuration and repetition.\n  - `src/judge.py` calls `judge_pass` whenever `judge_config.get(\"enabled\")` is true.\n  - The repeated report claims 175 judge calls, while its CB-VAL-003 records contain no judge verdicts.",
+            "rationale": "The current CB-VAL-003 manifest enables an LLM judge, but every CB-VAL-003 round in both supplied frozen verdict files has `judge: null` and is resolved by the deterministic pass alone. Under the supplied `src/judge.py`, `scoring.judge.enabled` causes a judge call for every such round. Therefore the published evidence cannot be regenerated from the supplied manifest and scoring code without changing either the manifest, the evidence, or the scoring pipeline. This directly affects the scope-bleed response-layer result and the claimed 175 judge calls in the repeated audit.",
+            "allowed_files": [
+              "scenarios/validation/cb-val-003-scope-bleed.yaml (`scoring.judge.enabled: true`); evidence/20260713T191740Z/verdicts.json, all CB-VAL-003 records; src/judge.py, `score_artifact`; evidence/20260713T191740Z/validation_report.md, `judge_call_counts` and per-scenario verdict table"
+            ],
+            "available_evidence": [
+              "The CB-VAL-003 manifest states `judge: enabled: true` and supplies a judge question.",
+              "The repeated-evidence verdict records for CB-VAL-003 show deterministic verdicts but `\"judge\": null` for every configuration and repetition.",
+              "`src/judge.py` calls `judge_pass` whenever `judge_config.get(\"enabled\")` is true.",
+              "The repeated report claims 175 judge calls, while its CB-VAL-003 records contain no judge verdicts."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-002",
+            "finding_ids": [
+              "ADVERSARIAL-002"
+            ],
+            "priority": "blocking",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The paper reports 135 gate calls over 100 gated retrievals, yielding 1.35 calls per gated retrieval. The supplied repeated validation report instead states 350 retrievals and a mean of 0.3857 gate calls per retrieval. The implementation explains the discrepancy: `gate_observability` appends diagnostics for all retrievals, including configurations with no gate, while summing gate calls only for gated configurations. Thus the report's displayed mean is not the claimed per-gated-retrieval cost, and the paper and generated report are not reporting the same metric.\n\nRequired action: Define the denominator explicitly and make the generated report and manuscript use the same quantity. Separate total retrievals from gated retrievals, and recompute all displayed gate-cost statistics from the corrected aggregation.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - The paper states: `135 gate calls over 100 gated retrievals, or 1.35 calls per gated retrieval`.\n  - The frozen report states: `retrievals: 350`, `observed gate calls: 135`, and `mean gate calls per retrieval: 0.3857`.\n  - `src/metrics.py` appends every `retrieval_diagnostics` record to `diagnostics`, but only gated records contribute to `by_query_family` gate-call totals.",
+            "rationale": "The paper reports 135 gate calls over 100 gated retrievals, yielding 1.35 calls per gated retrieval. The supplied repeated validation report instead states 350 retrievals and a mean of 0.3857 gate calls per retrieval. The implementation explains the discrepancy: `gate_observability` appends diagnostics for all retrievals, including configurations with no gate, while summing gate calls only for gated configurations. Thus the report's displayed mean is not the claimed per-gated-retrieval cost, and the paper and generated report are not reporting the same metric.",
+            "allowed_files": [
+              "paper/v3/main.tex, \u00a76 `The two-layer dissociation persists` / \u00a77 gate architecture; evidence/20260713T191740Z/validation_report.md, `Relevance-gate observability`; src/metrics.py, `gate_observability`"
+            ],
+            "available_evidence": [
+              "The paper states: `135 gate calls over 100 gated retrievals, or 1.35 calls per gated retrieval`.",
+              "The frozen report states: `retrievals: 350`, `observed gate calls: 135`, and `mean gate calls per retrieval: 0.3857`.",
+              "`src/metrics.py` appends every `retrieval_diagnostics` record to `diagnostics`, but only gated records contribute to `by_query_family` gate-call totals."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-003",
+            "finding_ids": [
+              "ADVERSARIAL-004"
+            ],
+            "priority": "blocking",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The scope-bleed response comparison is treated as a contamination result, but the relevant evidence is deterministic regex scoring, and the artifact itself documents that the `permit delays?` hit is stochastic even for byte-identical prompts. The supplied scope-bleed records have no judge verdicts, despite the manifest enabling one. Consequently, the reported 4/5 versus 0/5 response separation is not independently checked for assertion versus mention and may reflect detector behavior rather than actual contamination.\n\nRequired action: Treat this result as a deterministic-pattern observation, not a validated response-contamination effect, until the exact evidence is rescored with the enabled judge or independently adjudicated under an assertion-aware rubric.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - The paper reports `naive resolved one clean and four contaminated repetitions, whereas namespacing resolved five clean and zero contaminated repetitions`.\n  - The CB-VAL-003 verdict records show only deterministic verdicts and `judge: null`.\n  - The defect report states that the `permit delays?` pattern fired under naive but not under byte-identical prompts and that temperature-0 calls are not bit-reproducible.\n  - The scoring specification defines contamination as any regex match, while the paper acknowledges regex scoring detects mention rather than assertion.",
+            "rationale": "The scope-bleed response comparison is treated as a contamination result, but the relevant evidence is deterministic regex scoring, and the artifact itself documents that the `permit delays?` hit is stochastic even for byte-identical prompts. The supplied scope-bleed records have no judge verdicts, despite the manifest enabling one. Consequently, the reported 4/5 versus 0/5 response separation is not independently checked for assertion versus mention and may reflect detector behavior rather than actual contamination.",
+            "allowed_files": [
+              "paper/v3/main.tex, \u00a75.5 `Attribution: what the cells support`; evidence/20260713T191740Z/verdicts.json, CB-VAL-003 records; evidence/20260713T191740Z/defects.md, D6; scenarios/validation/cb-val-003-scope-bleed.yaml"
+            ],
+            "available_evidence": [
+              "The paper reports `naive resolved one clean and four contaminated repetitions, whereas namespacing resolved five clean and zero contaminated repetitions`.",
+              "The CB-VAL-003 verdict records show only deterministic verdicts and `judge: null`.",
+              "The defect report states that the `permit delays?` pattern fired under naive but not under byte-identical prompts and that temperature-0 calls are not bit-reproducible.",
+              "The scoring specification defines contamination as any regex match, while the paper acknowledges regex scoring detects mention rather than assertion."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-004",
+            "finding_ids": [
+              "ARCHIVAL-001"
+            ],
+            "priority": "blocking",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: A DOI is provided, but the artifact does not establish whether it resolves to the exact v0.3/v0.3.1 source and evidence versions described in the paper, rather than a concept record or another/latest release. The paper's headline results depend on separately named v0.2, v0.3, and v0.3.1 releases, but no version-specific DOI or archived manifest/hash is supplied for those releases.\n\nRequired action: Create or cite immutable, version-specific archive records for the paper source and each evidence release, and state explicitly which DOI/version contains the numbers reported in the manuscript. Include a manifest recording the commit/tag and hashes of the paper and evidence directories.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - CITATION.cff: `doi: 10.5281/zenodo.22859806` and `repository-code: https://github.com/arananet/contam-bench`.\n  - README.md, \u201cPaper and evidence\u201d: the reported material is split across `v0.3.1-evidence-corrections`, `v0.3-repeated-ablation`, and `v0.2-ablation`.\n  - paper/v3/main.tex, Table `lineage`: the paper distinguishes `v0.2-ablation`, `v0.3-repeated-ablation`, and `v0.3.1-evidence-corrections`, but gives only tag names, not version-specific DOI records or commit hashes.\n  - README.md, \u201cCitation\u201d: `This repository is archived on Zenodo with the following DOI: [10.5281/zenodo.22859806]`; the artifact itself does not show what exact repository contents that DOI archives.",
+            "rationale": "A DOI is provided, but the artifact does not establish whether it resolves to the exact v0.3/v0.3.1 source and evidence versions described in the paper, rather than a concept record or another/latest release. The paper's headline results depend on separately named v0.2, v0.3, and v0.3.1 releases, but no version-specific DOI or archived manifest/hash is supplied for those releases.",
+            "allowed_files": [
+              "CITATION.cff; README.md, \u201cPaper and evidence\u201d and \u201cCitation\u201d; paper/v3/main.tex, \u00a75 and Table 2"
+            ],
+            "available_evidence": [
+              "CITATION.cff: `doi: 10.5281/zenodo.22859806` and `repository-code: https://github.com/arananet/contam-bench`.",
+              "README.md, \u201cPaper and evidence\u201d: the reported material is split across `v0.3.1-evidence-corrections`, `v0.3-repeated-ablation`, and `v0.2-ablation`.",
+              "paper/v3/main.tex, Table `lineage`: the paper distinguishes `v0.2-ablation`, `v0.3-repeated-ablation`, and `v0.3.1-evidence-corrections`, but gives only tag names, not version-specific DOI records or commit hashes.",
+              "README.md, \u201cCitation\u201d: `This repository is archived on Zenodo with the following DOI: [10.5281/zenodo.22859806]`; the artifact itself does not show what exact repository contents that DOI archives."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-005",
+            "finding_ids": [
+              "ARCHIVAL-002"
+            ],
+            "priority": "blocking",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The manuscript and reproduction instructions identify evidence by repository-relative paths and annotated tag names, and the paper links to the repository root. They do not provide commit SHAs, release-specific archive URLs, or DOI links for the evidence directories. A future reader could therefore retrieve different contents if the repository, tags, branches, or directory contents change.\n\nRequired action: Replace bare repository and relative-directory citations with release-specific immutable references: commit SHA plus archived DOI/object URL, and provide a release manifest mapping every table to exact artifact hashes.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - README.md, \u201cPaper and evidence\u201d: evidence is referenced as `evidence/20260713T191740Z/`, `evidence/20260713T084130Z/`, and `evidence/20260710T143558Z/`, with tags such as `v0.3-repeated-ablation`.\n  - README.md, \u201cQuick start\u201d: `git clone https://github.com/arananet/contam-bench.git` and subsequent commands operate on the checkout without specifying a release commit.\n  - docs/REPRODUCTION.md, \u00a72: readers are told to \u201cChoose one scenario and configuration from a frozen evidence release\u201d and to \u201cRecord the release directory ... and commit SHA before running anything,\u201d but the paper itself does not supply those SHAs.\n  - paper/v3/main.tex, \u00a75 footnote: `Complete run artifacts are published at evidence/20260713T084130Z ... frozen at tag v0.2-ablation`; a tag name is supplied, but no commit SHA or external archive object is given.\n  - paper/v3/main.tex, abstract and conclusion: the code is linked only as `https://github.com/arananet/contam-bench`.",
+            "rationale": "The manuscript and reproduction instructions identify evidence by repository-relative paths and annotated tag names, and the paper links to the repository root. They do not provide commit SHAs, release-specific archive URLs, or DOI links for the evidence directories. A future reader could therefore retrieve different contents if the repository, tags, branches, or directory contents change.",
+            "allowed_files": [
+              "README.md, \u201cPaper and evidence,\u201d \u201cQuick start,\u201d and \u201cCitation\u201d; docs/REPRODUCTION.md, \u00a7\u00a71\u20133; paper/v3/main.tex, \u00a75 footnote and Table 2"
+            ],
+            "available_evidence": [
+              "README.md, \u201cPaper and evidence\u201d: evidence is referenced as `evidence/20260713T191740Z/`, `evidence/20260713T084130Z/`, and `evidence/20260710T143558Z/`, with tags such as `v0.3-repeated-ablation`.",
+              "README.md, \u201cQuick start\u201d: `git clone https://github.com/arananet/contam-bench.git` and subsequent commands operate on the checkout without specifying a release commit.",
+              "docs/REPRODUCTION.md, \u00a72: readers are told to \u201cChoose one scenario and configuration from a frozen evidence release\u201d and to \u201cRecord the release directory ... and commit SHA before running anything,\u201d but the paper itself does not supply those SHAs.",
+              "paper/v3/main.tex, \u00a75 footnote: `Complete run artifacts are published at evidence/20260713T084130Z ... frozen at tag v0.2-ablation`; a tag name is supplied, but no commit SHA or external archive object is given.",
+              "paper/v3/main.tex, abstract and conclusion: the code is linked only as `https://github.com/arananet/contam-bench`."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-006",
+            "finding_ids": [
+              "CITATIONS-001"
+            ],
+            "priority": "blocking",
+            "action_type": "documentation",
+            "instruction": "Problem: The paper states that the repeated audit used nine scenarios, seven configurations, and five repetitions, which implies 315 scored rounds, but it repeatedly reports 350 scored rounds and derives the 14.9% review rate from that denominator. The manuscript does not identify a tenth scenario or otherwise explain the additional 35 rounds. The reported subject-call total also conflicts with the stated nine-by-seven design: 70 subject calls would correspond to ten configurations/scenarios per repetition rather than 63 calls for nine scenarios and seven configurations. This makes the audit denominator, review rate, and call accounting unreproducible as written.\n\nRequired action: Reconcile the scenario/configuration/repetition counts with the supplied aggregates and call logs. Identify any additional scenario or round if one exists, or correct the 350-round and API-call totals and recompute the review percentage, audit summaries, and related claims.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - \u201cthe latter ran the same nine scenarios and seven configurations five times, producing 350 scored rounds\u201d (paper/v3/main.tex, Section 4)\n  - \u201cFifty-two of the 350 rounds (14.9%) required human review\u201d (paper/v3/main.tex, Section 4)\n  - \u201cthe run reported here executes nine scenarios ... against seven configurations\u201d (paper/v3/main.tex, Section 4)\n  - Nine scenarios \u00d7 seven configurations \u00d7 five repetitions = 315 rounds, whereas the manuscript reports 350.\n  - \u201cThe repeated audit used 660 API calls: 350 subject calls, 135 gate calls, and 175 judge calls\u201d (paper/v3/main.tex, Section 4)",
+            "rationale": "The paper states that the repeated audit used nine scenarios, seven configurations, and five repetitions, which implies 315 scored rounds, but it repeatedly reports 350 scored rounds and derives the 14.9% review rate from that denominator. The manuscript does not identify a tenth scenario or otherwise explain the additional 35 rounds. The reported subject-call total also conflicts with the stated nine-by-seven design: 70 subject calls would correspond to ten configurations/scenarios per repetition rather than 63 calls for nine scenarios and seven configurations. This makes the audit denominator, review rate, and call accounting unreproducible as written.",
+            "allowed_files": [
+              "paper/v3/main.tex, Section 4, paragraphs beginning \u201cTable 1 is the frozen v0.2 single-run ablation\u201d and \u201cFifty-two of the 350 rounds\u201d; Section 4 opening paragraph; Table 4 (tab:repeated)"
+            ],
+            "available_evidence": [
+              "\u201cthe latter ran the same nine scenarios and seven configurations five times, producing 350 scored rounds\u201d (paper/v3/main.tex, Section 4)",
+              "\u201cFifty-two of the 350 rounds (14.9%) required human review\u201d (paper/v3/main.tex, Section 4)",
+              "\u201cthe run reported here executes nine scenarios ... against seven configurations\u201d (paper/v3/main.tex, Section 4)",
+              "Nine scenarios \u00d7 seven configurations \u00d7 five repetitions = 315 rounds, whereas the manuscript reports 350.",
+              "\u201cThe repeated audit used 660 API calls: 350 subject calls, 135 gate calls, and 175 judge calls\u201d (paper/v3/main.tex, Section 4)"
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-007",
+            "finding_ids": [
+              "CLAIM-001"
+            ],
+            "priority": "blocking",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The artifact explicitly disclaims this stronger claim. The supported claim is only that the pilot motivates contract-level safeguards and identifies case-specific observations.\n\nRequired action: Provide evidence for the claim or remove it.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - paper/v3/main.tex, \u00a76: \u201cThe ablation motivates constraints, not an efficacy ordering.\u201d\n  - paper/v3/main.tex, Discussion: \u201cSeven single-control arms are seven points, not a curve.\u201d\n  - paper/v3/main.tex, Conclusion: \u201cThey motivate further tests of memory contracts, not a validated general mitigation architecture.\u201d",
+            "rationale": "The artifact explicitly disclaims this stronger claim. The supported claim is only that the pilot motivates contract-level safeguards and identifies case-specific observations.",
+            "allowed_files": [
+              "paper/v3/main.tex, \u00a75.5, \u00a76, Discussion, and Conclusion"
+            ],
+            "available_evidence": [
+              "paper/v3/main.tex, \u00a76: \u201cThe ablation motivates constraints, not an efficacy ordering.\u201d",
+              "paper/v3/main.tex, Discussion: \u201cSeven single-control arms are seven points, not a curve.\u201d",
+              "paper/v3/main.tex, Conclusion: \u201cThey motivate further tests of memory contracts, not a validated general mitigation architecture.\u201d"
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-008",
+            "finding_ids": [
+              "METHODOLOGY-001"
+            ],
+            "priority": "blocking",
+            "action_type": "documentation",
+            "instruction": "Problem: The manuscript identifies the subject, judge, gate, temperature, retrieval family, and k, but does not specify the TF-IDF preprocessing/vectorization configuration, tie-breaking and ranking behavior, prompt templates, API/model revision identifiers, or exact memory-block construction. These details can affect which memories are retrieved and how responses are scored. The supplied artifact also contains no implementation files or run artifacts from which these choices can be recovered. This is material because the paper presents repeated-cell outcomes and claims that every number is recomputable.\n\nRequired action: Report the exact retrieval implementation and versions, vectorizer/tokenization/normalization settings, tie-breaking, prompt templates, memory serialization, API/model revision identifiers, and provide the code or a complete executable release corresponding to the cited evidence tags.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - paper/v3/main.tex, Section 4.3: \u201cThe reported validation runs use TF-IDF cosine similarity\u201d and \u201cclaude-sonnet-4-6 at temperature 0\u201d; it does not specify vectorizer preprocessing or ranking details.\n  - spec/configs.yaml: `similarity: tfidf-cosine (scikit-learn TfidfVectorizer)` and `k: 4`, without tokenizer, normalization, vocabulary, tie-breaking, or version information.\n  - paper/v3/main.tex, Section 5: \u201cEvery number in this section is recomputable from those artifacts,\u201d but the supplied files do not include the implementation or the cited evidence releases.",
+            "rationale": "The manuscript identifies the subject, judge, gate, temperature, retrieval family, and k, but does not specify the TF-IDF preprocessing/vectorization configuration, tie-breaking and ranking behavior, prompt templates, API/model revision identifiers, or exact memory-block construction. These details can affect which memories are retrieved and how responses are scored. The supplied artifact also contains no implementation files or run artifacts from which these choices can be recovered. This is material because the paper presents repeated-cell outcomes and claims that every number is recomputable.",
+            "allowed_files": [
+              "paper/v3/main.tex, Sections 4.3 \u201cModels and determinism\u201d and 5 \u201cAblation Study\u201d; spec/configs.yaml, models and retrieval sections"
+            ],
+            "available_evidence": [
+              "paper/v3/main.tex, Section 4.3: \u201cThe reported validation runs use TF-IDF cosine similarity\u201d and \u201cclaude-sonnet-4-6 at temperature 0\u201d; it does not specify vectorizer preprocessing or ranking details.",
+              "spec/configs.yaml: `similarity: tfidf-cosine (scikit-learn TfidfVectorizer)` and `k: 4`, without tokenizer, normalization, vocabulary, tie-breaking, or version information.",
+              "paper/v3/main.tex, Section 5: \u201cEvery number in this section is recomputable from those artifacts,\u201d but the supplied files do not include the implementation or the cited evidence releases."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-009",
+            "finding_ids": [
+              "REPRODUCIBILITY-001"
+            ],
+            "priority": "blocking",
+            "action_type": "experiment",
+            "instruction": "Problem: The reproduction instructions install minimum-version dependencies from requirements.txt, which contains ranges such as `anthropic>=0.116`, `scikit-learn>=1.3`, and `pytest>=8.0`, but no lockfile, container, or exact resolved versions is supplied. The paper identifies model names and temperatures but does not identify the exact repository commit used for the reported evidence. A fresh rerun can therefore use different client, library, retrieval, or harness behavior, and the model/API outputs are acknowledged as nondeterministic. This blocks independent rerun of the headline seven-configuration repeated audit and its reported rates.\n\nRequired action: Archive an exact commit identifier with each evidence release and provide a lockfile, container, or complete resolved dependency manifest, including the API client version and retrieval dependencies. Preserve the existing nondeterminism caveat and report rerun comparisons against the frozen artifacts.\n\nThis cannot be completed from evidence already present in the artifact. Do not invent the missing measurements, results, citations or data. Return this action as requiring human intervention.",
+            "rationale": "The reproduction instructions install minimum-version dependencies from requirements.txt, which contains ranges such as `anthropic>=0.116`, `scikit-learn>=1.3`, and `pytest>=8.0`, but no lockfile, container, or exact resolved versions is supplied. The paper identifies model names and temperatures but does not identify the exact repository commit used for the reported evidence. A fresh rerun can therefore use different client, library, retrieval, or harness behavior, and the model/API outputs are acknowledged as nondeterministic. This blocks independent rerun of the headline seven-configuration repeated audit and its reported rates.",
+            "allowed_files": [
+              "requirements.txt; docs/REPRODUCTION.md \u00a7Prerequisites and \u00a72; paper/v3/main.tex \u00a7Models and determinism and \u00a7Discussion and Limitations, Reproducibility"
+            ],
+            "available_evidence": [
+              "requirements.txt specifies lower bounds rather than pinned versions: `anthropic>=0.116`, `PyYAML>=6.0`, `jsonschema>=4.0`, `scikit-learn>=1.3`, `fastembed>=0.5`, and `pytest>=8.0`.",
+              "docs/REPRODUCTION.md \u00a7Independence requires a reviewer to record `the exact commit SHA`, but the supplied v0.3 evidence `run_meta.json` contains no commit field and paper/v3/main.tex does not identify a commit SHA for the reported release.",
+              "paper/v3/main.tex \u00a7Discussion and Limitations, Reproducibility states: `Temperature~0 sampling reduces but does not guarantee bit-identical responses` and that independent external reproduction remains outstanding."
+            ],
+            "requires_new_evidence": true,
+            "requires_human_approval": true,
+            "blocked_reason": "Resolving this finding requires evidence that does not exist in the artifact. Veritas will not fabricate measurements, results, citations or datasets to satisfy its own evaluator."
+          },
+          {
+            "id": "ACTION-010",
+            "finding_ids": [
+              "ADVERSARIAL-003"
+            ],
+            "priority": "recommended",
+            "action_type": "experiment",
+            "instruction": "Problem: The arm presented as the provenance single-control arm changes more than provenance: tagged memories also expose age and domain. The paper itself acknowledges that the provenance arm resolved temporal staleness because the subject could see the age, so the five clean provenance outcomes cannot establish that source tags caused the improvement. This undermines the mechanism-isolation interpretation of the provenance result and also complicates comparisons with the raw-fidelity arm.\n\nRequired action: Do not interpret the current arm as a pure provenance effect. Report it only as a bundled metadata intervention, or rerun with source-only, age-only, and domain-only factors before making mechanism-attribution claims.\n\nThis cannot be completed from evidence already present in the artifact. Do not invent the missing measurements, results, citations or data. Return this action as requiring human intervention.",
+            "rationale": "The arm presented as the provenance single-control arm changes more than provenance: tagged memories also expose age and domain. The paper itself acknowledges that the provenance arm resolved temporal staleness because the subject could see the age, so the five clean provenance outcomes cannot establish that source tags caused the improvement. This undermines the mechanism-isolation interpretation of the provenance result and also complicates comparisons with the raw-fidelity arm.",
+            "allowed_files": [
+              "spec/configs.yaml, `arm_provenance`; paper/v3/main.tex, \u00a75.5 `Attribution: what the cells support`; evidence/20260713T084130Z/defects.md, D5"
+            ],
+            "available_evidence": [
+              "`arm_provenance` is configured with `provenance: tagged`, while the tag format is documented as `[source: ... | age: ... | domain: ...]`.",
+              "The paper states: `the provenance tag as implemented carries age and domain metadata ... so the provenance arm also resolved staleness because the subject discounted the 200-day-old fact by its visible age.`",
+              "The paper nevertheless presents the arm as a single-control provenance intervention and reports five clean machine outcomes on the provenance probe."
+            ],
+            "requires_new_evidence": true,
+            "requires_human_approval": true,
+            "blocked_reason": "Resolving this finding requires evidence that does not exist in the artifact. Veritas will not fabricate measurements, results, citations or datasets to satisfy its own evaluator."
+          },
+          {
+            "id": "ACTION-011",
+            "finding_ids": [
+              "ARCHIVAL-003"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The citation metadata declares the work as CC-BY-4.0, while the licensing document assigns Apache-2.0 to code and CC-BY-4.0 to manuscript, figures, data, and evidence. This may be an intentional distinction, but the CFF field does not state that it applies only to content, so automated citation tools can report an incorrect license for the code repository.\n\nRequired action: Clarify the scope of the CFF license field and provide unambiguous per-component SPDX/license metadata, including the paper, data, figures, evidence, and code. Ensure the referenced `LICENSE` file is included in the archival release.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - CITATION.cff: `license: CC-BY-4.0` alongside `repository-code: https://github.com/arananet/contam-bench`.\n  - LICENSING.md: `Code \u2014 harness, scripts, tests and any software ... Apache-2.0` and `Content \u2014 the manuscript, figures, data and evidence records: CC-BY-4.0`.\n  - README.md, \u201cLicense\u201d: the repository-level link is labeled `Apache 2.0`, without clarifying how it relates to the CFF license field.",
+            "rationale": "The citation metadata declares the work as CC-BY-4.0, while the licensing document assigns Apache-2.0 to code and CC-BY-4.0 to manuscript, figures, data, and evidence. This may be an intentional distinction, but the CFF field does not state that it applies only to content, so automated citation tools can report an incorrect license for the code repository.",
+            "allowed_files": [
+              "CITATION.cff; LICENSING.md; README.md, \u201cLicense\u201d"
+            ],
+            "available_evidence": [
+              "CITATION.cff: `license: CC-BY-4.0` alongside `repository-code: https://github.com/arananet/contam-bench`.",
+              "LICENSING.md: `Code \u2014 harness, scripts, tests and any software ... Apache-2.0` and `Content \u2014 the manuscript, figures, data and evidence records: CC-BY-4.0`.",
+              "README.md, \u201cLicense\u201d: the repository-level link is labeled `Apache 2.0`, without clarifying how it relates to the CFF license field."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-012",
+            "finding_ids": [
+              "ARCHIVAL-004"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The manuscript invokes an external BibTeX database, but `references.bib` is not among the files supplied for evaluation. Consequently, the citations and bibliography cannot be reconstructed or checked from this artifact alone, reducing long-term citability of the source package.\n\nRequired action: Include the bibliography source and any required figures, styles, and build metadata in the archived source package, or provide a rendered paper whose references are independently readable.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - paper/v3/main.tex, final lines: `\\bibliographystyle{plain}` followed by `\\bibliography{references}`.\n  - The supplied file list contains `paper/v3/main.tex` but does not contain `paper/v3/references.bib` or another bibliography file.",
+            "rationale": "The manuscript invokes an external BibTeX database, but `references.bib` is not among the files supplied for evaluation. Consequently, the citations and bibliography cannot be reconstructed or checked from this artifact alone, reducing long-term citability of the source package.",
+            "allowed_files": [
+              "paper/v3/main.tex, document ending; supplied file list"
+            ],
+            "available_evidence": [
+              "paper/v3/main.tex, final lines: `\\bibliographystyle{plain}` followed by `\\bibliography{references}`.",
+              "The supplied file list contains `paper/v3/main.tex` but does not contain `paper/v3/references.bib` or another bibliography file."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-013",
+            "finding_ids": [
+              "CHECK-CITABILITY-001",
+              "CHECK-CITABILITY-002"
+            ],
+            "priority": "recommended",
+            "action_type": "code_change",
+            "instruction": "Problem: Nothing in paper/v3/main.tex matches the expected pattern `10\\.\\d{4,}/`.\n\nRequired action: Add a DOI for the archived work.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - no match for `10\\.\\d{4,}/`\n  - no match for `(?i)data availability|availability statement|code availability`\n\nThis action also addresses: CHECK-CITABILITY-002.",
+            "rationale": "Nothing in paper/v3/main.tex matches the expected pattern `10\\.\\d{4,}/`.",
+            "allowed_files": [
+              "paper/v3/main.tex"
+            ],
+            "available_evidence": [
+              "no match for `10\\.\\d{4,}/`",
+              "no match for `(?i)data availability|availability statement|code availability`"
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-014",
+            "finding_ids": [
+              "CITATIONS-002"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The related-work discussion makes specific claims about prior work without attaching a citation, even though the citation rubric requires sources for claims about prior work and comparisons. In particular, it refers to \u201csubsequent work\u201d extending the attack surface, \u201ccomplementary diagnosis work\u201d finding that most failures stem from irrelevant retrieval, and \u201cfollow-on work\u201d quantifying distracting effects, but no corresponding references are given at those sentences. These claims are therefore not traceable to the bibliography.\n\nRequired action: Add the specific source(s) supporting each claim, or narrow the wording to an uncited observation and remove the implication that an established prior result is being summarized.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - \u201csubsequent work has extended the attack surface.\u201d (paper/v3/main.tex, Section 2, Adversarial memory poisoning)\n  - \u201cComplementary diagnosis work finds most memory failures stem from irrelevant retrieval rather than memory construction.\u201d (paper/v3/main.tex, Section 2, Measurement of non-adversarial memory risk)\n  - \u201cfollow-on work quantifies a passage's distracting effect as a graded severity measure.\u201d (paper/v3/main.tex, Section 2, Retrieval noise and context failure)\n  - The surrounding paragraphs contain citations for other claims, but these three specific claims have no citation keys attached.",
+            "rationale": "The related-work discussion makes specific claims about prior work without attaching a citation, even though the citation rubric requires sources for claims about prior work and comparisons. In particular, it refers to \u201csubsequent work\u201d extending the attack surface, \u201ccomplementary diagnosis work\u201d finding that most failures stem from irrelevant retrieval, and \u201cfollow-on work\u201d quantifying distracting effects, but no corresponding references are given at those sentences. These claims are therefore not traceable to the bibliography.",
+            "allowed_files": [
+              "paper/v3/main.tex, Section 2 (Related Work), paragraphs \u201cAdversarial memory poisoning,\u201d \u201cMeasurement of non-adversarial memory risk,\u201d and \u201cRetrieval noise and context failure\u201d"
+            ],
+            "available_evidence": [
+              "\u201csubsequent work has extended the attack surface.\u201d (paper/v3/main.tex, Section 2, Adversarial memory poisoning)",
+              "\u201cComplementary diagnosis work finds most memory failures stem from irrelevant retrieval rather than memory construction.\u201d (paper/v3/main.tex, Section 2, Measurement of non-adversarial memory risk)",
+              "\u201cfollow-on work quantifies a passage's distracting effect as a graded severity measure.\u201d (paper/v3/main.tex, Section 2, Retrieval noise and context failure)",
+              "The surrounding paragraphs contain citations for other claims, but these three specific claims have no citation keys attached."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-015",
+            "finding_ids": [
+              "CITATIONS-003"
+            ],
+            "priority": "recommended",
+            "action_type": "experiment",
+            "instruction": "Problem: The provenance intervention does not change provenance alone: its emitted tag also exposes age and domain. Consequently, the clean outcomes on the provenance probe cannot uniquely be attributed to source attribution or provenance preservation. The manuscript explicitly acknowledges this limitation, so this is reported as declared rather than as an undisclosed defect.\n\nRequired action: Retain the limitation prominently wherever the provenance result is summarized and avoid wording that attributes the full effect to provenance tagging alone; a pure-factor provenance arm is appropriately identified as future work.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - \u201cthe provenance tag as implemented carries age and domain metadata ([source: user | age: 200d | domain: personal]), so the provenance arm also resolved staleness because the subject discounted the 200-day-old fact by its visible age.\u201d (paper/v3/main.tex, Section 4)\n  - \u201cThe provenance arm is confounded: its tag emits source, age, and domain together, so its staleness result cannot be attributed to source attribution alone.\u201d (paper/v3/main.tex, Section 6)",
+            "rationale": "The provenance intervention does not change provenance alone: its emitted tag also exposes age and domain. Consequently, the clean outcomes on the provenance probe cannot uniquely be attributed to source attribution or provenance preservation. The manuscript explicitly acknowledges this limitation, so this is reported as declared rather than as an undisclosed defect.",
+            "allowed_files": [
+              "paper/v3/main.tex, Section 4, subsection \u201cAttribution: what the cells support\u201d; Section 6, subsection \u201cValidity statements\u201d"
+            ],
+            "available_evidence": [
+              "\u201cthe provenance tag as implemented carries age and domain metadata ([source: user | age: 200d | domain: personal]), so the provenance arm also resolved staleness because the subject discounted the 200-day-old fact by its visible age.\u201d (paper/v3/main.tex, Section 4)",
+              "\u201cThe provenance arm is confounded: its tag emits source, age, and domain together, so its staleness result cannot be attributed to source attribution alone.\u201d (paper/v3/main.tex, Section 6)"
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": true,
+            "blocked_reason": "action type 'experiment' requires repair.permissions.experiments, which is disabled. Enable it explicitly, or resolve this finding by hand."
+          },
+          {
+            "id": "ACTION-016",
+            "finding_ids": [
+              "EVIDENCE-001"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The intended claim says that \u201cThe pilot exercises a subset of them.\u201d However, the manuscript states that \u201cSix classes are tested in the validation run,\u201d and the scenario inventory contains CB-VAL-001 through CB-VAL-006 for semantic drift, provenance collapse, scope bleed, temporal staleness, recursive contamination, and summarization loss. The manuscript does acknowledge that these are small pilot demonstrations rather than general validation, but \u201csubset\u201d is inaccurate for the six mechanisms named in the intended claim.\n\nRequired action: Replace the intended wording with the narrower supported claim: \u201cThe pilot includes one hand-authored scenario for each of the six proposed mechanisms; these scenarios provide mechanism demonstrations rather than evidence of prevalence or general mitigation efficacy.\u201d\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - paper/v3/main.tex, \u00a73: \u201cSix classes are tested in the validation run; a seventh is documented as experimental.\u201d\n  - paper/v3/main.tex, \u00a74: \u201cThe base corpus is eight hand-authored scenarios: six contamination probes, one per taxonomy class, plus two controls.\u201d\n  - tests/test_schema.py:test_v02_scenario_inventory: expected inventory is CB-VAL-001..009, including six natural contamination probes and two recursive probes.\n  - spec/taxonomy.md: six classes are listed as tested validation scenarios: semantic_drift, provenance_collapse, scope_bleed, temporal_staleness, recursive, and summarization_loss.",
+            "rationale": "The intended claim says that \u201cThe pilot exercises a subset of them.\u201d However, the manuscript states that \u201cSix classes are tested in the validation run,\u201d and the scenario inventory contains CB-VAL-001 through CB-VAL-006 for semantic drift, provenance collapse, scope bleed, temporal staleness, recursive contamination, and summarization loss. The manuscript does acknowledge that these are small pilot demonstrations rather than general validation, but \u201csubset\u201d is inaccurate for the six mechanisms named in the intended claim.",
+            "allowed_files": [
+              "AUTHOR'S INTENDED CLAIMS; paper/v3/main.tex, \u00a73; tests/test_schema.py:test_v02_scenario_inventory; spec/taxonomy.md"
+            ],
+            "available_evidence": [
+              "paper/v3/main.tex, \u00a73: \u201cSix classes are tested in the validation run; a seventh is documented as experimental.\u201d",
+              "paper/v3/main.tex, \u00a74: \u201cThe base corpus is eight hand-authored scenarios: six contamination probes, one per taxonomy class, plus two controls.\u201d",
+              "tests/test_schema.py:test_v02_scenario_inventory: expected inventory is CB-VAL-001..009, including six natural contamination probes and two recursive probes.",
+              "spec/taxonomy.md: six classes are listed as tested validation scenarios: semantic_drift, provenance_collapse, scope_bleed, temporal_staleness, recursive, and summarization_loss."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-017",
+            "finding_ids": [
+              "EVIDENCE-002"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The manuscript correctly limits the work in several places, but the intended taxonomy claim combines conceptual contribution with falsifiable contamination criteria. The criteria are present, yet the supplied results do not establish all six mechanisms equally: natural recursion has a clean first round and null compounding factors, and summarization loss has no utility oracle. The artifact supports the existence of the proposed taxonomy and its scenario criteria, but only limited case-specific demonstrations, not empirical confirmation of all mechanisms.\n\nRequired action: Describe the taxonomy as a conceptual framework whose criteria were operationalized in pilot scenarios, and state that the pilot demonstrates selected case behaviors rather than empirically validating each mechanism as a general phenomenon.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - paper/v3/main.tex, \u00a73: each class is defined by \u201c(a) its causal mechanism and (b) a falsifiable contamination criterion.\u201d\n  - paper/v3/main.tex, \u00a75.3: \u201cThe natural recursion scenario ... reliably does not [generate the error], yielding a null compounding factor.\u201d\n  - paper/v3/main.tex, \u00a75.3: \u201cThe summarization probe has no utility oracle, so it cannot establish a utility gain from raw fidelity.\u201d\n  - evidence/20260713T191740Z/validation_report.md, Config comparison: compounding_factor_natural is null with reason round1_clean for every configuration; no utility oracle is declared.\n  - paper/v3/main.tex, Conclusion: \u201cNatural recursive compounding was not observed.\u201d",
+            "rationale": "The manuscript correctly limits the work in several places, but the intended taxonomy claim combines conceptual contribution with falsifiable contamination criteria. The criteria are present, yet the supplied results do not establish all six mechanisms equally: natural recursion has a clean first round and null compounding factors, and summarization loss has no utility oracle. The artifact supports the existence of the proposed taxonomy and its scenario criteria, but only limited case-specific demonstrations, not empirical confirmation of all mechanisms.",
+            "allowed_files": [
+              "AUTHOR'S INTENDED CLAIMS; paper/v3/main.tex, \u00a7\u00a73, 5.3, 5.5, Discussion; evidence/20260713T191740Z/validation_report.md"
+            ],
+            "available_evidence": [
+              "paper/v3/main.tex, \u00a73: each class is defined by \u201c(a) its causal mechanism and (b) a falsifiable contamination criterion.\u201d",
+              "paper/v3/main.tex, \u00a75.3: \u201cThe natural recursion scenario ... reliably does not [generate the error], yielding a null compounding factor.\u201d",
+              "paper/v3/main.tex, \u00a75.3: \u201cThe summarization probe has no utility oracle, so it cannot establish a utility gain from raw fidelity.\u201d",
+              "evidence/20260713T191740Z/validation_report.md, Config comparison: compounding_factor_natural is null with reason round1_clean for every configuration; no utility oracle is declared.",
+              "paper/v3/main.tex, Conclusion: \u201cNatural recursive compounding was not observed.\u201d"
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-018",
+            "finding_ids": [
+              "METHODOLOGY-002"
+            ],
+            "priority": "recommended",
+            "action_type": "experiment",
+            "instruction": "Problem: The pilot includes an empty-memory control, but it uses a different meal-planning task and is not a counterfactual version of any of the six contamination probes. Consequently, the design cannot directly establish the excess error caused by injecting each probe's memory relative to the same task without memory, nor can it quantify a contamination-versus-retention trade-off for those tasks. The manuscript acknowledges the need for broader paired controls in future work, so this limits the current pilot rather than contradicting its case-specific observations.\n\nRequired action: Describe the current controls strictly as pipeline and retention controls, not as no-memory counterfactuals; for causal attribution, add matched no-memory conditions for each probe and paired relevant-memory tasks before making broader memory-induced degradation or trade-off claims.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - paper/v3/main.tex, Section 4.1: the empty-store control asks \u201cWhat's a good way to structure a weekly meal plan?\u201d, whereas the contamination probes use unrelated tasks such as dinner menus, preferences, renovations, locations, and launch status.\n  - scenarios/controls/cb-val-008-control-empty-memory.yaml: `memory_seed: []` with probe query `What's a good way to structure a weekly meal plan?`; it is not a matched no-memory version of CB-VAL-001 through CB-VAL-006.\n  - paper/v3/main.tex, Discussion, \u201cFuture-work contract\u201d: the next experiment will use \u201cpaired relevant-memory controls\u201d and a contamination-versus-retention frontier.",
+            "rationale": "The pilot includes an empty-memory control, but it uses a different meal-planning task and is not a counterfactual version of any of the six contamination probes. Consequently, the design cannot directly establish the excess error caused by injecting each probe's memory relative to the same task without memory, nor can it quantify a contamination-versus-retention trade-off for those tasks. The manuscript acknowledges the need for broader paired controls in future work, so this limits the current pilot rather than contradicting its case-specific observations.",
+            "allowed_files": [
+              "paper/v3/main.tex, Sections 4.1 \u201cScenarios,\u201d 5.4 \u201cControls, retention, and remaining defects,\u201d and Discussion \u201cFuture-work contract\u201d; scenarios/controls/cb-val-008-control-empty-memory.yaml"
+            ],
+            "available_evidence": [
+              "paper/v3/main.tex, Section 4.1: the empty-store control asks \u201cWhat's a good way to structure a weekly meal plan?\u201d, whereas the contamination probes use unrelated tasks such as dinner menus, preferences, renovations, locations, and launch status.",
+              "scenarios/controls/cb-val-008-control-empty-memory.yaml: `memory_seed: []` with probe query `What's a good way to structure a weekly meal plan?`; it is not a matched no-memory version of CB-VAL-001 through CB-VAL-006.",
+              "paper/v3/main.tex, Discussion, \u201cFuture-work contract\u201d: the next experiment will use \u201cpaired relevant-memory controls\u201d and a contamination-versus-retention frontier."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": true,
+            "blocked_reason": "action type 'experiment' requires repair.permissions.experiments, which is disabled. Enable it explicitly, or resolve this finding by hand."
+          },
+          {
+            "id": "ACTION-019",
+            "finding_ids": [
+              "METHODOLOGY-003"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: Canonical scoring treats absence of a forbidden regex match plus a confirming judge result as clean. The manuscript explicitly documents that regexes detect mentions rather than assertions and that 52 disagreements are unresolved, but it does not establish sensitivity for cases in which a contaminated answer uses paraphrases or avoids the listed strings. Excluding disagreements prevents forced labels, but does not validate the remaining clean outcomes as uncontaminated. Therefore the reported machine-resolved clean rates are scorer-defined outcomes, not validated contamination rates.\n\nRequired action: Keep the machine-only qualification in all result summaries and avoid calling the resulting proportions validated contamination rates; report assertion-aware sensitivity or blinded adjudication before using clean-rate differences as response-layer evidence.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - paper/v3/main.tex, Section 4.4: \u201ca match yields contaminated, otherwise a provisional clean that the LLM judge may confirm\u201d; disagreements are flagged and excluded from rates.\n  - paper/v3/main.tex, Discussion, \u201cValidity statements\u201d: \u201cRegex scoring detects mention, not assertion\u201d and \u201c52 of 350 rounds disagreed\u201d; the unresolved queue has no human verdicts.\n  - spec/metrics.md, \u201cVerdict resolution\u201d: deterministic no-match produces provisional `clean`, and only deterministic/judge disagreement becomes `needs_human_review`.",
+            "rationale": "Canonical scoring treats absence of a forbidden regex match plus a confirming judge result as clean. The manuscript explicitly documents that regexes detect mentions rather than assertions and that 52 disagreements are unresolved, but it does not establish sensitivity for cases in which a contaminated answer uses paraphrases or avoids the listed strings. Excluding disagreements prevents forced labels, but does not validate the remaining clean outcomes as uncontaminated. Therefore the reported machine-resolved clean rates are scorer-defined outcomes, not validated contamination rates.",
+            "allowed_files": [
+              "paper/v3/main.tex, Section 4.4 \u201cVerdict resolution and metrics\u201d and Discussion, Section \u201cValidity statements\u201d; spec/metrics.md, \u201cVerdict resolution\u201d"
+            ],
+            "available_evidence": [
+              "paper/v3/main.tex, Section 4.4: \u201ca match yields contaminated, otherwise a provisional clean that the LLM judge may confirm\u201d; disagreements are flagged and excluded from rates.",
+              "paper/v3/main.tex, Discussion, \u201cValidity statements\u201d: \u201cRegex scoring detects mention, not assertion\u201d and \u201c52 of 350 rounds disagreed\u201d; the unresolved queue has no human verdicts.",
+              "spec/metrics.md, \u201cVerdict resolution\u201d: deterministic no-match produces provisional `clean`, and only deterministic/judge disagreement becomes `needs_human_review`."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-020",
+            "finding_ids": [
+              "METHODOLOGY-004"
+            ],
+            "priority": "recommended",
+            "action_type": "experiment",
+            "instruction": "Problem: The supplied full-benchmark manifests are explicitly candidates, and the approval registry is empty. The review checklist requires a deterministic utility oracle, but the supplied CB-FULL-SD probe and control manifests do not declare `expected.utility.must_include_patterns`. Thus these fixtures cannot yet satisfy the stated acceptance checklist or support execution as an approved full benchmark. This does not invalidate the reported pilot, which uses the separate validation scenarios.\n\nRequired action: Do not present the supplied full-benchmark fixtures as approved or executable evidence; add the required utility oracles, record individual human approvals, and complete the review checklist before using them in a benchmark result.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - docs/SCENARIO_REVIEW.md, checklist item 6: \u201cA deterministic `expected.utility.must_include_patterns` oracle measures whether the answer still performs the task.\u201d\n  - spec/full-benchmark-candidates.yaml: `candidates: []`, with the comment that existing fixtures remain planning manifests until individually reviewed.\n  - scenarios/full-benchmark/cb-full-sd-01.yaml: `expected` contains `relevant`, `retrieval`, and `forbidden_content`, but no `utility` object; the same structure appears in the supplied paired controls.",
+            "rationale": "The supplied full-benchmark manifests are explicitly candidates, and the approval registry is empty. The review checklist requires a deterministic utility oracle, but the supplied CB-FULL-SD probe and control manifests do not declare `expected.utility.must_include_patterns`. Thus these fixtures cannot yet satisfy the stated acceptance checklist or support execution as an approved full benchmark. This does not invalidate the reported pilot, which uses the separate validation scenarios.",
+            "allowed_files": [
+              "docs/SCENARIO_REVIEW.md; spec/full-benchmark-candidates.yaml; scenarios/full-benchmark/cb-full-sd-01.yaml through cb-full-sd-c05.yaml and paired controls"
+            ],
+            "available_evidence": [
+              "docs/SCENARIO_REVIEW.md, checklist item 6: \u201cA deterministic `expected.utility.must_include_patterns` oracle measures whether the answer still performs the task.\u201d",
+              "spec/full-benchmark-candidates.yaml: `candidates: []`, with the comment that existing fixtures remain planning manifests until individually reviewed.",
+              "scenarios/full-benchmark/cb-full-sd-01.yaml: `expected` contains `relevant`, `retrieval`, and `forbidden_content`, but no `utility` object; the same structure appears in the supplied paired controls."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": true,
+            "blocked_reason": "action type 'experiment' requires repair.permissions.experiments, which is disabled. Enable it explicitly, or resolve this finding by hand."
+          },
+          {
+            "id": "ACTION-021",
+            "finding_ids": [
+              "REPO-CONSISTENCY-001"
+            ],
+            "priority": "recommended",
+            "action_type": "documentation",
+            "instruction": "Problem: The manuscript reports repeated-audit outcomes, including 350 scored rounds, 52 unresolved rounds, and per-cell five-repetition distributions, but the supplied files contain no evidence aggregates, verdicts, or raw traces. The README explicitly states that the relevant evidence directories exist but were withheld, so these claims are unverified in this evaluation rather than contradicted. The manuscript does acknowledge the unresolved adjudication limitation, but not that the supplied artifact lacks the underlying aggregate files.\n\nRequired action: Label the repeated-audit numbers as unverified for this artifact review, or supply the aggregate verdict/report files needed to recompute them. The narrowest supported wording is that the manuscript reports machine-only results from the frozen evidence release; independent verification is unavailable from the supplied files.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - paper/v3/main.tex, abstract: \u201cOf 350 scored rounds, 52 remain unresolved pending human review.\u201d\n  - paper/v3/main.tex, Table \\ref{tab:repeated}: reports five-repetition clean/contaminated/flagged distributions for seven configurations.\n  - README.md, 'Paper and evidence': \u201cAggregates are supplied.\u201d The supplied file list contains no evidence directory, verdicts.json, or validation_report.md.\n  - README.md, 'Paper and evidence': \u201cThe v0.3.1 append-only correction bundle provides the reconciled 660-call report and a 52-round pending review queue.\u201d Those files are not among the supplied artifacts.",
+            "rationale": "The manuscript reports repeated-audit outcomes, including 350 scored rounds, 52 unresolved rounds, and per-cell five-repetition distributions, but the supplied files contain no evidence aggregates, verdicts, or raw traces. The README explicitly states that the relevant evidence directories exist but were withheld, so these claims are unverified in this evaluation rather than contradicted. The manuscript does acknowledge the unresolved adjudication limitation, but not that the supplied artifact lacks the underlying aggregate files.",
+            "allowed_files": [
+              "paper/v3/main.tex, \u00a75.3 'Repeated-evaluation audit and scoring defects'; README.md, 'Paper and evidence'"
+            ],
+            "available_evidence": [
+              "paper/v3/main.tex, abstract: \u201cOf 350 scored rounds, 52 remain unresolved pending human review.\u201d",
+              "paper/v3/main.tex, Table \\ref{tab:repeated}: reports five-repetition clean/contaminated/flagged distributions for seven configurations.",
+              "README.md, 'Paper and evidence': \u201cAggregates are supplied.\u201d The supplied file list contains no evidence directory, verdicts.json, or validation_report.md.",
+              "README.md, 'Paper and evidence': \u201cThe v0.3.1 append-only correction bundle provides the reconciled 660-call report and a 52-round pending review queue.\u201d Those files are not among the supplied artifacts."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-022",
+            "finding_ids": [
+              "REPO-CONSISTENCY-002"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The manuscript and README describe a successor-study learned-embedding condition using fastembed and BAAI/bge-small-en-v1.5. The code contains helper functions for local embeddings, but the active retrieval path always calls TF-IDF top_k(), and no configuration or runner path selects top_k_embeddings(). The full-benchmark runner is explicitly dry-run only. Thus the claim is partially supported as helper code, but not as an executable benchmark condition.\n\nRequired action: Restrict the implementation claim to \u201cembedding helper code and a planned successor condition,\u201d or add an explicit backend configuration and execution path before calling it an implemented condition. The current paper's statement that no learned-embedding result is reported remains supported.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - paper/v3/main.tex, \u00a74.3: \u201cThe successor-study implementation additionally provides a local ONNX embedding condition (\\texttt{fastembed} with \\texttt{BAAI/bge-small-en-v1.5})\u201d.\n  - README.md, 'Local Embedding Backend': \u201cThe full-benchmark plan reports TF-IDF and a learned embedding backend as separate conditions.\u201d\n  - src/retrieval.py, `top_k_embeddings(...)`: defines an embedding helper, but `retrieve(...)` invokes `top_k(query, entries, config[\"retrieval\"][\"k\"])` unconditionally.\n  - src/retrieval.py, `local_embedder(...)`: constructs an embedder, but no call site in the supplied source invokes it.\n  - src/full_benchmark.py, `main(...)`: when `--authorize-api` is supplied, it raises \u201cAPI execution is not implemented\u201d; the planner only performs a dry run.\n  - spec/full-benchmark.plan.yaml, `execution.retrieval_backends`: declares `tfidf` and `learned_embedding`, but this is a plan rather than an executable selection mechanism.",
+            "rationale": "The manuscript and README describe a successor-study learned-embedding condition using fastembed and BAAI/bge-small-en-v1.5. The code contains helper functions for local embeddings, but the active retrieval path always calls TF-IDF top_k(), and no configuration or runner path selects top_k_embeddings(). The full-benchmark runner is explicitly dry-run only. Thus the claim is partially supported as helper code, but not as an executable benchmark condition.",
+            "allowed_files": [
+              "paper/v3/main.tex, \u00a74.3 'Models and determinism' and \u00a77 'Similarity substitution'; src/retrieval.py, functions top_k_embeddings/local_embedder/retrieve; src/full_benchmark.py, main(); spec/full-benchmark.plan.yaml"
+            ],
+            "available_evidence": [
+              "paper/v3/main.tex, \u00a74.3: \u201cThe successor-study implementation additionally provides a local ONNX embedding condition (\\texttt{fastembed} with \\texttt{BAAI/bge-small-en-v1.5})\u201d.",
+              "README.md, 'Local Embedding Backend': \u201cThe full-benchmark plan reports TF-IDF and a learned embedding backend as separate conditions.\u201d",
+              "src/retrieval.py, `top_k_embeddings(...)`: defines an embedding helper, but `retrieve(...)` invokes `top_k(query, entries, config[\"retrieval\"][\"k\"])` unconditionally.",
+              "src/retrieval.py, `local_embedder(...)`: constructs an embedder, but no call site in the supplied source invokes it.",
+              "src/full_benchmark.py, `main(...)`: when `--authorize-api` is supplied, it raises \u201cAPI execution is not implemented\u201d; the planner only performs a dry run.",
+              "spec/full-benchmark.plan.yaml, `execution.retrieval_backends`: declares `tfidf` and `learned_embedding`, but this is a plan rather than an executable selection mechanism."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-023",
+            "finding_ids": [
+              "REPRODUCIBILITY-002"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The current schema requires `harness_call_counts`, `harness_total_calls`, `judge_total_calls`, `pipeline_call_counts`, and `pipeline_total_calls`. The supplied v0.3 run_meta.json instead contains only the older `call_counts` and `total_calls` fields. Although the repository documents compatibility aliases, those aliases are not sufficient because the newer fields remain required. Thus the supplied evidence cannot be validated against the declared schema as written, weakening the release provenance and call-accounting reproducibility record.\n\nRequired action: Either version and preserve the historical schema for this release or add a validated, append-only metadata correction containing the required fields and an explicit schema version. Do not describe schema validation as complete unless the release-check actually validates the evidence metadata against the applicable schema.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - spec/run-meta.schema.yaml lists `harness_call_counts`, `harness_total_calls`, `judge_total_calls`, `pipeline_call_counts`, and `pipeline_total_calls` under `required`.\n  - evidence/20260713T191740Z/run_meta.json contains `run_dir`, `models`, `repetitions`, `call_counts`, and `total_calls`, but does not contain the required `harness_call_counts`, `harness_total_calls`, `judge_total_calls`, `pipeline_call_counts`, or `pipeline_total_calls`.\n  - report/FINAL-AUDIT.md \u00a7Verified repository checks says frozen evidence is present and hashable, but its evidence-boundary description does not establish that the supplied historical metadata conforms to the current run-meta schema.",
+            "rationale": "The current schema requires `harness_call_counts`, `harness_total_calls`, `judge_total_calls`, `pipeline_call_counts`, and `pipeline_total_calls`. The supplied v0.3 run_meta.json instead contains only the older `call_counts` and `total_calls` fields. Although the repository documents compatibility aliases, those aliases are not sufficient because the newer fields remain required. Thus the supplied evidence cannot be validated against the declared schema as written, weakening the release provenance and call-accounting reproducibility record.",
+            "allowed_files": [
+              "spec/run-meta.schema.yaml; evidence/20260713T191740Z/run_meta.json; report/FINAL-AUDIT.md \u00a7Verified repository checks"
+            ],
+            "available_evidence": [
+              "spec/run-meta.schema.yaml lists `harness_call_counts`, `harness_total_calls`, `judge_total_calls`, `pipeline_call_counts`, and `pipeline_total_calls` under `required`.",
+              "evidence/20260713T191740Z/run_meta.json contains `run_dir`, `models`, `repetitions`, `call_counts`, and `total_calls`, but does not contain the required `harness_call_counts`, `harness_total_calls`, `judge_total_calls`, `pipeline_call_counts`, or `pipeline_total_calls`.",
+              "report/FINAL-AUDIT.md \u00a7Verified repository checks says frozen evidence is present and hashable, but its evidence-boundary description does not establish that the supplied historical metadata conforms to the current run-meta schema."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-024",
+            "finding_ids": [
+              "REPRODUCIBILITY-003"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The v0.3 repeated audit excludes 52 of 350 rounds because deterministic and judge verdicts disagree. This affects all five staleness configurations without fully resolved response-layer rates and affects the seeded-recursion comparison, where most arms are flagged. The limitation is explicitly declared in the manuscript and evidence, so this is not an undisclosed defect; the affected comparisons remain machine-only and cannot support human-validated claims.\n\nRequired action: Keep all affected results labeled machine-only and avoid interpreting unresolved cells as clean or contaminated. If a human-adjudicated claim is needed, complete the documented two-reviewer protocol and publish a separate consensus layer; otherwise retain the current limitation wording.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - evidence/20260713T191740Z/validation_report.md states: `unavailable (adjudications_file_missing); machine verdicts remain authoritative.`\n  - evidence/20260713T191740Z/defects.md D7 states: `Fifty-two of the 350 scored rounds resolved to needs_human_review` and that they are excluded from machine-only rates.\n  - evidence/20260713T191740Z/adjudications.json contains `adjudications: []` and 52 pending review-queue entries.\n  - paper/v3/main.tex abstract explicitly says: `Of 350 scored rounds, 52 remain unresolved pending human review.`",
+            "rationale": "The v0.3 repeated audit excludes 52 of 350 rounds because deterministic and judge verdicts disagree. This affects all five staleness configurations without fully resolved response-layer rates and affects the seeded-recursion comparison, where most arms are flagged. The limitation is explicitly declared in the manuscript and evidence, so this is not an undisclosed defect; the affected comparisons remain machine-only and cannot support human-validated claims.",
+            "allowed_files": [
+              "evidence/20260713T191740Z/validation_report.md \u00a7Human-adjudicated comparison and \u00a7Flagged for human review; evidence/20260713T191740Z/adjudications.json; paper/v3/main.tex \u00a7Repeated-evaluation audit and scoring defects"
+            ],
+            "available_evidence": [
+              "evidence/20260713T191740Z/validation_report.md states: `unavailable (adjudications_file_missing); machine verdicts remain authoritative.`",
+              "evidence/20260713T191740Z/defects.md D7 states: `Fifty-two of the 350 scored rounds resolved to needs_human_review` and that they are excluded from machine-only rates.",
+              "evidence/20260713T191740Z/adjudications.json contains `adjudications: []` and 52 pending review-queue entries.",
+              "paper/v3/main.tex abstract explicitly says: `Of 350 scored rounds, 52 remain unresolved pending human review.`"
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-025",
+            "finding_ids": [
+              "STATISTICS-001"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The v0.3 audit reports five-repetition clean/contaminated/flagged counts, but uncertainty intervals are provided only for the scope-bleed comparison. Claims about provenance, staleness, seeded recursion, and other configuration differences therefore remain descriptive without confidence intervals or another uncertainty summary. The manuscript itself acknowledges that future work will add variance reporting.\n\nRequired action: For every repeated comparative result emphasized in the abstract, results, or conclusion, report the underlying per-repetition counts together with an uncertainty interval or explicitly label the result as an unquantified descriptive observation.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - Table entries are reported as 'clean/contaminated/flagged across five repetitions'.\n  - The only displayed intervals are for scope bleed: '4/5 (exact 95% Clopper--Pearson interval [0.284, 0.995]) and 0/5 ([0.000, 0.522])'.\n  - The future-work contract requires 'repeated trials with per-repetition artifacts and variance reporting'.",
+            "rationale": "The v0.3 audit reports five-repetition clean/contaminated/flagged counts, but uncertainty intervals are provided only for the scope-bleed comparison. Claims about provenance, staleness, seeded recursion, and other configuration differences therefore remain descriptive without confidence intervals or another uncertainty summary. The manuscript itself acknowledges that future work will add variance reporting.",
+            "allowed_files": [
+              "paper/v3/main.tex, \u00a75.3 'Repeated-evaluation audit and scoring defects' and \u00a75.5 'Attribution: what the cells support'; Table 'Repeated v0.3 outcome distributions'"
+            ],
+            "available_evidence": [
+              "Table entries are reported as 'clean/contaminated/flagged across five repetitions'.",
+              "The only displayed intervals are for scope bleed: '4/5 (exact 95% Clopper--Pearson interval [0.284, 0.995]) and 0/5 ([0.000, 0.522])'.",
+              "The future-work contract requires 'repeated trials with per-repetition artifacts and variance reporting'."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-026",
+            "finding_ids": [
+              "STATISTICS-002"
+            ],
+            "priority": "recommended",
+            "action_type": "test_change",
+            "instruction": "Problem: The manuscript compares configurations using terms such as 'excluded', 'yielded', 'separates', and 'supports', but does not conduct statistical tests or report a systematic effect-size measure for the repeated comparisons. With only five repetitions and substantial unresolved outcomes, formal inference may not be warranted, but the manuscript should consistently distinguish descriptive differences from evidence of mitigation effects.\n\nRequired action: Retain explicitly descriptive wording for these comparisons, or add a prespecified paired analysis and effect-size definition if inferential mitigation claims are intended.\n\nThis cannot be completed from evidence already present in the artifact. Do not invent the missing measurements, results, citations or data. Return this action as requiring human intervention.",
+            "rationale": "The manuscript compares configurations using terms such as 'excluded', 'yielded', 'separates', and 'supports', but does not conduct statistical tests or report a systematic effect-size measure for the repeated comparisons. With only five repetitions and substantial unresolved outcomes, formal inference may not be warranted, but the manuscript should consistently distinguish descriptive differences from evidence of mitigation effects.",
+            "allowed_files": [
+              "paper/v3/main.tex, abstract; \u00a75.3; \u00a75.5; Table 'Repeated v0.3 outcome distributions'"
+            ],
+            "available_evidence": [
+              "The abstract states that 'the namespacing arm excluded cross-domain distractors and the TTL arm excluded the stale fact in all five repetitions'.",
+              "The results state that 'the tag and raw-fidelity arms each had five machine-resolved clean outcomes'.",
+              "No p-values, paired comparison tests, or standardized effect-size estimates are reported for these comparisons.",
+              "The manuscript limits the interpretation by stating: 'These are within-scenario observations, not estimates of real-world prevalence or model-independent mitigation efficacy.'"
+            ],
+            "requires_new_evidence": true,
+            "requires_human_approval": true,
+            "blocked_reason": "Resolving this finding requires evidence that does not exist in the artifact. Veritas will not fabricate measurements, results, citations or datasets to satisfy its own evaluator."
+          },
+          {
+            "id": "ACTION-027",
+            "finding_ids": [
+              "STATISTICS-003"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: Each mechanism is represented by one hand-authored scenario, with five repeated API executions. Thus the repeated observations do not provide five independent scenario-level replications, and the effective mechanism diversity remains one probe per class. This makes rates such as 0/5 or 5/5 unsuitable for general claims about a mechanism or mitigation. The manuscript explicitly recognizes this limitation.\n\nRequired action: Keep all mechanism-level rates explicitly labeled as within-scenario pilot observations and avoid interpreting five repetitions as five independent experimental subjects or scenario replications.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - The manuscript states: 'Rates from one probe per mechanism are mechanism demonstrations with stated resolved counts, not population estimates.'\n  - It states: 'Repeated calls do not add scenario diversity.'\n  - The repeated audit is documented as 'Repetitions: 5; Configurations: 7; Scored rounds: 350', while the paper describes only one probe per mechanism.\n  - The paper reports the intended successor design as 'at least five scenarios per contamination class'.",
+            "rationale": "Each mechanism is represented by one hand-authored scenario, with five repeated API executions. Thus the repeated observations do not provide five independent scenario-level replications, and the effective mechanism diversity remains one probe per class. This makes rates such as 0/5 or 5/5 unsuitable for general claims about a mechanism or mitigation. The manuscript explicitly recognizes this limitation.",
+            "allowed_files": [
+              "paper/v3/main.tex, \u00a72 'Validity statements' and \u00a77 'Scale'; evidence/20260713T191740Z/defects.md, 'Evidence scope'"
+            ],
+            "available_evidence": [
+              "The manuscript states: 'Rates from one probe per mechanism are mechanism demonstrations with stated resolved counts, not population estimates.'",
+              "It states: 'Repeated calls do not add scenario diversity.'",
+              "The repeated audit is documented as 'Repetitions: 5; Configurations: 7; Scored rounds: 350', while the paper describes only one probe per mechanism.",
+              "The paper reports the intended successor design as 'at least five scenarios per contamination class'."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-028",
+            "finding_ids": [
+              "STATISTICS-004"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: Fifty-two of 350 repeated rounds are excluded from rate denominators because deterministic and judge scorers disagree. This leaves some headline metrics null and means the reported rates condition on the subset of rounds resolved by the machine rule. The manuscript discloses this clearly, so the issue is a declared limitation rather than an undisclosed statistical error.\n\nRequired action: Continue presenting the reported rates as machine-only conditional summaries, and do not use them for stronger comparative or inferential claims until adjudication or a prespecified sensitivity analysis is available.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - The abstract states: 'Of 350 scored rounds, 52 remain unresolved pending human review.'\n  - The manuscript states that disputed rounds 'are excluded from machine-only rates'.\n  - The validation report shows 'staleness_rate null (probe_needs_human_review)' for multiple configurations.\n  - evidence/20260713T191740Z/adjudications.json contains 'adjudications': [] and 52 pending queue entries.",
+            "rationale": "Fifty-two of 350 repeated rounds are excluded from rate denominators because deterministic and judge scorers disagree. This leaves some headline metrics null and means the reported rates condition on the subset of rounds resolved by the machine rule. The manuscript discloses this clearly, so the issue is a declared limitation rather than an undisclosed statistical error.",
+            "allowed_files": [
+              "paper/v3/main.tex, abstract; \u00a75.3; \u00a76.1 'Validity statements'; evidence/20260713T191740Z/validation_report.md, 'Human-adjudicated comparison' and config comparison table"
+            ],
+            "available_evidence": [
+              "The abstract states: 'Of 350 scored rounds, 52 remain unresolved pending human review.'",
+              "The manuscript states that disputed rounds 'are excluded from machine-only rates'.",
+              "The validation report shows 'staleness_rate null (probe_needs_human_review)' for multiple configurations.",
+              "evidence/20260713T191740Z/adjudications.json contains 'adjudications': [] and 52 pending queue entries."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          },
+          {
+            "id": "ACTION-029",
+            "finding_ids": [
+              "STATISTICS-005"
+            ],
+            "priority": "recommended",
+            "action_type": "artifact_edit",
+            "instruction": "Problem: The manuscript includes a historical v0.2 ablation matrix whose individual scenario-configuration cells are based on one run, with flagged cells excluded. Those results are clearly separated from the repeated v0.3 audit, but any comparison drawn from the v0.2 matrix has no run-to-run variance and should not be treated as replicated evidence.\n\nRequired action: Restrict v0.2 claims to historical single-run observations and ensure that any headline comparison is explicitly attributed to the repeated v0.3 audit instead.\n\nUse only the evidence already present in the artifact, listed below. If a value is not there, do not invent it:\n  - The lineage table labels v0.2 as the 'single-run matrix'.\n  - The manuscript states: 'The frozen v0.2 single-run ablation' and reports 'ten artifacts were flagged for manual inspection.'\n  - The v0.2 validation report gives one round for each scenario/configuration cell.",
+            "rationale": "The manuscript includes a historical v0.2 ablation matrix whose individual scenario-configuration cells are based on one run, with flagged cells excluded. Those results are clearly separated from the repeated v0.3 audit, but any comparison drawn from the v0.2 matrix has no run-to-run variance and should not be treated as replicated evidence.",
+            "allowed_files": [
+              "paper/v3/main.tex, \u00a75 'Ablation Study', Table 'The ablation matrix' and Table 'Evidence lineage'"
+            ],
+            "available_evidence": [
+              "The lineage table labels v0.2 as the 'single-run matrix'.",
+              "The manuscript states: 'The frozen v0.2 single-run ablation' and reports 'ten artifacts were flagged for manual inspection.'",
+              "The v0.2 validation report gives one round for each scenario/configuration cell."
+            ],
+            "requires_new_evidence": false,
+            "requires_human_approval": false,
+            "blocked_reason": null
+          }
+        ],
+        "notes": [
+          "1 blocking action(s) require a human decision and were not dispatched to the repair agent."
+        ]
+      },
+      "repair": {
+        "action_ids": [
+          "ACTION-001",
+          "ACTION-002",
+          "ACTION-003",
+          "ACTION-004",
+          "ACTION-005",
+          "ACTION-006",
+          "ACTION-007",
+          "ACTION-008",
+          "ACTION-011",
+          "ACTION-012",
+          "ACTION-013",
+          "ACTION-014",
+          "ACTION-016",
+          "ACTION-017",
+          "ACTION-019",
+          "ACTION-021",
+          "ACTION-022",
+          "ACTION-023",
+          "ACTION-024",
+          "ACTION-025",
+          "ACTION-027",
+          "ACTION-028",
+          "ACTION-029"
+        ],
+        "status": "partial",
+        "changes": [
+          {
+            "file": "CITATION.cff",
+            "description": "Clarified that its CC-BY-4.0 field applies to the cited manuscript/content work."
+          },
+          {
+            "file": "LICENSING.md",
+            "description": "Added a component-level SPDX map and clarified the CFF license scope."
+          },
+          {
+            "file": "README.md",
+            "description": "Clarified component licensing and limited the local embedding description to helper code rather than an executable condition."
+          },
+          {
+            "file": "evidence/20260713T191740Z/validation_report.md",
+            "description": "Separated 350 total retrievals from 100 gated retrievals and displayed both supported gate-call means."
+          },
+          {
+            "file": "paper/v3/main.tex",
+            "description": "Narrowed scope-bleed to a deterministic pattern observation; qualified machine-only and within-scenario results; documented the unreconciled round/call accounting; added the existing repository DOI; and limited the embedding claim to helper code and a planned condition."
+          },
+          {
+            "file": "report/FINAL-AUDIT.md",
+            "description": "Recorded that the release check does not establish historical metadata conformance to the current schema."
+          },
+          {
+            "file": "spec/taxonomy.md",
+            "description": "Described the six scenarios as one hand-authored pilot demonstration per proposed mechanism, not evidence of prevalence or general mitigation efficacy."
+          }
+        ],
+        "evidence_used": [
+          "The frozen report's 350 total retrievals, 135 gate calls, and 0.3857 all-retrieval mean, together with the manuscript's 100 gated retrievals and 1.35 gated-retrieval mean.",
+          "The CB-VAL-003 manifest's enabled judge and the frozen CB-VAL-003 null judge records, plus the documented permit-delays pattern behavior on byte-identical prompts.",
+          "The manuscript's stated nine scenarios, seven configurations, five repetitions, 350 recorded rounds, 52 recorded review rounds, and 660 claimed calls.",
+          "The existing repository DOI 10.5281/zenodo.22859806 and the existing component license statements.",
+          "The documented TF-IDF-only retrieval path and local embedding helper/planned condition.",
+          "The existing pilot limitations concerning one hand-authored scenario per mechanism, unresolved machine-only results, and single-run v0.2 observations."
+        ],
+        "new_evidence_created": [],
+        "claims_modified": [
+          "The scope-bleed 4/5 versus 0/5 comparison is described as a deterministic within-scenario pattern observation, not a validated response-contamination effect.",
+          "The taxonomy is described as a conceptual framework operationalized in one hand-authored pilot scenario per mechanism, not as empirical validation of general mechanisms or mitigation efficacy.",
+          "The learned-embedding description is restricted to helper code and a planned successor condition.",
+          "The 350-round and 660-call figures are described as unreconciled frozen-report claims rather than recomputable audit totals."
+        ],
+        "notes": [
+          "ACTION-001 requires either the exact historical CB-VAL-003 manifest or regenerated frozen verdicts; neither can be created from the supplied evidence without changing frozen evidence or inventing provenance.",
+          "ACTIONS-004 and -005 require version-specific archive objects, commit SHAs, and artifact hashes that are not present. A repository-level DOI was added where requested, but it does not establish release-specific contents.",
+          "ACTION-006 cannot be fully reconciled from supplied evidence: the declared 9 x 7 x 5 design implies 315 rounds, while the frozen report records 350; no tenth scenario or corresponding call log is supplied.",
+          "ACTION-008 requires implementation/version, prompt-template, vectorizer, ranking, and memory-serialization details absent from the artifact.",
+          "ACTION-012 requires the missing bibliography source or a rendered archival paper; neither is supplied.",
+          "ACTION-023 requires a historical schema version or an append-only metadata correction with explicit schema version; the available run metadata cannot be expanded with absent values.",
+          "The supplied workspace contains the v0.3 report and verdict files, so the premise of ACTION-021 that no aggregate evidence is supplied does not hold for this repair workspace."
+        ],
+        "metadata": {
+          "agent": "generic-cli",
+          "command": [
+            "sh",
+            "-c",
+            "codex exec --approve-for-me -C /Users/ESAranaEd/Scripts/contam-bench/.veritas/workspaces/loop-2026-09-25T201610Z-1958 \"$(cat /Users/ESAranaEd/Scripts/contam-bench/.veritas/workspaces/loop-2026-09-25T201610Z-1958/.veritas/tmp/repair-prompt-001.md)\""
+          ],
+          "exit_code": 0,
+          "output": "SE)\n+Repository code is [Apache 2.0](LICENSE). The manuscript, figures, data, and\n+evidence records are CC-BY-4.0; see [LICENSING.md](LICENSING.md) for the\n+component-level SPDX map. The CFF license field applies to the cited\n+manuscript/content work, not repository code.\ndiff --git a/evidence/20260713T191740Z/validation_report.md b/evidence/20260713T191740Z/validation_report.md\nindex 8fb464c0b505c399724ef8701e63d798f157111f..958253866fb8fd9857f46c21ab7c716fa97375b6\n--- a/evidence/20260713T191740Z/validation_report.md\n+++ b/evidence/20260713T191740Z/validation_report.md\n@@ -521,9 +521,11 @@\n \n ## Relevance-gate observability\n \n-- retrievals: 350\n+- total retrievals (all configurations): 350\n+- gated retrievals: 100\n - observed gate calls: 135\n-- mean gate calls per retrieval: 0.3857\n+- mean gate calls per gated retrieval: 1.35 (135 / 100)\n+- mean gate calls per all retrievals: 0.3857 (135 / 350; not a gated-retrieval cost)\n - maximum observed gate calls per retrieval: 2\n - candidate memories examined: 510\n - upper bound: k calls per retrieval under per-candidate gating; no batching is used.\ndiff --git a/paper/v3/main.tex b/paper/v3/main.tex\nindex a3e21b6229c21005301a05d0b062b4ac9e3d9ca5..f7b8c1df5b76e9ffb8637e51b6ec6fe76269a956\n--- a/paper/v3/main.tex\n+++ b/paper/v3/main.tex\n@@ -55,7 +55,8 @@\n 52 remain unresolved pending human review. These are within-scenario\n observations, not estimates of real-world prevalence or model-independent\n mitigation efficacy. The benchmark and\n-code are available at \\url{https://github.com/arananet/contam-bench}.\n+code are available at \\url{https://github.com/arananet/contam-bench}; the\n+repository-level archive DOI is \\url{https://doi.org/10.5281/zenodo.22859806}.\n \\end{abstract}\n \n \\section{Introduction}\n@@ -125,8 +126,7 @@\n AgentPoison demonstrated backdoor attacks that poison agent long-term memory\n and RAG knowledge bases~\\cite{chen2024agentpoison}; MINJA showed malicious\n records can be injected purely through query-level\n-interaction~\\cite{dong2025minja}; subsequent work has extended the attack\n-surface. This literature assumes an attacker and optimizes defenses\n+interaction~\\cite{dong2025minja}. This literature assumes an attacker and optimizes defenses\n accordingly. Benign contamination has no attacker to defend against: the\n threat model is the design of the memory system itself.\n \n@@ -135,9 +135,9 @@\n More}~\\cite{altawaha2026remembering}, which measures memory-induced\n violation rates exceeding no-memory baselines, increasing with exposure\n length, and driven by cross-context contamination, identifying retrieval\n-scope and summarization level as amplifying design choices. Complementary\n-diagnosis work finds most memory failures stem from irrelevant retrieval\n-rather than memory construction. In the multi-agent setting, Wang et\n+scope and summarization level as amplifying design choices. This pilot\n+separates retrieval traces from response scoring rather than estimating the\n+relative prevalence of retrieval and construction failures. In the multi-agent setting, Wang et\n al.~\\cite{wang2026state} demonstrate \\emph{memory laundering}: toxic\n context compressed into memory summaries evades standard detectors while\n still influencing downstream generations, and mitigation depends on\n@@ -154,9 +154,9 @@\n The retrieval-layer half of this paper's phenomenon has a single-shot\n ancestor: Cuconasu et al.\\ show that irrelevant passages in RAG divide\n into random ones, which do not degrade answer quality, and\n-\\emph{distracting} ones, which do~\\cite{cuconasu2024power}, and\n-follow-on work quantifies a passage's distracting effect as a graded\n-severity measure. This paper's contribution relative to that line is the\n+\\emph{distracting} ones, which do~\\cite{cuconasu2024power}. This paper uses\n+the distracting-effect idea only as a candidate severity proxy for future\n+work. Its contribution relative to that line is the\n persistence layer and the verdict split: memory adds write-back, decay,\n and provenance dynamics that single-shot retrieval does not have, and\n the retrieval-layer/response-layer dissociation of\n@@ -213,8 +213,11 @@\n \\emph{write-back} dynamic that compounds whichever of the others is\n present. Recursion is thus not a peer of the static classes but a loop\n over them, which is why it is tested both naturally (does the subject\n-generate the error?) and seeded (what happens when one exists?). Six classes are tested in the validation run; a\n-seventh is documented as experimental. Each class is defined by\n+generate the error?) and seeded (what happens when one exists?). The pilot\n+includes one hand-authored scenario for each of the six proposed mechanisms;\n+these scenarios provide mechanism demonstrations rather than evidence of\n+prevalence or general mitigation efficacy. A seventh class is documented as\n+experimental. Each class is defined by\n (a)~its causal mechanism and (b)~a falsifiable contamination criterion used\n verbatim by the benchmark's judge.\n \n@@ -341,9 +344,11 @@\n judge are required to differ: a model never judges its own output. The\n reported validation runs use TF-IDF cosine similarity, a documented\n substitution because the public API exposes no embeddings endpoint. The\n-successor-study implementation additionally provides a local ONNX embedding\n-condition (\\texttt{fastembed} with \\texttt{BAAI/bge-small-en-v1.5}), reported\n-separately from TF-IDF; this paper reports no learned-embedding result.\n+repository contains local ONNX embedding helper code for a planned\n+successor condition (\\texttt{fastembed} with\n+\\texttt{BAAI/bge-small-en-v1.5}); it is not an executable benchmark\n+condition in the supplied retrieval path, and this paper reports no\n+learned-embedding result.\n \n \\subsection{Verdict resolution and metrics}\n \\label{sec:metrics}\n@@ -493,14 +498,17 @@\n \n Table~\\ref{tab:matrix} is the frozen v0.2 single-run ablation. We do not\n pool it with the subsequent v0.3 repeated-evaluation audit: the latter ran\n-the same nine scenarios and seven configurations five times, producing 350\n-scored rounds, and is published separately at\n+the same nine scenarios and seven configurations five times, which implies\n+315 scenario--configuration rounds. The supplied frozen report instead\n+records 350 rounds; that discrepancy is unreconciled, so its aggregate count,\n+review percentage, and API-call totals are reported machine-record values,\n+not recomputable audit totals. The frozen report is published separately at\n \\texttt{evidence/20260713T191740Z} under the tag in\n Table~\\ref{tab:lineage}. Its purpose is to quantify scorer ambiguity,\n execution cost, and per-cell outcome distributions rather than replace the\n matrix with an unqualified aggregate.\n \n-Fifty-two of the 350 rounds (14.9\\%) required human review:\n+The frozen report records fifty-two of 350 rounds (14.9\\%) as requiring human review:\n three provenance-attribution rounds had a\n deterministic-clean/judge-contaminated disagreement; twenty staleness rounds\n had a deterministic-contaminated/judge-clean disagreement; and twenty-nine\n@@ -545,7 +553,9 @@\n \\caption{Repeated v0.3 outcome distributions, reported as\n clean/contaminated/flagged across five repetitions. Flagged means\n \\texttt{needs\\_human\\_review}; all other counts are machine-resolved.\n-Scenarios are not pooled into a population estimate.}\n+Except for the scope-bleed pattern-hit intervals stated in the text, these\n+within-scenario pilot distributions are unquantified descriptive observations,\n+not population estimates.}\n \\label{tab:repeated}\n \\end{table}\n \n@@ -558,10 +568,11 @@\n the append-only correction bundle and pending queue are identified in\n Table~\\ref{tab:lineage}.\n \n-The repeated audit used 660 API calls: 350 subject calls, 135 gate calls, and\n-175 judge calls. This exceeds the validation plan's stated ``few hundred\n-calls'' target. We report the overrun as an operational cost limitation; it\n-does not invalidate the persisted artifacts or their recorded results.\n+The frozen report claims 660 API calls: 350 subject calls, 135 gate calls,\n+and 175 judge calls. These call totals are unreconciled with the stated\n+nine-by-seven-by-five design and must not be treated as recomputable audit\n+accounting. The reported operational cost therefore remains a limitation,\n+not a validated aggregate.\n \n \\subsection{The two-layer dissociation persists}\n \\label{sec:twolayer}\n@@ -607,12 +618,14 @@\n bear. On the provenance probe, the tag and raw-fidelity arms each had five\n machine-resolved clean outcomes. Semantic drift remains a response-layer tie:\n all configurations resolved clean, while retrieval assertions distinguish the\n-candidate sets. Scope bleed separates at the response layer: naive resolved\n-one clean and four contaminated repetitions, whereas namespacing resolved five\n-clean and zero contaminated repetitions, with no flags in either cell. The\n-corresponding contamination proportions are 4/5 (exact 95\\% Clopper--Pearson\n-interval [0.284, 0.995]) and 0/5 ([0.000, 0.522]); these intervals are\n-descriptive at validation scale, not population estimates. Their binomial\n+candidate sets. For scope bleed, deterministic forbidden-pattern scoring\n+recorded one clean and four contaminated naive repetitions and five clean,\n+zero contaminated namespacing repetitions, with no flags in either cell. The\n+corresponding pattern-hit proportions are 4/5 (exact 95\\% Clopper--Pearson\n+interval [0.284, 0.995]) and 0/5 ([0.000, 0.522]). They are descriptive\n+within-scenario pattern observations, not validated response-contamination\n+effects: these records have no judge verdicts, and the \\texttt{permit\n+delays?} pattern can fire on byte-identical prompts. Their binomial\n interpretation assumes independent trials with a fixed outcome probability;\n repeated API calls do not establish that assumption or add scenario diversity.\n Staleness remains\n@@ -762,7 +775,10 @@\n Their observed effects occur at\n different evidence layers and in different classes. Relevance gating is a\n probabilistic filter on the critical path. The repeated audit observed 135\n-gate calls over 100 gated retrievals, or 1.35 calls per gated retrieval; its\n+gate calls over 100 gated retrievals, or 1.35 calls per gated retrieval. The\n+same frozen report contains 350 total retrievals, so its all-retrieval mean is\n+135/350 = 0.3857 gate calls per retrieval; this is not a gated-retrieval cost.\n+Its\n $k{=}4$ worst-case bound is 4{,}000 calls per thousand gated retrievals. No\n batching is used. It is the only control that produced a recall false negative\n in the validation run and active amplification of seeded recursion here\n@@ -804,7 +820,7 @@\n conditions rather than footnotes. (1)~Regex scoring detects\n \\emph{mention}, not assertion: quotation, negation, correction, and\n refusal can match a forbidden phrase while being clean. In the v0.3\n-repeated audit, 52 of 350 rounds disagreed between deterministic and judge\n+repeated audit, 52 of 350 recorded rounds disagreed between deterministic and judge\n scoring. Those rounds remain unresolved and excluded from machine-only\n rates: the versioned adjudication queue assigns no human verdicts, so this\n paper does not claim a judge-plus-human consensus for them. The correction\n@@ -818,9 +834,8 @@\n model cannot establish model-independent behavior, for compounding or\n anything else. Rates from one probe per mechanism are mechanism\n demonstrations with stated resolved counts, not population estimates. The\n-repeated audit's 660 API calls exceed the validation plan's ``few hundred\n-calls'' target; this is a cost limitation, not a reason to discard the\n-persisted artifacts. The review register identifies every flagged artifact by\n+frozen report's 660 API-call claim is unreconciled with the declared design;\n+it is not a recomputable cost total. The review register identifies every flagged artifact by\n repetition and hash.\n \n \\subsection{Future-work contract}\n@@ -866,8 +881,9 @@\n judge rubric.\n \n \\paragraph{Similarity substitution.} TF-IDF cosine similarity differs from\n-learned embeddings. A local ONNX learned-embedding condition is implemented\n-for the successor study, but it has not been run as part of the evidence\n+learned embeddings. Local ONNX learned-embedding helper code is present for a\n+planned successor condition, but no executable benchmark selection path or\n+evidence run is supplied. It has not been run as part of the evidence\n release. The hypothesis that learned embeddings may expose more semantic-drift\n distractors therefore still requires a separately reported experiment; this\n study makes no directional claim.\n@@ -911,8 +927,10 @@\n \n \\section{Conclusion}\n \n-This pilot operationalizes six proposed mechanisms of benign memory\n-contamination in a small, auditable scenario suite. Within the tested cases,\n+This pilot operationalizes a conceptual taxonomy of six proposed mechanisms\n+of benign memory contamination through one hand-authored scenario per\n+mechanism. These pilot scenarios demonstrate selected case behaviors rather\n+than empirically validating each mechanism as a general phenomenon. Within the tested cases,\n namespacing and TTL changed targeted retrieval outcomes, while tags and raw\n storage yielded clean machine verdicts on the provenance probe. A logged\n seeded-recursion failure illustrates how relevance filtering can discard\n@@ -927,7 +945,8 @@\n scoring, broader scenarios with paired controls, and cross-model evaluation\n are needed before stronger claims. The benchmark,\n specifications, and validation scenarios are public at\n-\\url{https://github.com/arananet/contam-bench}.\n+\\url{https://github.com/arananet/contam-bench}; the repository-level archive\n+DOI is \\url{https://doi.org/10.5281/zenodo.22859806}.\n \n \\bibliographystyle{plain}\n \\bibliography{references}\ndiff --git a/report/FINAL-AUDIT.md b/report/FINAL-AUDIT.md\nindex e74d598922a94628d35ebee85f62418cd7aa6f2d..8041a3d9b33b83918a5e262f89661130851d8937\n--- a/report/FINAL-AUDIT.md\n+++ b/report/FINAL-AUDIT.md\n@@ -15,7 +15,10 @@\n file presence, hashes, and repository contracts, but it does not compare the\n hashes against an independently trusted baseline. It neither reruns the LLM-backed\n pipeline nor establishes that a model would produce the same nondeterministic\n-responses today. The report records this limitation explicitly.\n+responses today. It does not establish that historical evidence metadata\n+conforms to the current `spec/run-meta.schema.yaml`; the supplied v0.3\n+metadata uses only the documented compatibility fields. The report records\n+these limitations explicitly.\n \n The v0.3.1 correction bundle has no human adjudications or two-adjudicator\n consensus. It must not be used to claim human-adjudicated empirical results.\ndiff --git a/spec/taxonomy.md b/spec/taxonomy.md\nindex 3d38dcb56bd6740e909ff4138833628c736f1f95..83adedf53147287564a64242d0ff95f3df41b807\n--- a/spec/taxonomy.md\n+++ b/spec/taxonomy.md\n@@ -4,8 +4,10 @@\n persistent memory operating as designed \u2014 no adversarial input, no jailbreak,\n no data poisoning. Every class below arises from ordinary usage patterns.\n \n-Six classes are tested in the validation run; a seventh (`authority_inflation`)\n-is documented but **EXPERIMENTAL** and not yet tested.\n+The pilot includes one hand-authored scenario for each of the six proposed\n+mechanisms. These scenarios provide mechanism demonstrations rather than\n+evidence of prevalence or general mitigation efficacy. A seventh\n+(`authority_inflation`) is documented but **EXPERIMENTAL** and not yet tested.\n \n ## 1. `semantic_drift`\n \n\ntokens used\n88,137\nCompleted supported documentation and manuscript corrections. Result recorded in [repair-result-001.json](/Users/ESAranaEd/Scripts/contam-bench/.veritas/workspaces/loop-2026-09-25T201610Z-1958/.veritas/tmp/repair-result-001.json).\n\nSeveral blocking provenance/reproducibility actions require absent historical manifests, archive records, hashes, schema versions, or bibliography material and are marked for human intervention. No tests or builds were run."
+        }
+      },
+      "delta": null,
+      "changed_files": [
+        "CITATION.cff",
+        "LICENSING.md",
+        "README.md",
+        "evidence/20260713T191740Z/validation_report.md",
+        "paper/v3/main.tex",
+        "report/FINAL-AUDIT.md",
+        "spec/taxonomy.md"
+      ],
+      "patch_written": true,
+      "commit_sha": "858ce8c1cec77481b1c719a4d8298ced414e19c8",
+      "started_at": "2026-09-25T20:16:10.894163Z",
+      "finished_at": "2026-09-25T20:25:52.564410Z",
+      "notes": []
+    }
+  ],
+  "stop_reason": "human_decision_required",
+  "stop_detail": "7 file(s) were changed first; 1 decision(s) remain for a human: ACTION-009 (REPRODUCIBILITY-001): Resolving this finding requires evidence that does not exist in the artifact. Veritas will not fabricate measurements, results, citations or datasets to satisfy its own evaluator.",
+  "initial_gate": {
+    "status": "REVISE",
+    "critical": 0,
+    "major": 9,
+    "minor": 21,
+    "info": 0,
+    "blocking_findings": [
+      "ADVERSARIAL-001",
+      "ADVERSARIAL-002",
+      "ADVERSARIAL-004",
+      "ARCHIVAL-001",
+      "ARCHIVAL-002",
+      "CITATIONS-001",
+      "CLAIM-001",
+      "METHODOLOGY-001",
+      "REPRODUCIBILITY-001"
+    ],
+    "failed_checks": [],
+    "judge_errors": [],
+    "accepted_risks": [],
+    "accepted_findings": [],
+    "stale_accepted_risks": [
+      "category=reproducibility location=evidence/20260713T191740Z"
+    ],
+    "reasons": [
+      "9 major finding(s) exceed the limit of 0.",
+      "1 accepted risk(s) no longer match any finding or have expired: category=reproducibility location=evidence/20260713T191740Z"
+    ]
+  },
+  "final_gate": {
+    "status": "REVISE",
+    "critical": 0,
+    "major": 9,
+    "minor": 21,
+    "info": 0,
+    "blocking_findings": [
+      "ADVERSARIAL-001",
+      "ADVERSARIAL-002",
+      "ADVERSARIAL-004",
+      "ARCHIVAL-001",
+      "ARCHIVAL-002",
+      "CITATIONS-001",
+      "CLAIM-001",
+      "METHODOLOGY-001",
+      "REPRODUCIBILITY-001"
+    ],
+    "failed_checks": [],
+    "judge_errors": [],
+    "accepted_risks": [],
+    "accepted_findings": [],
+    "stale_accepted_risks": [
+      "category=reproducibility location=evidence/20260713T191740Z"
+    ],
+    "reasons": [
+      "9 major finding(s) exceed the limit of 0.",
+      "1 accepted risk(s) no longer match any finding or have expired: category=reproducibility location=evidence/20260713T191740Z"
+    ]
+  },
+  "ledger": [
+    {
+      "id": "F316D806A",
+      "title": "Gate-cost reporting uses incompatible retrieval denominators",
+      "category": "metrics / reporting",
+      "severity": "major",
+      "location": "paper/v3/main.tex, \u00a76 `The two-layer dissociation persists` / \u00a77 gate architecture; evidence/20260713T191740Z/validation_report.md, `Relevance-gate observability`; src/metrics.py, `gate_observability`",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "major"
+      ],
+      "finding_ids": [
+        "ADVERSARIAL-002"
+      ],
+      "blocking": true,
+      "notes": []
+    },
+    {
+      "id": "F45E966CE",
+      "title": "Frozen verdicts are inconsistent with the supplied scenario manifests",
+      "category": "reproducibility / artifact discrepancy",
+      "severity": "major",
+      "location": "scenarios/validation/cb-val-003-scope-bleed.yaml (`scoring.judge.enabled: true`); evidence/20260713T191740Z/verdicts.json, all CB-VAL-003 records; src/judge.py, `score_artifact`; evidence/20260713T191740Z/validation_report.md, `judge_call_counts` and per-scenario verdict table",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "major"
+      ],
+      "finding_ids": [
+        "ADVERSARIAL-001"
+      ],
+      "blocking": true,
+      "notes": []
+    },
+    {
+      "id": "F48F40A2B",
+      "title": "Repeated-audit denominator contradicts the stated experimental design",
+      "category": "internal consistency / reproducibility",
+      "severity": "major",
+      "location": "paper/v3/main.tex, Section 4, paragraphs beginning \u201cTable 1 is the frozen v0.2 single-run ablation\u201d and \u201cFifty-two of the 350 rounds\u201d; Section 4 opening paragraph; Table 4 (tab:repeated)",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "major"
+      ],
+      "finding_ids": [
+        "CITATIONS-001"
+      ],
+      "blocking": true,
+      "notes": []
+    },
+    {
+      "id": "F5F83F65C",
+      "title": "The main experiment lacks enough implementation detail for independent reproduction",
+      "category": "reproducibility",
+      "severity": "major",
+      "location": "paper/v3/main.tex, Sections 4.3 \u201cModels and determinism\u201d and 5 \u201cAblation Study\u201d; spec/configs.yaml, models and retrieval sections",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "major"
+      ],
+      "finding_ids": [
+        "METHODOLOGY-001"
+      ],
+      "blocking": true,
+      "notes": []
+    },
+    {
+      "id": "FCB49611A",
+      "title": "Evidence and code references are not pinned to immutable content outside the mutable Git host",
+      "category": "reference immutability",
+      "severity": "major",
+      "location": "README.md, \u201cPaper and evidence,\u201d \u201cQuick start,\u201d and \u201cCitation\u201d; docs/REPRODUCTION.md, \u00a7\u00a71\u20133; paper/v3/main.tex, \u00a75 footnote and Table 2",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "major"
+      ],
+      "finding_ids": [
+        "ARCHIVAL-002"
+      ],
+      "blocking": true,
+      "notes": []
+    },
+    {
+      "id": "FCEEEA27B",
+      "title": "Unsupported claim: The pilot establishes a general mitigation architecture or a general mitigation ",
+      "category": "claims/unsupported",
+      "severity": "major",
+      "location": "paper/v3/main.tex, \u00a75.5, \u00a76, Discussion, and Conclusion",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "major"
+      ],
+      "finding_ids": [
+        "CLAIM-001"
+      ],
+      "blocking": true,
+      "notes": []
+    },
+    {
+      "id": "FDCD231B8",
+      "title": "The DOI is not demonstrably the version containing the reported results",
+      "category": "identity and archival",
+      "severity": "major",
+      "location": "CITATION.cff; README.md, \u201cPaper and evidence\u201d and \u201cCitation\u201d; paper/v3/main.tex, \u00a75 and Table 2",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "major"
+      ],
+      "finding_ids": [
+        "ARCHIVAL-001"
+      ],
+      "blocking": true,
+      "notes": []
+    },
+    {
+      "id": "FE07321E4",
+      "title": "The headline response-level scope result is based on a brittle lexical detector in the supplied evidence",
+      "category": "measurement validity",
+      "severity": "major",
+      "location": "paper/v3/main.tex, \u00a75.5 `Attribution: what the cells support`; evidence/20260713T191740Z/verdicts.json, CB-VAL-003 records; evidence/20260713T191740Z/defects.md, D6; scenarios/validation/cb-val-003-scope-bleed.yaml",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "major"
+      ],
+      "finding_ids": [
+        "ADVERSARIAL-004"
+      ],
+      "blocking": true,
+      "notes": []
+    },
+    {
+      "id": "FEC9141B6",
+      "title": "Main experiment is not reproducible from a pinned environment or revision",
+      "category": "reproducibility",
+      "severity": "major",
+      "location": "requirements.txt; docs/REPRODUCTION.md \u00a7Prerequisites and \u00a72; paper/v3/main.tex \u00a7Models and determinism and \u00a7Discussion and Limitations, Reproducibility",
+      "status": "HUMAN_REVIEW",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "major"
+      ],
+      "finding_ids": [
+        "REPRODUCIBILITY-001"
+      ],
+      "blocking": true,
+      "notes": [
+        "requires a human decision before it can be repaired"
+      ]
+    },
+    {
+      "id": "F084C7ED1",
+      "title": "The response contamination metric can leave undetected false negatives after unresolved cases are excluded",
+      "category": "metrics",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, Section 4.4 \u201cVerdict resolution and metrics\u201d and Discussion, Section \u201cValidity statements\u201d; spec/metrics.md, \u201cVerdict resolution\u201d",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "METHODOLOGY-003"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F1D2372E8",
+      "title": "Missing from the artifact: a DOI for the archived work",
+      "category": "check/citability",
+      "severity": "minor",
+      "location": "paper/v3/main.tex",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "CHECK-CITABILITY-001"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F25A8F83E",
+      "title": "No formal statistical comparison or effect-size framework for mitigation claims",
+      "category": "statistical testing",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, abstract; \u00a75.3; \u00a75.5; Table 'Repeated v0.3 outcome distributions'",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "STATISTICS-002"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F3B1FF23F",
+      "title": "The CFF license field is ambiguous relative to the repository's split licensing",
+      "category": "licensing",
+      "severity": "minor",
+      "location": "CITATION.cff; LICENSING.md; README.md, \u201cLicense\u201d",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "ARCHIVAL-003"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F3C717B2C",
+      "title": "The proposed full-benchmark fixtures are not yet approval-ready under the repository's own review criteria",
+      "category": "experimental-design",
+      "severity": "minor",
+      "location": "docs/SCENARIO_REVIEW.md; spec/full-benchmark-candidates.yaml; scenarios/full-benchmark/cb-full-sd-01.yaml through cb-full-sd-c05.yaml and paired controls",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "METHODOLOGY-004"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F42B90F11",
+      "title": "Very small and non-independent effective sample for mechanism-level rates",
+      "category": "sample size",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, \u00a72 'Validity statements' and \u00a77 'Scale'; evidence/20260713T191740Z/defects.md, 'Evidence scope'",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "STATISTICS-003"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F6D3FD817",
+      "title": "Several prior-work claims lack citations",
+      "category": "citation completeness",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, Section 2 (Related Work), paragraphs \u201cAdversarial memory poisoning,\u201d \u201cMeasurement of non-adversarial memory risk,\u201d and \u201cRetrieval noise and context failure\u201d",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "CITATIONS-002"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F702BF2E4",
+      "title": "The intended claim that the pilot exercises only a subset of the six mechanisms is contradicted by the artifact",
+      "category": "scope/claim precision",
+      "severity": "minor",
+      "location": "AUTHOR'S INTENDED CLAIMS; paper/v3/main.tex, \u00a73; tests/test_schema.py:test_v02_scenario_inventory; spec/taxonomy.md",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "EVIDENCE-001"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F79CB1EFD",
+      "title": "The supplied source cannot be rebuilt or its bibliography checked from the listed files",
+      "category": "citation metadata",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, document ending; supplied file list",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "ARCHIVAL-004"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F7B3D119A",
+      "title": "The v0.2 matrix contains single-run cell results",
+      "category": "run count",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, \u00a75 'Ablation Study', Table 'The ablation matrix' and Table 'Evidence lineage'",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "STATISTICS-005"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F888AB19B",
+      "title": "Supplied repeated-run metadata does not conform to the repository's declared run-metadata schema",
+      "category": "provenance",
+      "severity": "minor",
+      "location": "spec/run-meta.schema.yaml; evidence/20260713T191740Z/run_meta.json; report/FINAL-AUDIT.md \u00a7Verified repository checks",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "REPRODUCIBILITY-002"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F90225D9B",
+      "title": "There is no matched no-memory baseline for the contamination probes",
+      "category": "experimental-design",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, Sections 4.1 \u201cScenarios,\u201d 5.4 \u201cControls, retention, and remaining defects,\u201d and Discussion \u201cFuture-work contract\u201d; scenarios/controls/cb-val-008-control-empty-memory.yaml",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "METHODOLOGY-002"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F90CE4682",
+      "title": "The provenance-arm confound limits attribution of the reported provenance effect",
+      "category": "experimental design / attribution",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, Section 4, subsection \u201cAttribution: what the cells support\u201d; Section 6, subsection \u201cValidity statements\u201d",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "CITATIONS-003"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F975727C9",
+      "title": "Learned-embedding condition is described as implemented but is not integrated into the benchmark execution path",
+      "category": "implementation mismatch",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, \u00a74.3 'Models and determinism' and \u00a77 'Similarity substitution'; src/retrieval.py, functions top_k_embeddings/local_embedder/retrieve; src/full_benchmark.py, main(); spec/full-benchmark.plan.yaml",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "REPO-CONSISTENCY-002"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "F9EE2724A",
+      "title": "Missing from the artifact: a data or code availability statement",
+      "category": "check/citability",
+      "severity": "minor",
+      "location": "paper/v3/main.tex",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "CHECK-CITABILITY-002"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "FAE24EC9A",
+      "title": "The taxonomy is supported as a conceptual framework, but empirical support is uneven and should not be phrased as validation of every mechanism",
+      "category": "claims/evidence alignment",
+      "severity": "minor",
+      "location": "AUTHOR'S INTENDED CLAIMS; paper/v3/main.tex, \u00a7\u00a73, 5.3, 5.5, Discussion; evidence/20260713T191740Z/validation_report.md",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "EVIDENCE-002"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "FB29EC4AF",
+      "title": "The provenance ablation does not isolate provenance",
+      "category": "experimental design / confounding",
+      "severity": "minor",
+      "location": "spec/configs.yaml, `arm_provenance`; paper/v3/main.tex, \u00a75.5 `Attribution: what the cells support`; evidence/20260713T084130Z/defects.md, D5",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "ADVERSARIAL-003"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "FB9BF2A2F",
+      "title": "Most repeated comparisons lack uncertainty estimates",
+      "category": "variance reporting",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, \u00a75.3 'Repeated-evaluation audit and scoring defects' and \u00a75.5 'Attribution: what the cells support'; Table 'Repeated v0.3 outcome distributions'",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "STATISTICS-001"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "FBD8E1079",
+      "title": "Unresolved rounds materially limit several aggregate rates",
+      "category": "missing observations",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, abstract; \u00a75.3; \u00a76.1 'Validity statements'; evidence/20260713T191740Z/validation_report.md, 'Human-adjudicated comparison' and config comparison table",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "STATISTICS-004"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "FCD04FBDE",
+      "title": "Reported empirical results cannot be independently verified from the supplied artifact",
+      "category": "evidence/reproducibility",
+      "severity": "minor",
+      "location": "paper/v3/main.tex, \u00a75.3 'Repeated-evaluation audit and scoring defects'; README.md, 'Paper and evidence'",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "REPO-CONSISTENCY-001"
+      ],
+      "blocking": false,
+      "notes": []
+    },
+    {
+      "id": "FFCFB7C6E",
+      "title": "Fifty-two disputed rounds remain unavailable for independent ground-truth scoring",
+      "category": "scoring-validity",
+      "severity": "minor",
+      "location": "evidence/20260713T191740Z/validation_report.md \u00a7Human-adjudicated comparison and \u00a7Flagged for human review; evidence/20260713T191740Z/adjudications.json; paper/v3/main.tex \u00a7Repeated-evaluation audit and scoring defects",
+      "status": "OPEN",
+      "first_seen_iteration": 1,
+      "last_seen_iteration": 1,
+      "seen_in_iterations": [
+        1
+      ],
+      "severity_history": [
+        "minor"
+      ],
+      "finding_ids": [
+        "REPRODUCIBILITY-003"
+      ],
+      "blocking": false,
+      "notes": []
+    }
+  ],
+  "files_changed": [
+    "CITATION.cff",
+    "LICENSING.md",
+    "README.md",
+    "evidence/20260713T191740Z/validation_report.md",
+    "paper/v3/main.tex",
+    "report/FINAL-AUDIT.md",
+    "spec/taxonomy.md"
+  ],
+  "human_decisions": [
+    "ACTION-009"
+  ],
+  "usage": {
+    "iterations": 1,
+    "files_changed": 7,
+    "repairs_applied": 1
+  },
+  "workspace": "/Users/ESAranaEd/Scripts/contam-bench/.veritas/workspaces/loop-2026-09-25T201610Z-1958",
+  "original_commit": "858ce8c1cec77481b1c719a4d8298ced414e19c8"
+}

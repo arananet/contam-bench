@@ -1,0 +1,61 @@
+{
+  "judge": "repo-consistency",
+  "status": "warning",
+  "summary": "The manuscript is largely consistent with the supplied specifications and implementation, and it explicitly limits the pilot's claims. The main issue is that the empirical headline results depend on withheld evidence and therefore cannot be independently checked from the supplied artifact. A secondary mismatch concerns the claimed learned-embedding successor condition, which is implemented only as unintegrated helper code and is not selectable through the benchmark runner.",
+  "findings": [
+    {
+      "id": "REPO-CONSISTENCY-001",
+      "title": "Reported empirical results cannot be independently verified from the supplied artifact",
+      "severity": "minor",
+      "category": "evidence/reproducibility",
+      "description": "The manuscript reports repeated-audit outcomes, including 350 scored rounds, 52 unresolved rounds, and per-cell five-repetition distributions, but the supplied files contain no evidence aggregates, verdicts, or raw traces. The README explicitly states that the relevant evidence directories exist but were withheld, so these claims are unverified in this evaluation rather than contradicted. The manuscript does acknowledge the unresolved adjudication limitation, but not that the supplied artifact lacks the underlying aggregate files.",
+      "location": "paper/v3/main.tex, \u00a75.3 'Repeated-evaluation audit and scoring defects'; README.md, 'Paper and evidence'",
+      "evidence": [
+        "paper/v3/main.tex, abstract: \u201cOf 350 scored rounds, 52 remain unresolved pending human review.\u201d",
+        "paper/v3/main.tex, Table \\ref{tab:repeated}: reports five-repetition clean/contaminated/flagged distributions for seven configurations.",
+        "README.md, 'Paper and evidence': \u201cAggregates are supplied.\u201d The supplied file list contains no evidence directory, verdicts.json, or validation_report.md.",
+        "README.md, 'Paper and evidence': \u201cThe v0.3.1 append-only correction bundle provides the reconciled 660-call report and a 52-round pending review queue.\u201d Those files are not among the supplied artifacts."
+      ],
+      "recommendation": "Label the repeated-audit numbers as unverified for this artifact review, or supply the aggregate verdict/report files needed to recompute them. The narrowest supported wording is that the manuscript reports machine-only results from the frozen evidence release; independent verification is unavailable from the supplied files.",
+      "confidence": 0.98,
+      "source": "repo-consistency",
+      "disposition": "declared",
+      "original_severity": null
+    },
+    {
+      "id": "REPO-CONSISTENCY-002",
+      "title": "Learned-embedding condition is described as implemented but is not integrated into the benchmark execution path",
+      "severity": "minor",
+      "category": "implementation mismatch",
+      "description": "The manuscript and README describe a successor-study learned-embedding condition using fastembed and BAAI/bge-small-en-v1.5. The code contains helper functions for local embeddings, but the active retrieval path always calls TF-IDF top_k(), and no configuration or runner path selects top_k_embeddings(). The full-benchmark runner is explicitly dry-run only. Thus the claim is partially supported as helper code, but not as an executable benchmark condition.",
+      "location": "paper/v3/main.tex, \u00a74.3 'Models and determinism' and \u00a77 'Similarity substitution'; src/retrieval.py, functions top_k_embeddings/local_embedder/retrieve; src/full_benchmark.py, main(); spec/full-benchmark.plan.yaml",
+      "evidence": [
+        "paper/v3/main.tex, \u00a74.3: \u201cThe successor-study implementation additionally provides a local ONNX embedding condition (\\texttt{fastembed} with \\texttt{BAAI/bge-small-en-v1.5})\u201d.",
+        "README.md, 'Local Embedding Backend': \u201cThe full-benchmark plan reports TF-IDF and a learned embedding backend as separate conditions.\u201d",
+        "src/retrieval.py, `top_k_embeddings(...)`: defines an embedding helper, but `retrieve(...)` invokes `top_k(query, entries, config[\"retrieval\"][\"k\"])` unconditionally.",
+        "src/retrieval.py, `local_embedder(...)`: constructs an embedder, but no call site in the supplied source invokes it.",
+        "src/full_benchmark.py, `main(...)`: when `--authorize-api` is supplied, it raises \u201cAPI execution is not implemented\u201d; the planner only performs a dry run.",
+        "spec/full-benchmark.plan.yaml, `execution.retrieval_backends`: declares `tfidf` and `learned_embedding`, but this is a plan rather than an executable selection mechanism."
+      ],
+      "recommendation": "Restrict the implementation claim to \u201cembedding helper code and a planned successor condition,\u201d or add an explicit backend configuration and execution path before calling it an implemented condition. The current paper's statement that no learned-embedding result is reported remains supported.",
+      "confidence": 0.97,
+      "source": "repo-consistency",
+      "disposition": "artifact",
+      "original_severity": null
+    }
+  ],
+  "claims": [],
+  "evidence": [],
+  "metadata": {
+    "judge_version": "1",
+    "model_role": "repo-consistency",
+    "model": "gpt-5.6-luna",
+    "provider": "openai",
+    "usage": {
+      "input_tokens": 59572,
+      "output_tokens": 3021,
+      "total_tokens": 62593,
+      "model": "gpt-5.6-luna"
+    }
+  }
+}

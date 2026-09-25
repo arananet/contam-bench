@@ -1,0 +1,70 @@
+{
+  "run_id": "2026-09-25T201610Z",
+  "gate": "REVISE",
+  "note": "Veritas Gate does not modify artifacts. This plan is advisory; repair is a separate, explicitly invoked step.",
+  "actions": [
+    {
+      "finding": "ADVERSARIAL-001",
+      "action": "Freeze and publish the exact scenario manifests used to generate the evidence, or regenerate the frozen verdicts from the supplied manifests. Reconcile the per-scenario judge records, judge-call counts, and report before relying on the scope-bleed response results.",
+      "files": [
+        "scenarios/validation/cb-val-003-scope-bleed.yaml (`scoring.judge.enabled: true`); evidence/20260713T191740Z/verdicts.json, all CB-VAL-003 records; src/judge.py, `score_artifact`; evidence/20260713T191740Z/validation_report.md, `judge_call_counts` and per-scenario verdict table"
+      ]
+    },
+    {
+      "finding": "ADVERSARIAL-002",
+      "action": "Define the denominator explicitly and make the generated report and manuscript use the same quantity. Separate total retrievals from gated retrievals, and recompute all displayed gate-cost statistics from the corrected aggregation.",
+      "files": [
+        "paper/v3/main.tex, \u00a76 `The two-layer dissociation persists` / \u00a77 gate architecture; evidence/20260713T191740Z/validation_report.md, `Relevance-gate observability`; src/metrics.py, `gate_observability`"
+      ]
+    },
+    {
+      "finding": "ADVERSARIAL-004",
+      "action": "Treat this result as a deterministic-pattern observation, not a validated response-contamination effect, until the exact evidence is rescored with the enabled judge or independently adjudicated under an assertion-aware rubric.",
+      "files": [
+        "paper/v3/main.tex, \u00a75.5 `Attribution: what the cells support`; evidence/20260713T191740Z/verdicts.json, CB-VAL-003 records; evidence/20260713T191740Z/defects.md, D6; scenarios/validation/cb-val-003-scope-bleed.yaml"
+      ]
+    },
+    {
+      "finding": "ARCHIVAL-001",
+      "action": "Create or cite immutable, version-specific archive records for the paper source and each evidence release, and state explicitly which DOI/version contains the numbers reported in the manuscript. Include a manifest recording the commit/tag and hashes of the paper and evidence directories.",
+      "files": [
+        "CITATION.cff; README.md, \u201cPaper and evidence\u201d and \u201cCitation\u201d; paper/v3/main.tex, \u00a75 and Table 2"
+      ]
+    },
+    {
+      "finding": "ARCHIVAL-002",
+      "action": "Replace bare repository and relative-directory citations with release-specific immutable references: commit SHA plus archived DOI/object URL, and provide a release manifest mapping every table to exact artifact hashes.",
+      "files": [
+        "README.md, \u201cPaper and evidence,\u201d \u201cQuick start,\u201d and \u201cCitation\u201d; docs/REPRODUCTION.md, \u00a7\u00a71\u20133; paper/v3/main.tex, \u00a75 footnote and Table 2"
+      ]
+    },
+    {
+      "finding": "CITATIONS-001",
+      "action": "Reconcile the scenario/configuration/repetition counts with the supplied aggregates and call logs. Identify any additional scenario or round if one exists, or correct the 350-round and API-call totals and recompute the review percentage, audit summaries, and related claims.",
+      "files": [
+        "paper/v3/main.tex, Section 4, paragraphs beginning \u201cTable 1 is the frozen v0.2 single-run ablation\u201d and \u201cFifty-two of the 350 rounds\u201d; Section 4 opening paragraph; Table 4 (tab:repeated)"
+      ]
+    },
+    {
+      "finding": "CLAIM-001",
+      "action": "Provide evidence for the claim or remove it.",
+      "files": [
+        "paper/v3/main.tex, \u00a75.5, \u00a76, Discussion, and Conclusion"
+      ]
+    },
+    {
+      "finding": "METHODOLOGY-001",
+      "action": "Report the exact retrieval implementation and versions, vectorizer/tokenization/normalization settings, tie-breaking, prompt templates, memory serialization, API/model revision identifiers, and provide the code or a complete executable release corresponding to the cited evidence tags.",
+      "files": [
+        "paper/v3/main.tex, Sections 4.3 \u201cModels and determinism\u201d and 5 \u201cAblation Study\u201d; spec/configs.yaml, models and retrieval sections"
+      ]
+    },
+    {
+      "finding": "REPRODUCIBILITY-001",
+      "action": "Archive an exact commit identifier with each evidence release and provide a lockfile, container, or complete resolved dependency manifest, including the API client version and retrieval dependencies. Preserve the existing nondeterminism caveat and report rerun comparisons against the frozen artifacts.",
+      "files": [
+        "requirements.txt; docs/REPRODUCTION.md \u00a7Prerequisites and \u00a72; paper/v3/main.tex \u00a7Models and determinism and \u00a7Discussion and Limitations, Reproducibility"
+      ]
+    }
+  ]
+}

@@ -1,540 +1,375 @@
 # Veritas Gate Report
 
-**Gate:** `REVISE` (exit code 2)
+**Gate:** `FAIL` (exit code 3)
 
 ## Executive summary
 
-8 judges and 6 checks produced 45 consolidated findings (0 critical, 25 major, 20 minor, 0 info). Failing checks: citability, claim-graph.
+8 judges and 5 checks produced 37 consolidated findings (2 critical, 15 major, 20 minor, 0 info). Failing checks: citability.
 
 ## Gate result
 
 | Severity | Count |
 | --- | --- |
-| Critical | 0 |
-| Major | 25 |
+| Critical | 2 |
+| Major | 15 |
 | Minor | 20 |
 | Info | 0 |
 
 Policy decisions:
 
-- 25 major finding(s) exceed the limit of 0.
+- 2 critical finding(s) present (fail_on: critical).
+- 14 major finding(s) exceed the limit of 0.
+- 1 rule(s) accepted 1 finding(s) as known risk, so they do not block: category=reproducibility location=evidence/20260713T191740Z
 
 ## Blocking findings
 
-### [ADVERSARIAL-001] Raw per-scenario response artifacts needed to audit the headline results are not supplied
+### [ADVERSARIAL-001] Headline results cannot be independently reproduced from the supplied evidence bundle
 
-- **Severity:** MAJOR
+- **Severity:** CRITICAL
 - **Category:** reproducibility
-- **Location:** README.md, 'Paper and evidence' and 'Usage'; evidence/20260713T191740Z/verdicts.json; paper/v3/main.tex, §4 'CONTAM-Bench' and §5.3
-- **Confidence:** 0.98
-- **Reported by:** adversarial
-
-The manuscript says every run persists raw prompts, injected memories, responses, and verdicts, but the supplied evidence files contain only aggregate reports, metadata, queues, and verdict summaries. The supplied verdicts.json records judge evidence but not the underlying subject responses, so an evaluator cannot independently verify whether the verdicts or retrieval assertions match the actual outputs. This prevents reproduction of the main response-level results from the provided artifact.
-
-Evidence:
-
-- README.md: “Each evidence directory contains the raw per-scenario artifacts (prompts, injected memories, gate decisions, responses), verdicts.json, validation_report.md, and defects.md”
-- paper/v3/main.tex, §4: “every run artifact, including raw prompts, injected memory, responses, and judge verdicts, is persisted as JSON for audit”
-- The supplied file inventory for evidence/20260713T191740Z contains no CB-*.json per-scenario artifact files.
-- evidence/20260713T191740Z/verdicts.json contains verdicts and scorer evidence, but no subject-response text or prompt artifacts.
-
-**Recommendation:** Supply the exact frozen CB-*.json artifacts, or remove claims that the headline response-level results can be independently audited from this release.
-
-### [ADVERSARIAL-002] The manuscript claims a corrected review report that contradicts the supplied frozen report
-
-- **Severity:** MAJOR
-- **Category:** artifact discrepancy
-- **Location:** paper/v3/main.tex, §5.3; evidence/20260713T191740Z/validation_report.md, 'Flagged for human review'; evidence/20260713T191740Z/defects.md, D8; report/FINAL-AUDIT.md
+- **Location:** Files provided; README.md, section 'Paper and evidence'; src/adjudication.py::_artifact_index; src/metrics.py::gate_observability and retrieval scoring
 - **Confidence:** 0.99
 - **Reported by:** adversarial
 
-The manuscript states that the rendered report identifies flagged rows by repetition and artifact hash. The supplied v0.3 validation report instead repeats indistinguishable scenario/configuration/round labels, and the accompanying defect record explicitly identifies this as an unresolved defect. This discrepancy makes the stated auditability and evidence lineage inaccurate.
+The supplied evidence directories contain metadata, reports, verdicts, defects, and a pending queue, but no raw per-scenario JSON artifacts containing the prompts, retrieved memories, gate decisions, and responses. The verdicts reference these missing artifacts by hash, while the adjudication and scoring code requires CB-*.json files. Consequently, the reported verdicts and the gate mechanism finding cannot be independently checked from the supplied artifact, and the raw evidence needed to recompute the headline results is unavailable.
 
 Evidence:
 
-- paper/v3/main.tex, §5.3: “The rendered report now labels its machine-only and human-consensus tables separately and identifies review rows by repetition and artifact hash.”
-- evidence/20260713T191740Z/validation_report.md, 'Flagged for human review': entries are formatted as “CB-VAL-004 × arm_gate round 1” and repeat across repetitions without repetition or artifact hash.
-- evidence/20260713T191740Z/defects.md, D8: “Human-review register omits repetition identifiers” and “the report is ambiguous.”
-- report/FINAL-AUDIT.md, 'Scientific readiness': independent scoring assessment remains open.
+- The supplied file inventory for evidence/20260713T191740Z lists adjudications.json, defects.md, run_meta.json, validation_report.md, and verdicts.json, but no CB-*.json raw scenario artifacts.
+- README.md states that each evidence directory contains 'raw per-scenario artifacts (prompts, injected memories, gate decisions, responses, verdicts.json, validation_report.md, and defects.md)'; those raw artifacts are absent from the supplied files.
+- src/adjudication.py::_artifact_index only indexes files whose names start with 'CB-' and extracts their response and scoring fields; without those files, the 52 queued rounds cannot be converted into review packets.
+- src/metrics.py::gate_observability reads CB-VAL-*.json files to compute gate calls and retrieval diagnostics, so the reported gate observations cannot be recomputed from the supplied verdicts alone.
 
-**Recommendation:** Either provide the corrected report and its provenance, or revise the manuscript to describe the supplied report as ambiguous and retain D8 as an active limitation.
+**Recommendation:** Provide the complete frozen CB-*.json raw artifact files, or remove claims that depend on independently inspecting and recomputing responses, retrievals, and gate decisions. The release should also include a manifest proving that every artifact hash in verdicts.json maps to a supplied file.
 
-### [ARCHIVAL-001] Reported evidence is referenced by mutable tags and repository paths rather than an immutable version-specific identifier
+### [REPO-CONSISTENCY-001] Headline empirical results lack the evidence artifacts that supposedly produced them
 
-- **Severity:** MAJOR
-- **Category:** identity and archival
-- **Location:** paper/v3/main.tex, Section 5 and Table 2 (Evidence lineage); README.md, 'Paper and evidence' and 'Citation' sections
-- **Confidence:** 0.97
-- **Reported by:** archival
-
-The paper reports results from multiple evidence releases, but identifies them only by repository-relative paths and Git tags. No commit SHA, version-specific DOI, or Software Heritage identifier is supplied for the exact artifacts underlying each table. An annotated Git tag and a GitHub repository are not sufficient evidence that the cited contents cannot later be changed or deleted.
-
-Evidence:
-
-- paper/v3/main.tex, Table 2: “v0.2 ablation ... v0.2-ablation”, “v0.3 repeated audit ... v0.3-repeated-ablation”, and “v0.3.1 corrections ... v0.3.1-evidence-corrections”
-- paper/v3/main.tex, Section 5: “Complete run artifacts are published at \texttt{evidence/20260713T084130Z} ... frozen at tag \texttt{v0.2-ablation}.”
-- README.md: “Runs cited in publications are copied to \`evidence/<timestamp>/\` and frozen under an annotated tag”; the cited locations are GitHub repository paths, not immutable identifiers.
-
-**Recommendation:** Record the exact commit SHA for every evidence release used by the paper and archive each release independently with a version-specific DOI or Software Heritage identifier. State explicitly which DOI resolves to which release and paper version.
-
-### [ARCHIVAL-002] The supplied artifact does not contain the evidence files needed to retrieve or verify the headline results
-
-- **Severity:** MAJOR
-- **Category:** data and artifact availability
-- **Location:** Provided file list; README.md, 'Paper and evidence' section; paper/v3/main.tex, Table 2 and Sections 5.1–5.3
-- **Confidence:** 0.99
-- **Reported by:** archival
-
-The paper's central numerical results depend on raw runs, verdicts, reports, and correction queues, but the supplied artifact contains only the citation, licensing, README, reproduction protocol, and LaTeX manuscript. The manuscript and README point to evidence directories that are absent from the provided file list. Thus, a reader of this artifact cannot independently retrieve the artifacts supporting the tables.
-
-Evidence:
-
-- Provided file list contains CITATION.cff, LICENSING.md, README.md, docs/REPRODUCTION.md, and paper/v3/main.tex, but no \`evidence/\` directory, raw JSON, verdicts, or validation reports.
-- README.md: “Each evidence directory contains the raw per-scenario artifacts ... \`verdicts.json\`, \`validation_report.md\`, and \`defects.md\`.”
-- paper/v3/main.tex, Section 5.2: “Complete run artifacts are published at \texttt{evidence/20260713T084130Z} ... Every number in this section is recomputable from those artifacts.”
-
-**Recommendation:** Include or independently archive the exact evidence releases, including raw artifacts, verdicts, reports, correction bundle, and review queue, and link them using immutable version-specific identifiers. If the artifact package intentionally omits them, label the supplied package as manuscript-only rather than reproducible evidence.
-
-### [CITATIONS-001] Repeated-audit denominator is arithmetically inconsistent
-
-- **Severity:** MAJOR
-- **Category:** experimental accounting
-- **Location:** paper/v3/main.tex, Section 4.4 'Repeated-evaluation audit and scoring defects'; Table 3 caption and surrounding text
-- **Confidence:** 0.99
-- **Reported by:** citations
-
-The paper states that the repeated audit used nine scenarios, seven configurations, and five repetitions, which implies 315 scenario-configuration-rounds. It nevertheless reports 350 scored rounds and derives the 14.9% review rate from 52/350. The same inconsistency appears in the reported subject-call count. This prevents the reported aggregate accounting from being recomputed as stated and may change the review rate and any aggregate interpretation.
-
-Evidence:
-
-- "the latter ran the same nine scenarios and seven configurations five times, producing 350 scored rounds"
-- "Fifty-two of the 350 rounds (14.9%) required human review"
-- "The repeated audit used 660 API calls: 350 subject calls, 135 gate calls, and 175 judge calls."
-- Table 3 lists seven configurations and four scenario columns, while Table 2 and the surrounding text define nine scenarios; nine × seven × five = 315, not 350.
-
-**Recommendation:** Reconcile the scenario, configuration, repetition, and API-call counts against the persisted run manifest, and correct the denominator, percentages, and call accounting. If additional rounds were included, identify them explicitly and explain why they are not represented by the stated nine-by-seven-by-five design.
-
-### [CITATIONS-002] Headline results cannot be independently checked from the supplied artifact
-
-- **Severity:** MAJOR
+- **Severity:** CRITICAL
 - **Category:** reproducibility
-- **Location:** paper/v3/main.tex, Section 4 'Ablation Study', footnote to the first paragraph; Sections 4.4 and 8.1 'Reproducibility'
+- **Location:** paper/v3/main.tex, Abstract; §5, Table 1 footnote and §5.3; README.md, “Paper and evidence”
+- **Confidence:** 0.99
+- **Reported by:** repo-consistency
+
+The manuscript presents the nine-scenario, seven-configuration, five-repetition results as recomputable from frozen artifacts, but none of the referenced evidence directories, scenario manifests, raw responses, verdicts, or validation reports are included in the supplied artifact. The supplied file list contains README.md, paper, specs, source, and tests only. This prevents verification of the headline results and means the central empirical conclusion is not reproducible from the submission as provided.
+
+Evidence:
+
+- Manuscript abstract: “We report an ablation over seven configurations using one subject model and TF-IDF retrieval, followed by five repetitions of each scenario--configuration cell.”
+- Manuscript §5, Table 1 footnote: “Complete run artifacts are published at evidence/20260713T084130Z in the benchmark repository, frozen at tag v0.2-ablation. Every number in this section is recomputable from those artifacts.”
+- Manuscript §5.3: “the latter ran the same nine scenarios and seven configurations five times, producing 350 scored rounds, and is published separately at evidence/20260713T191740Z.”
+- README.md, “Paper and evidence”: references evidence/20260713T084130Z, evidence/20260713T191740Z, and evidence/20260713T191740Z/corrections/. None of these paths appears in the supplied files.
+- README.md, “Usage”: states that scenarios are under scenarios/validation/ and scenarios/controls/. No scenarios directory or manifest is supplied.
+- tests/test_schema.py, test_v02_scenario_inventory: expects CB-VAL-001 through CB-VAL-009 on disk; those files are absent from the supplied artifact.
+
+**Recommendation:** Supply the exact frozen evidence directories, scenario manifests, verdicts, reports, and correction/adjudication files referenced by the manuscript, or remove the numerical results and restrict the paper to claims supported by the supplied code and specifications.
+
+### [ADVERSARIAL-002] The six-mechanism empirical claim exceeds what the pilot actually demonstrates
+
+- **Severity:** MAJOR
+- **Category:** claims
+- **Location:** paper/v3/main.tex, abstract; Sections 3, 5.2, 5.3, 5.5, and Conclusion
 - **Confidence:** 0.97
-- **Reported by:** citations
+- **Reported by:** adversarial
 
-The main results depend on external evidence releases and a repository, but the supplied artifact contains only main.tex and references.bib. No YAML manifests, raw prompts, responses, retrieval traces, judge outputs, review queue, hashes, or run reports are included here. Consequently, the manuscript's matrix and repeated-audit claims are unverified from the provided material, despite the assertion that every number is recomputable.
-
-Evidence:
-
-- "Complete run artifacts are published at evidence/20260713T084130Z in the benchmark repository ... Every number in this section is recomputable from those artifacts."
-- "The v0.3 evidence now includes a separately versioned queue for all 52 unresolved artifact rounds"
-- "The benchmark and code are available at https://github.com/arananet/contam-bench."
-- The supplied files are only paper/v3/main.tex and paper/v3/references.bib; none of the cited evidence files or run artifacts is present.
-
-**Recommendation:** Provide the exact evidence release or a complete archival supplement containing the manifests, raw model and judge artifacts, retrieval traces, scoring outputs, review queue, and file hashes, or label the reported results as externally hosted and not independently verifiable from this artifact.
-
-### [CITATIONS-003] Intended identifier-reuse claim has no supporting experiment or evidence
-
-- **Severity:** MAJOR
-- **Category:** unsupported claim
-- **Location:** paper/v3/main.tex, Sections 3–4 and 7; no identifier-reuse or MCP experiment is specified
-- **Confidence:** 0.98
-- **Reported by:** citations
-
-The intended claim that reusing an identifier overwrites shared mappings but is retained in separate MCP instances is not operationalized or reported anywhere in the manuscript. The described benchmark concerns memory contamination scenarios, namespaces, provenance, TTL, retrieval gates, and raw fidelity; it provides no identifier-reuse scenario, MCP configuration, output, or trace. The claim is therefore unverified and cannot be narrowed from the supplied text beyond saying that no evidence is presented here.
+The manuscript presents six mechanisms as operationalized and falsifiable, but the reported response-layer evidence does not demonstrate degradation for several of them: semantic drift resolves clean for all configurations, natural recursion has a clean first round and a null compounding factor, and summarization loss has no utility oracle and all response verdicts are clean. Thus the evidence supports a taxonomy and targeted demonstrations of selected failure modes, not the broader claim that ordinary memory behavior degrades responses through all six mechanisms.
 
 Evidence:
 
-- The benchmark scenario description lists seeded items with "content, source, age in days, domain, and fact class" but does not specify identifier reuse or MCP instances.
-- Table 2's seven configurations cover naive, namespacing, provenance, TTL, gate, raw, and governed arms; none is an identifier-reuse or MCP-instance condition.
-- The results sections report drift, provenance, scope bleed, staleness, recursion, summarization, and controls, but contain no identifier-overwrite result.
+- paper/v3/main.tex, abstract: 'Ordinary memory-system behaviour' is framed as producing six mechanisms, while the results report clean semantic-drift responses and unresolved seeded-recursion rounds.
+- paper/v3/main.tex, Section 5.2: the natural recursion compounding factor is 'again null (round1_clean) across all seven configurations.'
+- paper/v3/main.tex, Section 5.3: 'The summarization probe has no utility oracle, so it cannot establish a utility gain from raw fidelity.'
+- paper/v3/main.tex, Section 5.5: 'Semantic drift remains a response-layer tie: all configurations resolved clean.'
+- evidence/20260713T191740Z/validation_report.md, Config comparison: compounding_factor_natural is null for every configuration and the response-level staleness rates are null for four configurations.
 
-**Recommendation:** Remove this claim from the paper or add a separately specified and evidenced experiment covering the fixed write order, shared mappings, separate MCP instances, and the observed identifier behavior.
+**Recommendation:** Narrow the headline to: the study defines six candidate mechanisms and obtains within-scenario evidence for provenance, scope, and selected retrieval/gate behaviors; it does not empirically establish response degradation for all six mechanisms.
 
-### [CITATIONS-004] Intended host-handler-dependent tool-rejection claim has no supporting evidence
-
-- **Severity:** MAJOR
-- **Category:** unsupported claim
-- **Location:** paper/v3/main.tex, Section 4.3 'Models and determinism'; no tool-rejection experiment elsewhere in the manuscript
-- **Confidence:** 0.98
-- **Reported by:** citations
-
-The intended claim that model-only tool rejection depends on the installed host handler rather than the SDK default is not discussed or tested in the manuscript. The model and benchmark description mentions subject, judge, relevance-gate, retrieval, and memory configurations, but no tool-rejection protocol, SDK version, host handler, or comparative result. The claim is therefore unverified from the artifact.
-
-Evidence:
-
-- "The subject model under test is claude-sonnet-4-6 at temperature 0; the judge and relevance gate are claude-haiku-4-5."
-- "The reported validation runs use TF-IDF cosine similarity" and the surrounding configuration descriptions discuss memory retrieval, not tool rejection.
-- No occurrence or section in main.tex specifies an SDK default handler, installed host handler, tool rejection test, or corresponding result.
-
-**Recommendation:** Remove the claim from the evaluated claims, or provide a separate experiment documenting the SDK version/default behavior, installed host handler, test prompts, tool outcomes, and comparison conditions.
-
-### [CLAIM-001] Unsupported claim: The paper's seven-configuration pilot establishes a general mitigation architect
-
-- **Severity:** MAJOR
-- **Category:** claims/unsupported
-- **Location:** paper/v3/main.tex, §5.6, §6, and Conclusion
-- **Confidence:** 0.90
-- **Reported by:** claim-graph
-
-The artifact explicitly disclaims this stronger claim; the supported conclusion is only a small, mechanism-specific pilot observation.
-
-Evidence:
-
-- paper/v3/main.tex, §6: “The ablation motivates constraints, not an efficacy ordering.”
-- paper/v3/main.tex, Conclusion: “They motivate further tests of memory contracts, not a validated general mitigation architecture.”
-- evidence/20260713T191740Z/defects.md, Evidence scope: one model, five repetitions, machine-only adjudication unavailable.
-
-**Recommendation:** Provide evidence for the claim or remove it.
-
-### [EVIDENCE-001] Identifier-reuse/MCP-isolation claim is not evidenced
-
-- **Severity:** MAJOR
-- **Category:** missing evidence
-- **Location:** Artifact-wide; relevant supplied implementation is limited to src/memory_store.py and the listed scenario/evidence files
-- **Confidence:** 0.99
-- **Reported by:** evidence
-
-The intended claim that reusing an identifier overwrites entries in shared mappings but remains isolated across separate MCP instances cannot be evaluated from the supplied artifact. The repository contents contain no MCP implementation, identifier-reuse experiment, or result record establishing this behavior. This is an unverified claim rather than a plausible inference from the memory-contamination benchmark.
-
-Evidence:
-
-- src/memory_store.py contains an in-memory MemoryStore with append-based seed/write-back behavior, but no identifier-keyed shared mapping or MCP-instance isolation experiment.
-- The supplied evidence releases contain contamination scenarios and verdicts, but no table, figure, script, or result file testing identifier reuse across shared versus separate MCP instances.
-- README.md describes the study as a persistent-memory ablation benchmark and does not report an MCP identifier-reuse experiment.
-
-**Recommendation:** Either remove this intended claim from the evaluated claims or provide a separately identified experiment with the identifier semantics, shared/separate instance setup, fixed write order, and persisted results. The narrowest currently supported wording is that no identifier-reuse/MCP-isolation conclusion is established by this artifact.
-
-### [EVIDENCE-003] Manuscript claims the rendered report identifies review rows, but the frozen report does not
-
-- **Severity:** MAJOR
-- **Category:** reproducibility/reporting contradiction
-- **Location:** paper/v3/main.tex, §5.3 “Repeated-evaluation audit and scoring defects”; evidence/20260713T191740Z/validation_report.md, “Flagged for human review”; evidence/20260713T191740Z/defects.md, D8
-- **Confidence:** 0.99
-- **Reported by:** evidence
-
-The manuscript states that the rendered report identifies review rows by repetition and artifact hash. The supplied frozen v0.3 validation report instead lists repeated rows without either field, and the associated defect record explicitly identifies this as D8. Thus the manuscript overstates the state of the supplied reporting artifact.
-
-Evidence:
-
-- paper/v3/main.tex, §5.3: “The rendered report now labels its machine-only and human-consensus tables separately and identifies review rows by repetition and artifact hash.”
-- evidence/20260713T191740Z/validation_report.md, “Flagged for human review”: rows are formatted like “CB-VAL-004 × arm_gate round 1” and omit repetition and artifact hash.
-- evidence/20260713T191740Z/defects.md, D8: “Human-review register omits repetition identifiers” and “the report is ambiguous.”
-
-**Recommendation:** Correct the manuscript to distinguish the frozen report from later planned or generated reporting changes. Do not claim that the supplied rendered report includes repetition/hash identifiers unless the corresponding report artifact is supplied and verified.
-
-### [METHODOLOGY-001] The provenance ablation does not isolate provenance tagging
+### [ADVERSARIAL-004] The seeded-recursion experiment does not test recursive write-back propagation in the same way as the natural recursion experiment
 
 - **Severity:** MAJOR
 - **Category:** experimental design
-- **Location:** paper/v3/main.tex, Section 5.6 'Attribution: what the cells support'; Section 7.1 'Validity statements'; Table 3
-- **Confidence:** 0.99
-- **Reported by:** methodology
+- **Location:** paper/v3/main.tex, Section 5.2 'Seeded recursion (CB-VAL-009)'; scenarios/validation/cb-val-009-recursive-seeded.yaml; src/harness.py::run_pair
+- **Confidence:** 0.98
+- **Reported by:** adversarial
 
-The provenance arm changes more than source attribution: its tag exposes source, age, and domain. Therefore the five clean outcomes cannot identify provenance tags as the causal mitigation, especially because the stale age is itself potentially informative. The manuscript acknowledges this confound, but the headline provenance interpretation still presents the tag arm as evidence for the provenance finding.
+The paper calls CB-VAL-009 a seeded-recursion mechanism test, but the contaminated assistant write-back is manually placed in the initial memory seed. This bypasses the causal step central to recursive contamination—an assistant response being generated, written back, and then retrieved. The experiment tests handling of a pre-existing contradictory assistant record and the gate's filtering behavior, not whether the system's own output creates or compounds that record.
 
 Evidence:
 
-- paper/v3/main.tex, Section 5.6: 'the provenance tag as implemented carries age and domain metadata ([source: user | age: 200d | domain: personal]), so the provenance arm also resolved staleness because the subject discounted the 200-day-old fact by its visible age.'
-- paper/v3/main.tex, Section 7.1: 'The provenance arm is confounded: its tag emits source, age, and domain together, so its staleness result cannot be attributed to source attribution alone.'
-- paper/v3/main.tex, Table 3: 'provenance tags, raw fidelity, and the governed bundle are each 5/0/0'
+- paper/v3/main.tex, Section 5.2: 'the store is seeded directly with an already-contaminated assistant-attributed write-back ... alongside the user-sourced ground truth.'
+- scenarios/validation/cb-val-009-recursive-seeded.yaml: the initial memory_seed contains 'atlas-confirmed-write-back' with source 'assistant'; the scenario has no write_back: true or round2 block.
+- src/harness.py::run_pair: only scenarios with 'write_back' and 'round2' execute the response-to-store transition; CB-VAL-009 therefore has no generated write-back transition.
+- paper/v3/main.tex, Section 3: recursive contamination is defined as 'write-back of assistant output' and later retrieval of that output.
 
-**Recommendation:** Report the provenance result explicitly as an effect of a bundled metadata intervention, or provide a pure-factor source-only ablation before attributing the result to provenance tagging.
+**Recommendation:** Describe CB-VAL-009 narrowly as a seeded contradictory-record/gate-presupposition test. Do not use it as direct evidence that the system's own generated responses cause recursive contamination unless a genuine generated-response write-back experiment is supplied.
 
-### [METHODOLOGY-002] The canonical response outcomes have no independent ground-truth resolution for 52 rounds
+### [ADVERSARIAL-005] The released correction bundle and the manuscript's evidence lineage are not present in the supplied artifact
 
 - **Severity:** MAJOR
-- **Category:** evaluation methodology
-- **Location:** paper/v3/main.tex, Section 5.2 'Repeated-evaluation audit and scoring defects'; Section 7.1; spec/metrics.md, 'Adjudication layer'
+- **Category:** artifact consistency
+- **Location:** README.md, evidence table; paper/v3/main.tex, Table 1 and Section 5.3; supplied file inventory
 - **Confidence:** 0.99
-- **Reported by:** methodology
+- **Reported by:** adversarial
 
-The repeated audit excludes 52 of 350 rounds because deterministic and judge verdicts disagree, and the artifact contains no human verdicts. This is correctly disclosed, but it leaves the headline machine-only rates and comparisons potentially sensitive to unresolved cases; assertion versus mention is central to the contamination criterion. The manuscript should not use these rates as if they were validated contamination outcomes.
+The README and manuscript refer to a v0.3.1 correction bundle and cite it as part of the evidence lineage, but the supplied file inventory contains no evidence/20260713T191740Z/corrections/ directory or correction file. This prevents verification of the stated call reconciliation and makes the claimed release lineage internally incomplete.
 
 Evidence:
 
-- paper/v3/main.tex, Section 5.2: 'Fifty-two of the 350 rounds (14.9%) required human review.'
-- paper/v3/main.tex, Section 5.2: 'Neither direction establishes which scorer is correct without independent assessment.'
-- paper/v3/main.tex, Section 5.2: 'the queue ... contains no human verdicts.'
-- spec/metrics.md, 'Adjudication layer': 'Ties and single-adjudicator records remain unresolved; no rate silently mixes machine and human layers.'
+- README.md, evidence table: v0.3.1 is backed by 'evidence/20260713T191740Z/corrections/' and described as an append-only 660-call reconciliation.
+- paper/v3/main.tex, Table 'Evidence lineage': v0.3.1 corrections are listed as an evidence release backing call reconciliation and review-queue metadata.
+- evidence/20260713T191740Z/defects.md, D9: 'No adjudications file accompanies the frozen evidence'; D10 records the 660-call total as a correction to the 485-call run metadata.
+- The supplied files under evidence/20260713T191740Z include no corrections/ directory or call-count-v1.json file.
 
-**Recommendation:** Present sensitivity bounds or separate resolved and unresolved analyses for every load-bearing comparison, and complete the pre-specified blinded independent adjudication before making response-layer efficacy claims.
+**Recommendation:** Include the referenced correction files in the frozen release and verify their hashes, or remove the v0.3.1 lineage and correction claims from the manuscript and README.
 
-### [METHODOLOGY-008] The intended identifier-reuse claim is unsupported by the supplied artifact
+### [ARCHIVAL-001] Frozen evidence artifacts are not included in the supplied artifact
 
 - **Severity:** MAJOR
-- **Category:** claim-evidence mismatch
-- **Location:** All supplied files; no corresponding section or scenario present
-- **Confidence:** 0.99
-- **Reported by:** methodology
+- **Category:** archival and reproducibility
+- **Location:** README.md, “Paper and evidence”; paper/v3/main.tex, Sections 5.1, 5.3, and 5.4
+- **Confidence:** 0.98
+- **Reported by:** archival
 
-The intended claim that reusing an identifier overwrites shared mappings but is retained in separate MCP instances has no corresponding scenario, experiment, result table, or discussion in the supplied files. It is therefore unverified and cannot be included as a finding of the paper.
+The paper's central numerical and trace-based results depend on frozen evidence directories that are referenced but not present among the supplied files. The README states that the evidence directories contain raw prompts, injected memories, gate decisions, responses, verdicts, and validation reports, while the supplied artifact contains only metadata, documentation, and the manuscript. Consequently, a reader of this artifact cannot independently recompute the headline results or inspect the logged gate decisions.
 
 Evidence:
 
-- The supplied scenario files cover semantic drift, provenance collapse, scope bleed, temporal staleness, recursion, summarization loss, and two controls; none tests identifier reuse or MCP-instance retention.
-- paper/v3/main.tex, Section 3 taxonomy: the seven documented classes do not include identifier reuse or MCP mapping semantics.
-- spec/schema.yaml and spec/full-benchmark.plan.yaml: no identifier-reuse or MCP-instance scenario is listed.
+- README.md: “Each evidence directory contains the raw per-scenario artifacts (prompts, injected memories, gate decisions, responses), `verdicts.json`, `validation_report.md`, and `defects.md`” — but no `evidence/` files are among the supplied files.
+- paper/v3/main.tex, Section 5.1: “Complete run artifacts are published at `evidence/20260713T084130Z` ... Every number in this section is recomputable from those artifacts.”
+- paper/v3/main.tex, Section 5.4: “The v0.2 gate failure is traceable in the gate's own logged decisions.”
 
-**Recommendation:** Remove this claim from the evaluated contribution, or add a dedicated, reproducible experiment with shared versus separate MCP instances and explicit overwrite/retention assertions.
+**Recommendation:** Distribute the frozen evidence artifacts with the archival release, or provide a persistent archive link and exact file manifest/hashes for every evidence release used by the paper. Do not rely solely on the mutable repository path.
 
-### [METHODOLOGY-009] The intended host-handler rejection claim is unsupported by the supplied artifact
+### [ARCHIVAL-002] Evidence tags are named but not bound to immutable commit or archive contents
 
 - **Severity:** MAJOR
-- **Category:** claim-evidence mismatch
-- **Location:** All supplied files; no corresponding section or scenario present
-- **Confidence:** 1.00
-- **Reported by:** methodology
+- **Category:** reference immutability
+- **Location:** README.md, “Quick start” and “Paper and evidence”; docs/REPRODUCTION.md, “Prerequisites” and “What to compare”; paper/v3/main.tex, Table 2 and Section 5.3
+- **Confidence:** 0.96
+- **Reported by:** archival
 
-The intended claim that model-only tool rejection depends on the installed host handler rather than the SDK default is not evaluated in the manuscript or supplied scenarios. No tool-rejection experiment, host-handler comparison, SDK configuration, or result is present.
+The paper identifies evidence releases by Git tags such as `v0.2-ablation` and `v0.3-repeated-ablation`, but it does not record the commit SHA, archive checksum, or DOI/version relation for those exact releases. The reproduction protocol instructs reviewers to clone the repository and inspect `HEAD`, while the manuscript and README repeatedly point to a bare GitHub repository or repository-relative paths. A tag or default branch can change after review, so the version containing the reported numbers is not unambiguously recoverable from the supplied artifact.
 
 Evidence:
 
-- The supplied files contain memory scenarios and memory configurations only; no tool-calling or host-handler scenario is present.
-- paper/v3/main.tex contains no section or result describing model-only tool rejection, installed host handlers, or SDK-default behavior.
-- spec/full-benchmark.plan.yaml lists retrieval backends, models, gates, baselines, and utility oracles, but no tool-rejection experiment.
-- The supplied source files implement memory retrieval, judging, adjudication, and benchmarking, but do not contain a model-only tool rejection experiment or host-handler comparison.
-- tests/test_integration.py and tests/test_ci_workflows.py cover benchmark execution and CI configuration, not SDK-default versus installed-host-handler tool behavior.
-- The supplied paper, paper/v3/main.tex, discusses memory contamination and retrieval gates but makes no evidence-backed tool-handler comparison.
+- README.md: “This repository is archived on Zenodo with the following DOI: 10.5281/zenodo.22859806” but no mapping is given from that DOI to the v0.2, v0.3, or v0.3.1 evidence contents.
+- paper/v3/main.tex, Table `tab:lineage`: the evidence releases are identified by tags `v0.2-ablation`, `v0.3-repeated-ablation`, and `v0.3.1-evidence-corrections`, without commit SHAs or archive checksums.
+- docs/REPRODUCTION.md, “Prerequisites”: `git clone https://github.com/arananet/contam-bench.git` followed by `git rev-parse HEAD`; this checks the checkout obtained by the reviewer, not the exact commit used for the paper’s results.
 
-**Recommendation:** Do not state this claim as an evaluated result. Add a controlled comparison of the SDK default and installed host handler, with the same model prompt and explicit rejection outcomes, if the claim is in scope.
+**Recommendation:** Record the exact commit SHA and archive checksum for each evidence release in the manuscript and archival metadata. Ensure the DOI resolves to an immutable archive containing those exact versions, and cite the version-specific DOI or SWHID where available.
 
-### [REPO-CONSISTENCY-001] Reported empirical results cannot be verified from the supplied artifact
+### [ARCHIVAL-006] The seeded-recursion claim is reported from manuscript descriptions, but the underlying trace is unavailable here
+
+- **Severity:** MAJOR
+- **Category:** claim verification
+- **Location:** paper/v3/main.tex, Section 5.6, “The gate amplified seeded recursion”; README.md, “Paper and evidence”
+- **Confidence:** 0.97
+- **Reported by:** archival
+
+The manuscript gives a detailed account of the gate retaining the contaminated write-back and discarding premise-denying context, and appropriately limits the generalization. However, the supplied artifact does not include the cited gate logs or per-round evidence, so the central trace-based observation cannot be independently checked from the provided document package.
+
+Evidence:
+
+- paper/v3/main.tex, Section 5.6: the gate allegedly kept “confirms Atlas launch timing ... directly answers the query” and discarded context because it “explicitly states the launch date is tentative and not confirmed.”
+- paper/v3/main.tex, Section 5.6: “this relevance gate as implemented retained the contaminated write-back and discarded the contradicting user context.”
+- README.md: the relevant gate decisions are said to reside in `evidence/20260713T191740Z/`, which is not among the supplied files.
+
+**Recommendation:** Include the exact gate-decision records and corresponding response artifacts, with immutable hashes, in the archival evidence package. Preserve the current narrow scope: one seeded-recursion scenario and one implementation, not relevance gates generally.
+
+### [CITATIONS-001] Repeated-audit denominator is mathematically inconsistent
+
+- **Severity:** MAJOR
+- **Category:** internal consistency / evidence accounting
+- **Location:** paper/v3/main.tex, Section 4.2 'Repeated-evaluation audit and scoring defects', and abstract
+- **Confidence:** 0.99
+- **Reported by:** citations
+
+The manuscript states that the v0.3 audit used nine scenarios, seven configurations, and five repetitions, which implies 315 scenario-configuration repetitions, not 350. It nevertheless repeatedly calls the total 350 scored rounds and uses that number for the 52/350 unresolved fraction. The 350 subject calls can plausibly include extra recursive rounds, but those are not the same as scored scenario-configuration rounds as written.
+
+Evidence:
+
+- Abstract: “Of 350 scored rounds, 52 remain unresolved pending human review.”
+- Section 4.2: “the latter ran the same nine scenarios and seven configurations five times, producing 350 scored rounds”
+- Section 4.2: “The repeated audit used 660 API calls: 350 subject calls, 135 gate calls, and 175 judge calls.”
+- Section 4.2, Table 4: the audit is described as repeated across seven configurations and five repetitions.
+
+**Recommendation:** Reconcile the accounting by distinguishing scenario-configuration cells, scored rounds, and extra recursive subject calls; state the exact denominator for the 52 unresolved cases and recompute the reported percentage.
+
+### [CITATIONS-002] Headline empirical results depend on artifacts not included in the supplied document
+
+- **Severity:** MAJOR
+- **Category:** reproducibility / evidence
+- **Location:** paper/v3/main.tex, Section 4 'Ablation Study', footnote to the ablation description; Sections 4.2 and 4.4
+- **Confidence:** 0.99
+- **Reported by:** citations
+
+The paper's central results rely on external JSON run artifacts, logs, hashes, and review queues, but the supplied files contain only the manuscript and bibliography. Consequently, the reported table entries, gate decisions, provenance outcomes, and 52-case review count cannot be independently checked from the provided artifact. The manuscript acknowledges that the external releases exist, but an external URL or repository claim is not evidence contained in this submission.
+
+Evidence:
+
+- Section 4: “Complete run artifacts are published at evidence/20260713T084130Z in the benchmark repository... Every number in this section is recomputable from those artifacts.”
+- Section 4.2: “The v0.3 evidence now includes a separately versioned queue for all 52 unresolved artifact rounds, but it contains no human verdicts.”
+- Section 4.4: “The v0.2 gate failure is traceable in the gate's own logged decisions.”
+- The supplied file list contains only paper/v3/main.tex and paper/v3/references.bib; no evidence directory, JSON artifacts, logs, code, manifests, or review queue is supplied.
+
+**Recommendation:** Provide the immutable evidence releases and the code/manifests needed to regenerate Tables 1–4, or explicitly label the reported empirical values as claims verified only by an external repository rather than by the submitted artifact.
+
+### [EVIDENCE-001] The six-mechanism degradation claim exceeds the observed response-layer evidence
+
+- **Severity:** MAJOR
+- **Category:** claims
+- **Location:** paper/v3/main.tex, Abstract; §3 taxonomy; §5.3 repeated audit; Conclusion
+- **Confidence:** 0.97
+- **Reported by:** evidence
+
+The manuscript presents six mechanisms as mechanisms through which ordinary memory behavior can degrade later responses, but the supplied response verdicts directly show degradation only for selected cases. Semantic drift and summarization-loss responses are clean across the reported configurations, and natural recursion has no observed contamination or compounding because round 1 was clean. Thus the evidence supports six operationalized, falsifiable candidate mechanisms, not six demonstrated degradation mechanisms.
+
+Evidence:
+
+- paper/v3/main.tex, Abstract: “We contribute a taxonomy of six mechanisms: semantic drift, provenance collapse, scope bleed, temporal staleness, recursive compounding, and summarization loss.”
+- evidence/20260713T191740Z/validation_report.md, Config comparison: `compounding_factor_natural` is `null (round1_clean)` for every configuration.
+- evidence/20260713T191740Z/validation_report.md, Per-scenario verdicts: all CB-VAL-001 semantic-drift rounds and all CB-VAL-006 summarization-loss rounds are machine-resolved `clean`.
+- paper/v3/main.tex, §5.3: “Natural recursive compounding was not observed” and “The summarization probe has no utility oracle.”
+
+**Recommendation:** Narrow the headline claim to: “We define six candidate mechanisms and operationalize each with a falsifiable scenario criterion; this pilot directly observes contamination in only a subset of those cases.”
+
+### [METHODOLOGY-001] Primary experimental evidence is absent from the supplied artifact
 
 - **Severity:** MAJOR
 - **Category:** reproducibility
-- **Location:** paper/v3/main.tex §5.3–§5.5; README.md “Paper and evidence” and “Repository layout”
+- **Location:** paper/v3/main.tex, Section 4, footnote and Sections 4.1–4.4; files listed in the artifact manifest
+- **Confidence:** 0.99
+- **Reported by:** methodology
+
+The paper reports results from v0.2 and v0.3 evidence releases, but the supplied files contain no persisted responses, retrieval traces, verdict JSON, run metadata, or reports from those releases. Consequently, the reported five-repetition outcomes, API-call totals, 52 unresolved rounds, and retrieval assertions cannot be independently checked from this artifact. The paper's central empirical claims therefore remain unverified in the supplied submission.
+
+Evidence:
+
+- The paper states that complete artifacts are at `evidence/20260713T084130Z` and that every number is recomputable from those artifacts (Section 4, footnote), but no `evidence/` files are among the supplied files.
+- The paper states that the repeated audit is published at `evidence/20260713T191740Z` and reports 350 rounds, 52 reviews, and Tables 4–5 (Section 4.2), but those run artifacts are not supplied.
+- `spec/metrics.md` requires metrics to be computed from `runs/<timestamp>/*.json`, yet no `runs/` artifacts are provided.
+
+**Recommendation:** Provide the immutable v0.2/v0.3/v0.3.1 run artifacts, including raw prompts, injected memories, responses, retrieval assertions, judge outputs, verdicts, hashes, and run metadata; otherwise label the numerical results and derived claims as unverified and restrict the conclusions to the scenario specifications and methodological proposal.
+
+### [REPO-CONSISTENCY-002] The submitted implementation cannot execute the reported benchmark without missing scenario data
+
+- **Severity:** MAJOR
+- **Category:** missing implementation
+- **Location:** src/harness.py, load_scenarios and VALIDATION_SCENARIO_GLOBS; README.md, “Repository layout”; paper/v3/main.tex, §4 and §5
 - **Confidence:** 0.99
 - **Reported by:** repo-consistency
 
-The manuscript reports headline repeated-audit results, including 350 scored rounds, 52 unresolved rounds, and per-cell outcome distributions, but the supplied files contain neither the referenced evidence directories nor the scenario manifests required to run the harness. README.md claims that frozen evidence is available under evidence/20260713T191740Z and that scenarios are under scenarios/validation/ and scenarios/controls/, but none of those files are included in the supplied artifact. Consequently, the reported results are unverified from the submitted bundle.
+The harness implementation discovers scenarios only from scenarios/validation/*.yaml and scenarios/controls/*.yaml, validates them, and then runs the benchmark. Those manifests are not supplied. Thus, although source code for the pipeline is present, the benchmark described in the paper cannot be run from this artifact and the manuscript's claims about nine hand-authored scenarios have no supplied implementation counterpart.
 
 Evidence:
 
-- paper/v3/main.tex §5.3: “the latter ran the same nine scenarios and seven configurations five times, producing 350 scored rounds”
-- paper/v3/main.tex Table 5 / §5.3: “The provenance separation persists without flags: provenance tags, raw fidelity, and the governed bundle are each 5/0/0”
-- README.md, “Paper and evidence”: “v0.3 repeated audit (7×9×5) | evidence/20260713T191740Z/”
-- README.md, “Repository layout”: “scenarios/validation/ | 7 hand-authored contamination scenarios” and “evidence/ | Frozen runs cited in publications”
-- Supplied artifact file inventory: no evidence/ directory, no scenarios/validation/ directory, no scenarios/controls/ directory, and no persisted verdicts or run artifacts are provided
+- src/harness.py: VALIDATION_SCENARIO_GLOBS is defined as scenarios/validation/*.yaml and scenarios/controls/*.yaml; load_scenarios iterates those paths and validates each manifest.
+- src/harness.py: main calls load_scenarios(args.scenario) before generating any artifacts.
+- README.md, repository layout: “scenarios/validation/ | 7 hand-authored contamination scenarios” and “scenarios/controls/ | 2 control scenarios.”
+- paper/v3/main.tex §4: “The ablation of Section~\ref{sec:results} adds a ninth, seeded-recursion scenario, yielding nine scenarios against seven memory configurations.”
+- tests/test_schema.py: asserts that the on-disk inventory is exactly CB-VAL-001..009 and scans scenarios/*/*.yaml; no such files are in the supplied artifact.
 
-**Recommendation:** Supply the exact frozen scenario manifests, raw run artifacts, verdicts, and reports referenced by the manuscript, or restrict the manuscript to implementation-level claims and explicitly mark all numerical results as unavailable in this artifact bundle.
+**Recommendation:** Include the nine validation/control manifests used for the reported runs, including their expected patterns, retrieval assertions, and scoring rules. If they are intentionally excluded, state that the supplied artifact is code-only and withdraw execution-based claims.
 
-### [REPO-CONSISTENCY-002] The default executable configuration set does not reproduce the manuscript’s seven-configuration experiment
-
-- **Severity:** MAJOR
-- **Category:** configuration mismatch
-- **Location:** paper/v3/main.tex §5; spec/configs.yaml; src/harness.py main()
-- **Confidence:** 0.98
-- **Reported by:** repo-consistency
-
-The manuscript describes the reported ablation as seven configurations, while the supplied configuration file defines eight configurations because arm_gate_preserve_pairs is present. The harness defaults to every key in spec["configs"], so a default invocation runs the experimental eighth arm rather than the manuscript’s seven-arm frozen matrix. No supplied command or configuration pins the reported run to the seven frozen arms.
-
-Evidence:
-
-- paper/v3/main.tex §5: “the run reported here executes nine scenarios ... against seven configurations”
-- spec/configs.yaml: “arm_gate_preserve_pairs” is defined under configs, with the comment “It is not a v0.2 result and must be reported separately”
-- README.md: “The active development configuration also includes an experimental guarded-gate arm ... it is not part of frozen v0.3 evidence”
-- src/harness.py, main(): `config_names = args.config or list(spec["configs"])`, which includes arm_gate_preserve_pairs by default
-
-**Recommendation:** Make the frozen seven-arm configuration explicit in the executable entry point or release configuration, and document the exact command/configuration used for the paper’s results. Keep the experimental arm in a separately named, non-default configuration if it is not part of the evidence release.
-
-### [REPO-CONSISTENCY-003] The identifier-overwrite/MCP claim has no counterpart in the supplied artifact
+### [REPO-CONSISTENCY-003] The provenance, retrieval, and presupposition-capture findings are empirical claims without supplied traces
 
 - **Severity:** MAJOR
 - **Category:** unsupported claim
-- **Location:** Artifact-wide; especially src/memory_store.py and tests/test_memory_store.py
-- **Confidence:** 0.99
-- **Reported by:** repo-consistency
-
-One author-intended claim concerns identifier reuse, overwrite behavior in shared mappings, and retention in separate MCP instances. The supplied manuscript, specifications, source files, and tests contain no MCP implementation, identifier-overwrite experiment, shared-mapping model, or separate-instance test. The claim is therefore unsupported by this artifact and cannot be narrowed to a supported empirical conclusion from the available evidence.
-
-Evidence:
-
-- Author-intended claim: “Under the tested configurations and one fixed write order, reusing an identifier overwrites in the shared mappings and is retained in separate MCP instances.”
-- src/memory_store.py: `MemoryEntry` has `seed_id`, but `MemoryStore.seed()` only appends entries and contains no overwrite or shared-mapping behavior
-- src/memory_store.py: `MemoryStore` is a single in-memory list and has no MCP-instance abstraction
-- tests/test_memory_store.py: tests cover namespacing, TTL, fidelity, tags, write-back, and empty stores, but contain no identifier-reuse or MCP-instance test
-- Supplied artifact file inventory: no MCP adapter, shared mapping implementation, or corresponding experiment/evidence file
-
-**Recommendation:** Remove the claim from the evaluated scope unless the MCP implementation, controlled experiment, and persisted evidence are supplied. If retained, narrow it only to the exact tested implementation and write order supported by those artifacts.
-
-### [REPO-CONSISTENCY-004] The host-handler-dependent model-only tool-rejection claim is unsupported
-
-- **Severity:** MAJOR
-- **Category:** unsupported claim
-- **Location:** Artifact-wide; especially src/llm.py and tests/
-- **Confidence:** 0.99
-- **Reported by:** repo-consistency
-
-The second author-intended claim concerns model-only tool rejection and dependence on an installed host handler rather than the SDK default. The supplied code only wraps Anthropic message calls and implements memory retrieval, gating, judging, and scoring; it contains no tool-rejection experiment, host handler, SDK-default comparison, or tool-call test. The claim is therefore unverified and unsupported by the submitted artifact.
-
-Evidence:
-
-- Author-intended claim: “Model-only tool rejection depends on the installed host handler, not the SDK default.”
-- src/llm.py: `CountingClient.complete()` calls `self.client.messages.create(...)` and has no tool definitions, host-handler logic, or rejection comparison
-- src/retrieval.py and src/harness.py: the implemented model calls concern relevance gating and subject responses, not tool rejection
-- Supplied tests: no test refers to tool rejection, an installed host handler, or an SDK-default behavior
-
-**Recommendation:** Remove the claim from this artifact’s conclusions, or provide the host-handler implementation, SDK-default control, experimental protocol, and persisted results needed to support it.
-
-### [REPRODUCIBILITY-001] Raw per-scenario evidence required for audit and adjudication is missing
-
-- **Severity:** MAJOR
-- **Category:** reproducibility
-- **Location:** README.md, section 'Paper and evidence'; src/adjudication.py, functions `_artifact_index` and `generate_packets`; evidence/20260713T191740Z/; supplied file inventory
-- **Confidence:** 0.99
-- **Reported by:** reproducibility
-
-The manuscript and README say that frozen evidence contains raw prompts, injected memories, gate decisions, responses, and verdicts, and the adjudication code requires per-artifact JSON files to generate blinded packets. Those per-scenario artifact files are not among the supplied files: the evidence directories contain only metadata, reports, defects, verdicts, and the queue. Consequently, an independent researcher cannot inspect the response text or retrieval traces, regenerate the 52 review packets, or verify the judge evidence underlying the headline comparisons.
-
-Evidence:
-
-- README.md: “Each evidence directory contains the raw per-scenario artifacts (prompts, injected memories, gate decisions, responses), `verdicts.json`, `validation_report.md`, and `defects.md`”
-- src/adjudication.py: `_artifact_index` scans `evidence_dir` for files whose names start with `CB-` and reads each artifact's `response` and `scoring` fields
-- evidence/20260713T191740Z/adjudications.json`: 52 pending artifact hashes are queued, but no corresponding `CB-*.json` evidence files are supplied
-- paper/v3/main.tex, §5.3: “Of 350 scored rounds, 52 remain unresolved pending human review.”
-
-**Recommendation:** Include the immutable per-scenario JSON artifacts, or provide an independently verifiable archive containing them, before presenting the results as auditable or seeking human adjudication. Ensure the supplied evidence directory is sufficient for `src.adjudication packets` to run.
-
-### [REPRODUCIBILITY-002] Main experiment cannot be exactly rerun from the environment specification
-
-- **Severity:** MAJOR
-- **Category:** reproducibility
-- **Location:** requirements.txt; docs/REPRODUCTION.md, sections 'Independence' and 'Prerequisites'; evidence/20260713T191740Z/run_meta.json; paper/v3/main.tex, §5.3 and §Discussion/Limitations
+- **Location:** paper/v3/main.tex, Abstract; §5.3; §5.4; §5.5; README.md, “Paper and evidence”
 - **Confidence:** 0.98
-- **Reported by:** reproducibility
+- **Reported by:** repo-consistency
 
-The main experiment depends on live Anthropic model calls, but the artifact provides only lower-bound dependency constraints and no lockfile, container, exact commit identifier for the frozen runs, or API/model-version snapshot. The reproduction protocol itself asks reviewers to record a commit SHA and exact environment, while the frozen `run_meta.json` records models and sampling parameters but not the commit or installed package versions. Since the paper explicitly reports model-mediated results and acknowledges output variance, this blocks an exact independent rerun of the headline ablation and repeated audit.
+The manuscript appropriately acknowledges unresolved scorer disagreements and limitations, but it still asserts specific repeated outcomes and a logged gate failure. The supplied artifact contains only generic retrieval and scoring code plus unit tests; it does not contain the claimed per-scenario gate decisions, subject responses, verdicts, or 52-round review queue. The code demonstrates that such traces could be generated, not that the reported observations occurred.
 
 Evidence:
 
-- requirements.txt: `anthropic>=0.116`, `PyYAML>=6.0`, `jsonschema>=4.0`, `scikit-learn>=1.3`, and other unpinned lower bounds
-- evidence/20260713T191740Z/run_meta.json: records model names, temperatures, repetitions, and call counts, but no commit SHA, Python version, package versions, or hardware/environment image
-- docs/REPRODUCTION.md: “the reviewer reports the exact commit SHA, environment, commands, elapsed time, outputs, and deviations”
-- paper/v3/main.tex, §Discussion/Limitations, “Temperature~0 sampling reduces but does not remove output variance”
+- Manuscript abstract: “On the provenance probe, tags and raw fidelity each yielded five machine-resolved clean outcomes” and “logged seeded-recursion failure illustrates how relevance filtering can discard context that denies a query's premise.”
+- Manuscript §5.3: “Fifty-two of the 350 rounds (14.9%) required human review” and “The provenance separation persists without flags.”
+- Manuscript §5.5: “The v0.2 gate failure is traceable in the gate's own logged decisions,” followed by quoted gate decisions and the subject's response.
+- src/retrieval.py: implements generic gate calls and records gate decisions in returned runtime structures, but no frozen run trace is supplied.
+- src/metrics.py: reads persisted CB-VAL-*.json artifacts and verdicts; no such evidence files are supplied.
+- README.md: says the correction bundle contains “52 pending rounds, 0 human adjudications, 0 consensuses,” but the referenced correction bundle and queue are absent from the supplied artifact.
 
-**Recommendation:** Archive the exact commit, Python and library versions, dependency lockfile or container digest, complete commands, and model/API identifiers used for each frozen run. Distinguish artifact reanalysis from live reruns in the paper.
+**Recommendation:** Provide the exact gate-decision logs, responses, verdicts, artifact hashes, and pending review queue used for these statements. Until then, narrow the claims to “the implementation supports logging and scoring of these outcomes” and “the proposed failure mode is illustrated by the code/test fixture,” not observed benchmark findings.
 
-### [REPRODUCIBILITY-005] The intended identifier-overwrite/MCP-instance claim is unsupported in the artifact
+### [REPRODUCIBILITY-002] The six-mechanism degradation claim exceeds the demonstrated evidence
 
 - **Severity:** MAJOR
-- **Category:** unsupported_claim
-- **Location:** Artifact-wide; no supporting location supplied
-- **Confidence:** 0.99
+- **Category:** claim_scope
+- **Location:** paper/v3/main.tex, Abstract; Sections 3, 5.3, 5.5, and Conclusion; evidence/20260713T191740Z/validation_report.md
+- **Confidence:** 0.97
 - **Reported by:** reproducibility
 
-The intended claim that reusing an identifier overwrites entries in shared mappings but is retained in separate MCP instances is not stated or tested in the supplied manuscript, scenarios, reports, source files, or evidence records. No MCP implementation, identifier-reuse scenario, or corresponding result is provided. The claim is therefore unverified and cannot be included as an empirical conclusion.
+The taxonomy and manifests define six candidate mechanisms, but the supplied results do not demonstrate response degradation for all six. The repeated audit reports clean outcomes for semantic drift and summarization loss across configurations, and the natural recursive scenario has a null compounding metric because round 1 was clean. Thus the evidence supports a taxonomy and case-specific probes, not the broader claim that ordinary memory behavior was shown to degrade later responses through six distinct mechanisms.
 
 Evidence:
 
-- The supplied manuscript's taxonomy and results sections discuss memory scope, provenance, TTL, gating, raw fidelity, and recursion, but contain no MCP-instance or identifier-overwrite experiment
-- The supplied scenario inventory contains CB-VAL-001 through CB-VAL-009; none is an identifier-reuse or shared-mapping/MCP-instance scenario
-- No supplied source or evidence file defines an MCP instance comparison or reports such a result
+- paper/v3/main.tex, Abstract: “ordinary memory-system behavior, can degrade later responses through six distinct mechanisms” is presented as the study framing.
+- paper/v3/main.tex, Section 5.3: “The natural recursion scenario (CB-VAL-005) ... reliably does not, yielding a null compounding factor.”
+- paper/v3/main.tex, Section 5.3: “The summarization probe has no utility oracle, so it cannot establish a utility gain from raw fidelity.”
+- evidence/20260713T191740Z/validation_report.md, Config comparison: CB-VAL-001 semantic drift is clean for all listed configurations; CB-VAL-006 summarization loss is clean for all listed configurations; compounding_factor_natural is null with reason “round1_clean” for every configuration.
+- paper/v3/main.tex, Conclusion: “Natural recursive compounding was not observed.”
 
-**Recommendation:** Remove the claim from the intended claims and conclusions, or add a separately specified and executed experiment with its implementation, commands, artifacts, and results. On the current evidence, no narrower empirical wording is supported.
+**Recommendation:** Narrow the claim to: “We define six candidate mechanisms and obtain case-specific retrieval or response evidence for some of them; this pilot does not establish that all six degrade responses.” Treat semantic drift as a retrieval-layer observation, and describe summarization loss and natural recursion as unvalidated or null-result probes.
 
-### [REPRODUCIBILITY-006] The intended host-handler/model-only tool-rejection claim is unsupported in the artifact
-
-- **Severity:** MAJOR
-- **Category:** unsupported_claim
-- **Location:** Artifact-wide; no supporting location supplied
-- **Confidence:** 0.99
-- **Reported by:** reproducibility
-
-The intended claim that model-only tool rejection depends on the installed host handler rather than the SDK default has no supporting experiment or artifact. The supplied code and paper concern memory retrieval, scoring, and adjudication; they do not implement or test tool rejection, host handlers, or SDK defaults. The claim is unverified.
-
-Evidence:
-
-- paper/v3/main.tex: no section, result, scenario, or citation addresses model-only tool rejection or installed host handlers
-- src/: supplied modules cover harness, retrieval, memory store, judging, metrics, and adjudication; no host-handler/tool-rejection implementation is supplied
-- The supplied scenario inventory and evidence reports contain no tool-rejection result
-
-**Recommendation:** Remove the claim unless a separate tool-handling experiment and its reproducible artifacts are supplied. No narrower wording is supported by the current artifact.
-
-### [STATISTICS-001] Intended identifier-overwrite claim is not evidenced in the supplied artifact
+### [STATISTICS-001] Main ablation rates lack uncertainty estimates across configurations
 
 - **Severity:** MAJOR
 - **Category:** statistics
-- **Location:** AUTHOR'S INTENDED CLAIMS; src/memory_store.py; paper/v3/main.tex
-- **Confidence:** 0.99
+- **Location:** paper/v3/main.tex, §5.3 and Table repeated; evidence/20260713T191740Z/validation_report.md, Config comparison
+- **Confidence:** 0.96
 - **Reported by:** statistics
 
-The intended claim that reusing an identifier overwrites entries in shared mappings but is retained in separate MCP instances is not supported by any reported experiment, sample, run count, variance, statistical comparison, or implementation artifact in the supplied files. The visible memory implementation uses seed IDs and an in-memory list, but no shared-mapping/MCP-instance experiment is described or quantified.
+The manuscript reports configuration-level contamination rates and repeated outcome counts, but the main comparison does not provide confidence intervals, standard deviations, or another uncertainty summary for most configurations. The five repetitions are shown for selected cells, while the headline configuration table reports single aggregate rates such as 0.0333, 0.08, and 0.3333. This makes the apparent improvements difficult to assess statistically, especially after excluding 52 unresolved rounds.
 
 Evidence:
 
-- AUTHOR'S INTENDED CLAIMS: “Under the tested configurations and one fixed write order, reusing an identifier overwrites in the shared mappings and is retained in separate MCP instances.”
-- src/memory_store.py, MemoryStore: entries are stored in `self.entries: list[MemoryEntry]`; no shared-mapping or separate-MCP-instance experiment is present.
-- paper/v3/main.tex, Sections 5–7: the reported experiments concern nine scenarios, seven memory configurations, retrieval, response verdicts, and controls; no identifier-overwrite result is reported.
+- paper/v3/main.tex, §5.3: “Table~\ref{tab:repeated} reports repeated outcome distributions for the load-bearing cells.”
+- paper/v3/main.tex, Table repeated: cells are reported as “clean/contaminated/flagged across five repetitions,” but no confidence intervals or dispersion estimates are reported for the configuration-level rates.
+- evidence/20260713T191740Z/validation_report.md, Config comparison: contamination_rate is reported as single values such as `arm_gate 0.1304`, `arm_provenance 0.0333`, `arm_raw 0.08`, `governed 0.0333`, and `naive 0.3333`.
+- paper/v3/main.tex, §5.3: “Fifty-two of the 350 rounds (14.9\%) required human review” and those rounds “are excluded from machine-only rates.”
 
-**Recommendation:** Do not present this as an established quantitative result unless a documented identifier-overwrite experiment with explicit runs, conditions, and outcomes is supplied; otherwise mark it unverified or remove it.
-
-### [STATISTICS-002] Host-handler-dependent tool-rejection claim is not evidenced
-
-- **Severity:** MAJOR
-- **Category:** statistics
-- **Location:** AUTHOR'S INTENDED CLAIMS; paper/v3/main.tex; evidence/20260713T191740Z/validation_report.md
-- **Confidence:** 0.99
-- **Reported by:** statistics
-
-The intended claim that model-only tool rejection depends on the installed host handler rather than the SDK default has no supporting experiment or quantitative evidence in the supplied artifact. The manuscript and evidence focus on memory contamination, retrieval, gates, and scoring; no host-handler comparison or SDK-default baseline is reported.
-
-Evidence:
-
-- AUTHOR'S INTENDED CLAIMS: “Model-only tool rejection depends on the installed host handler, not the SDK default.”
-- paper/v3/main.tex, Abstract and Sections 5–7: reported measurements are memory configurations, contamination verdicts, retrieval assertions, gate calls, and API spend; no tool-rejection or host-handler condition appears.
-- evidence/20260713T191740Z/validation_report.md, Config comparison and Relevance-gate observability: the reported metrics contain contamination, recursion, provenance, staleness, retention, retrieval, and gate-call results, but no tool-rejection measurement.
-
-**Recommendation:** Treat this claim as unverified and do not include it among empirical conclusions without a controlled host-handler-versus-SDK comparison with run counts and outcome definitions.
+**Recommendation:** Report numerator, denominator, and an uncertainty interval for every headline configuration rate, or restrict the claims to the displayed per-cell counts and explicitly label all aggregate rates as descriptive pilot summaries. Do not describe the rates as general mitigation improvements without this qualification.
 
 ## Judge consensus
 
 | Finding | Severity | Reported by | Consensus |
 | --- | --- | --- | --- |
-| ADVERSARIAL-001 | MAJOR | adversarial | single-source (low) |
+| ADVERSARIAL-001 | CRITICAL | adversarial | single-source (low) |
+| REPO-CONSISTENCY-001 | CRITICAL | repo-consistency | single-source (low) |
 | ADVERSARIAL-002 | MAJOR | adversarial | single-source (low) |
+| ADVERSARIAL-004 | MAJOR | adversarial | single-source (low) |
+| ADVERSARIAL-005 | MAJOR | adversarial | single-source (low) |
 | ARCHIVAL-001 | MAJOR | archival | single-source (low) |
 | ARCHIVAL-002 | MAJOR | archival | single-source (low) |
+| ARCHIVAL-006 | MAJOR | archival | single-source (low) |
 | CITATIONS-001 | MAJOR | citations | single-source (low) |
 | CITATIONS-002 | MAJOR | citations | single-source (low) |
-| CITATIONS-003 | MAJOR | citations | single-source (low) |
-| CITATIONS-004 | MAJOR | citations | single-source (low) |
-| CLAIM-001 | MAJOR | claim-graph | single-source (low) |
 | EVIDENCE-001 | MAJOR | evidence | single-source (low) |
-| EVIDENCE-003 | MAJOR | evidence | single-source (low) |
 | METHODOLOGY-001 | MAJOR | methodology | single-source (low) |
-| METHODOLOGY-002 | MAJOR | methodology | single-source (low) |
-| METHODOLOGY-008 | MAJOR | methodology | single-source (low) |
-| METHODOLOGY-009 | MAJOR | methodology, evidence | confirmed (medium) |
-| REPO-CONSISTENCY-001 | MAJOR | repo-consistency | single-source (low) |
 | REPO-CONSISTENCY-002 | MAJOR | repo-consistency | single-source (low) |
 | REPO-CONSISTENCY-003 | MAJOR | repo-consistency | single-source (low) |
-| REPO-CONSISTENCY-004 | MAJOR | repo-consistency | single-source (low) |
 | REPRODUCIBILITY-001 | MAJOR | reproducibility | single-source (low) |
 | REPRODUCIBILITY-002 | MAJOR | reproducibility | single-source (low) |
-| REPRODUCIBILITY-005 | MAJOR | reproducibility | single-source (low) |
-| REPRODUCIBILITY-006 | MAJOR | reproducibility | single-source (low) |
 | STATISTICS-001 | MAJOR | statistics | single-source (low) |
-| STATISTICS-002 | MAJOR | statistics | single-source (low) |
 | ADVERSARIAL-003 | MINOR | adversarial | single-source (low) |
-| ADVERSARIAL-004 | MINOR | adversarial | single-source (low) |
 | ARCHIVAL-003 | MINOR | archival | single-source (low) |
 | ARCHIVAL-004 | MINOR | archival | single-source (low) |
 | ARCHIVAL-005 | MINOR | archival | single-source (low) |
 | CHECK-CITABILITY-001 | MINOR | check:citability | single-source (low) |
 | CHECK-CITABILITY-002 | MINOR | check:citability | single-source (low) |
+| CITATIONS-003 | MINOR | citations | single-source (low) |
+| CITATIONS-004 | MINOR | citations | single-source (low) |
 | CITATIONS-005 | MINOR | citations | single-source (low) |
-| CLAIM-002 | MINOR | claim-graph | single-source (low) |
-| EVIDENCE-004 | MINOR | evidence | single-source (low) |
-| EVIDENCE-005 | MINOR | evidence | single-source (low) |
+| EVIDENCE-002 | MINOR | evidence | single-source (low) |
+| EVIDENCE-003 | MINOR | evidence | single-source (low) |
+| METHODOLOGY-002 | MINOR | methodology | single-source (low) |
 | METHODOLOGY-003 | MINOR | methodology | single-source (low) |
 | METHODOLOGY-004 | MINOR | methodology | single-source (low) |
 | METHODOLOGY-005 | MINOR | methodology | single-source (low) |
-| METHODOLOGY-006 | MINOR | methodology | single-source (low) |
-| METHODOLOGY-007 | MINOR | methodology | single-source (low) |
-| METHODOLOGY-010 | MINOR | methodology | single-source (low) |
+| REPO-CONSISTENCY-004 | MINOR | repo-consistency | single-source (low) |
 | REPRODUCIBILITY-003 | MINOR | reproducibility | single-source (low) |
 | REPRODUCIBILITY-004 | MINOR | reproducibility | single-source (low) |
+| STATISTICS-002 | MINOR | statistics | single-source (low) |
 | STATISTICS-003 | MINOR | statistics | single-source (low) |
 
 ## Judge disagreements
@@ -543,12 +378,12 @@ No disagreements were recorded.
 
 ## Claim coverage
 
-- Claims detected: 11 (9 major)
-- Verified: 6
-- Partially supported: 1
-- Unsupported: 2
-- Unverified: 2
-- Evidence coverage: 66.7%
+- Claims detected: 6 (6 major)
+- Verified: 4
+- Partially supported: 2
+- Unsupported: 0
+- Unverified: 0
+- Evidence coverage: 83.3%
 
 _Evidence coverage is a diagnostic, not a quality score. The findings below stand on their own._
 
@@ -564,561 +399,406 @@ _Evidence coverage is a diagnostic, not a quality score. The findings below stan
 
 ## All findings
 
-### [ADVERSARIAL-001] Raw per-scenario response artifacts needed to audit the headline results are not supplied
+### [ADVERSARIAL-001] Headline results cannot be independently reproduced from the supplied evidence bundle
 
-- **Severity:** MAJOR
+- **Severity:** CRITICAL
 - **Category:** reproducibility
-- **Location:** README.md, 'Paper and evidence' and 'Usage'; evidence/20260713T191740Z/verdicts.json; paper/v3/main.tex, §4 'CONTAM-Bench' and §5.3
-- **Confidence:** 0.98
-- **Reported by:** adversarial
-
-The manuscript says every run persists raw prompts, injected memories, responses, and verdicts, but the supplied evidence files contain only aggregate reports, metadata, queues, and verdict summaries. The supplied verdicts.json records judge evidence but not the underlying subject responses, so an evaluator cannot independently verify whether the verdicts or retrieval assertions match the actual outputs. This prevents reproduction of the main response-level results from the provided artifact.
-
-Evidence:
-
-- README.md: “Each evidence directory contains the raw per-scenario artifacts (prompts, injected memories, gate decisions, responses), verdicts.json, validation_report.md, and defects.md”
-- paper/v3/main.tex, §4: “every run artifact, including raw prompts, injected memory, responses, and judge verdicts, is persisted as JSON for audit”
-- The supplied file inventory for evidence/20260713T191740Z contains no CB-*.json per-scenario artifact files.
-- evidence/20260713T191740Z/verdicts.json contains verdicts and scorer evidence, but no subject-response text or prompt artifacts.
-
-**Recommendation:** Supply the exact frozen CB-*.json artifacts, or remove claims that the headline response-level results can be independently audited from this release.
-
-### [ADVERSARIAL-002] The manuscript claims a corrected review report that contradicts the supplied frozen report
-
-- **Severity:** MAJOR
-- **Category:** artifact discrepancy
-- **Location:** paper/v3/main.tex, §5.3; evidence/20260713T191740Z/validation_report.md, 'Flagged for human review'; evidence/20260713T191740Z/defects.md, D8; report/FINAL-AUDIT.md
+- **Location:** Files provided; README.md, section 'Paper and evidence'; src/adjudication.py::_artifact_index; src/metrics.py::gate_observability and retrieval scoring
 - **Confidence:** 0.99
 - **Reported by:** adversarial
 
-The manuscript states that the rendered report identifies flagged rows by repetition and artifact hash. The supplied v0.3 validation report instead repeats indistinguishable scenario/configuration/round labels, and the accompanying defect record explicitly identifies this as an unresolved defect. This discrepancy makes the stated auditability and evidence lineage inaccurate.
+The supplied evidence directories contain metadata, reports, verdicts, defects, and a pending queue, but no raw per-scenario JSON artifacts containing the prompts, retrieved memories, gate decisions, and responses. The verdicts reference these missing artifacts by hash, while the adjudication and scoring code requires CB-*.json files. Consequently, the reported verdicts and the gate mechanism finding cannot be independently checked from the supplied artifact, and the raw evidence needed to recompute the headline results is unavailable.
 
 Evidence:
 
-- paper/v3/main.tex, §5.3: “The rendered report now labels its machine-only and human-consensus tables separately and identifies review rows by repetition and artifact hash.”
-- evidence/20260713T191740Z/validation_report.md, 'Flagged for human review': entries are formatted as “CB-VAL-004 × arm_gate round 1” and repeat across repetitions without repetition or artifact hash.
-- evidence/20260713T191740Z/defects.md, D8: “Human-review register omits repetition identifiers” and “the report is ambiguous.”
-- report/FINAL-AUDIT.md, 'Scientific readiness': independent scoring assessment remains open.
+- The supplied file inventory for evidence/20260713T191740Z lists adjudications.json, defects.md, run_meta.json, validation_report.md, and verdicts.json, but no CB-*.json raw scenario artifacts.
+- README.md states that each evidence directory contains 'raw per-scenario artifacts (prompts, injected memories, gate decisions, responses, verdicts.json, validation_report.md, and defects.md)'; those raw artifacts are absent from the supplied files.
+- src/adjudication.py::_artifact_index only indexes files whose names start with 'CB-' and extracts their response and scoring fields; without those files, the 52 queued rounds cannot be converted into review packets.
+- src/metrics.py::gate_observability reads CB-VAL-*.json files to compute gate calls and retrieval diagnostics, so the reported gate observations cannot be recomputed from the supplied verdicts alone.
 
-**Recommendation:** Either provide the corrected report and its provenance, or revise the manuscript to describe the supplied report as ambiguous and retain D8 as an active limitation.
+**Recommendation:** Provide the complete frozen CB-*.json raw artifact files, or remove claims that depend on independently inspecting and recomputing responses, retrievals, and gate decisions. The release should also include a manifest proving that every artifact hash in verdicts.json maps to a supplied file.
 
-### [ARCHIVAL-001] Reported evidence is referenced by mutable tags and repository paths rather than an immutable version-specific identifier
+### [REPO-CONSISTENCY-001] Headline empirical results lack the evidence artifacts that supposedly produced them
 
-- **Severity:** MAJOR
-- **Category:** identity and archival
-- **Location:** paper/v3/main.tex, Section 5 and Table 2 (Evidence lineage); README.md, 'Paper and evidence' and 'Citation' sections
-- **Confidence:** 0.97
-- **Reported by:** archival
-
-The paper reports results from multiple evidence releases, but identifies them only by repository-relative paths and Git tags. No commit SHA, version-specific DOI, or Software Heritage identifier is supplied for the exact artifacts underlying each table. An annotated Git tag and a GitHub repository are not sufficient evidence that the cited contents cannot later be changed or deleted.
-
-Evidence:
-
-- paper/v3/main.tex, Table 2: “v0.2 ablation ... v0.2-ablation”, “v0.3 repeated audit ... v0.3-repeated-ablation”, and “v0.3.1 corrections ... v0.3.1-evidence-corrections”
-- paper/v3/main.tex, Section 5: “Complete run artifacts are published at \texttt{evidence/20260713T084130Z} ... frozen at tag \texttt{v0.2-ablation}.”
-- README.md: “Runs cited in publications are copied to \`evidence/<timestamp>/\` and frozen under an annotated tag”; the cited locations are GitHub repository paths, not immutable identifiers.
-
-**Recommendation:** Record the exact commit SHA for every evidence release used by the paper and archive each release independently with a version-specific DOI or Software Heritage identifier. State explicitly which DOI resolves to which release and paper version.
-
-### [ARCHIVAL-002] The supplied artifact does not contain the evidence files needed to retrieve or verify the headline results
-
-- **Severity:** MAJOR
-- **Category:** data and artifact availability
-- **Location:** Provided file list; README.md, 'Paper and evidence' section; paper/v3/main.tex, Table 2 and Sections 5.1–5.3
-- **Confidence:** 0.99
-- **Reported by:** archival
-
-The paper's central numerical results depend on raw runs, verdicts, reports, and correction queues, but the supplied artifact contains only the citation, licensing, README, reproduction protocol, and LaTeX manuscript. The manuscript and README point to evidence directories that are absent from the provided file list. Thus, a reader of this artifact cannot independently retrieve the artifacts supporting the tables.
-
-Evidence:
-
-- Provided file list contains CITATION.cff, LICENSING.md, README.md, docs/REPRODUCTION.md, and paper/v3/main.tex, but no \`evidence/\` directory, raw JSON, verdicts, or validation reports.
-- README.md: “Each evidence directory contains the raw per-scenario artifacts ... \`verdicts.json\`, \`validation_report.md\`, and \`defects.md\`.”
-- paper/v3/main.tex, Section 5.2: “Complete run artifacts are published at \texttt{evidence/20260713T084130Z} ... Every number in this section is recomputable from those artifacts.”
-
-**Recommendation:** Include or independently archive the exact evidence releases, including raw artifacts, verdicts, reports, correction bundle, and review queue, and link them using immutable version-specific identifiers. If the artifact package intentionally omits them, label the supplied package as manuscript-only rather than reproducible evidence.
-
-### [CITATIONS-001] Repeated-audit denominator is arithmetically inconsistent
-
-- **Severity:** MAJOR
-- **Category:** experimental accounting
-- **Location:** paper/v3/main.tex, Section 4.4 'Repeated-evaluation audit and scoring defects'; Table 3 caption and surrounding text
-- **Confidence:** 0.99
-- **Reported by:** citations
-
-The paper states that the repeated audit used nine scenarios, seven configurations, and five repetitions, which implies 315 scenario-configuration-rounds. It nevertheless reports 350 scored rounds and derives the 14.9% review rate from 52/350. The same inconsistency appears in the reported subject-call count. This prevents the reported aggregate accounting from being recomputed as stated and may change the review rate and any aggregate interpretation.
-
-Evidence:
-
-- "the latter ran the same nine scenarios and seven configurations five times, producing 350 scored rounds"
-- "Fifty-two of the 350 rounds (14.9%) required human review"
-- "The repeated audit used 660 API calls: 350 subject calls, 135 gate calls, and 175 judge calls."
-- Table 3 lists seven configurations and four scenario columns, while Table 2 and the surrounding text define nine scenarios; nine × seven × five = 315, not 350.
-
-**Recommendation:** Reconcile the scenario, configuration, repetition, and API-call counts against the persisted run manifest, and correct the denominator, percentages, and call accounting. If additional rounds were included, identify them explicitly and explain why they are not represented by the stated nine-by-seven-by-five design.
-
-### [CITATIONS-002] Headline results cannot be independently checked from the supplied artifact
-
-- **Severity:** MAJOR
+- **Severity:** CRITICAL
 - **Category:** reproducibility
-- **Location:** paper/v3/main.tex, Section 4 'Ablation Study', footnote to the first paragraph; Sections 4.4 and 8.1 'Reproducibility'
+- **Location:** paper/v3/main.tex, Abstract; §5, Table 1 footnote and §5.3; README.md, “Paper and evidence”
+- **Confidence:** 0.99
+- **Reported by:** repo-consistency
+
+The manuscript presents the nine-scenario, seven-configuration, five-repetition results as recomputable from frozen artifacts, but none of the referenced evidence directories, scenario manifests, raw responses, verdicts, or validation reports are included in the supplied artifact. The supplied file list contains README.md, paper, specs, source, and tests only. This prevents verification of the headline results and means the central empirical conclusion is not reproducible from the submission as provided.
+
+Evidence:
+
+- Manuscript abstract: “We report an ablation over seven configurations using one subject model and TF-IDF retrieval, followed by five repetitions of each scenario--configuration cell.”
+- Manuscript §5, Table 1 footnote: “Complete run artifacts are published at evidence/20260713T084130Z in the benchmark repository, frozen at tag v0.2-ablation. Every number in this section is recomputable from those artifacts.”
+- Manuscript §5.3: “the latter ran the same nine scenarios and seven configurations five times, producing 350 scored rounds, and is published separately at evidence/20260713T191740Z.”
+- README.md, “Paper and evidence”: references evidence/20260713T084130Z, evidence/20260713T191740Z, and evidence/20260713T191740Z/corrections/. None of these paths appears in the supplied files.
+- README.md, “Usage”: states that scenarios are under scenarios/validation/ and scenarios/controls/. No scenarios directory or manifest is supplied.
+- tests/test_schema.py, test_v02_scenario_inventory: expects CB-VAL-001 through CB-VAL-009 on disk; those files are absent from the supplied artifact.
+
+**Recommendation:** Supply the exact frozen evidence directories, scenario manifests, verdicts, reports, and correction/adjudication files referenced by the manuscript, or remove the numerical results and restrict the paper to claims supported by the supplied code and specifications.
+
+### [ADVERSARIAL-002] The six-mechanism empirical claim exceeds what the pilot actually demonstrates
+
+- **Severity:** MAJOR
+- **Category:** claims
+- **Location:** paper/v3/main.tex, abstract; Sections 3, 5.2, 5.3, 5.5, and Conclusion
 - **Confidence:** 0.97
-- **Reported by:** citations
+- **Reported by:** adversarial
 
-The main results depend on external evidence releases and a repository, but the supplied artifact contains only main.tex and references.bib. No YAML manifests, raw prompts, responses, retrieval traces, judge outputs, review queue, hashes, or run reports are included here. Consequently, the manuscript's matrix and repeated-audit claims are unverified from the provided material, despite the assertion that every number is recomputable.
-
-Evidence:
-
-- "Complete run artifacts are published at evidence/20260713T084130Z in the benchmark repository ... Every number in this section is recomputable from those artifacts."
-- "The v0.3 evidence now includes a separately versioned queue for all 52 unresolved artifact rounds"
-- "The benchmark and code are available at https://github.com/arananet/contam-bench."
-- The supplied files are only paper/v3/main.tex and paper/v3/references.bib; none of the cited evidence files or run artifacts is present.
-
-**Recommendation:** Provide the exact evidence release or a complete archival supplement containing the manifests, raw model and judge artifacts, retrieval traces, scoring outputs, review queue, and file hashes, or label the reported results as externally hosted and not independently verifiable from this artifact.
-
-### [CITATIONS-003] Intended identifier-reuse claim has no supporting experiment or evidence
-
-- **Severity:** MAJOR
-- **Category:** unsupported claim
-- **Location:** paper/v3/main.tex, Sections 3–4 and 7; no identifier-reuse or MCP experiment is specified
-- **Confidence:** 0.98
-- **Reported by:** citations
-
-The intended claim that reusing an identifier overwrites shared mappings but is retained in separate MCP instances is not operationalized or reported anywhere in the manuscript. The described benchmark concerns memory contamination scenarios, namespaces, provenance, TTL, retrieval gates, and raw fidelity; it provides no identifier-reuse scenario, MCP configuration, output, or trace. The claim is therefore unverified and cannot be narrowed from the supplied text beyond saying that no evidence is presented here.
+The manuscript presents six mechanisms as operationalized and falsifiable, but the reported response-layer evidence does not demonstrate degradation for several of them: semantic drift resolves clean for all configurations, natural recursion has a clean first round and a null compounding factor, and summarization loss has no utility oracle and all response verdicts are clean. Thus the evidence supports a taxonomy and targeted demonstrations of selected failure modes, not the broader claim that ordinary memory behavior degrades responses through all six mechanisms.
 
 Evidence:
 
-- The benchmark scenario description lists seeded items with "content, source, age in days, domain, and fact class" but does not specify identifier reuse or MCP instances.
-- Table 2's seven configurations cover naive, namespacing, provenance, TTL, gate, raw, and governed arms; none is an identifier-reuse or MCP-instance condition.
-- The results sections report drift, provenance, scope bleed, staleness, recursion, summarization, and controls, but contain no identifier-overwrite result.
+- paper/v3/main.tex, abstract: 'Ordinary memory-system behaviour' is framed as producing six mechanisms, while the results report clean semantic-drift responses and unresolved seeded-recursion rounds.
+- paper/v3/main.tex, Section 5.2: the natural recursion compounding factor is 'again null (round1_clean) across all seven configurations.'
+- paper/v3/main.tex, Section 5.3: 'The summarization probe has no utility oracle, so it cannot establish a utility gain from raw fidelity.'
+- paper/v3/main.tex, Section 5.5: 'Semantic drift remains a response-layer tie: all configurations resolved clean.'
+- evidence/20260713T191740Z/validation_report.md, Config comparison: compounding_factor_natural is null for every configuration and the response-level staleness rates are null for four configurations.
 
-**Recommendation:** Remove this claim from the paper or add a separately specified and evidenced experiment covering the fixed write order, shared mappings, separate MCP instances, and the observed identifier behavior.
+**Recommendation:** Narrow the headline to: the study defines six candidate mechanisms and obtains within-scenario evidence for provenance, scope, and selected retrieval/gate behaviors; it does not empirically establish response degradation for all six mechanisms.
 
-### [CITATIONS-004] Intended host-handler-dependent tool-rejection claim has no supporting evidence
-
-- **Severity:** MAJOR
-- **Category:** unsupported claim
-- **Location:** paper/v3/main.tex, Section 4.3 'Models and determinism'; no tool-rejection experiment elsewhere in the manuscript
-- **Confidence:** 0.98
-- **Reported by:** citations
-
-The intended claim that model-only tool rejection depends on the installed host handler rather than the SDK default is not discussed or tested in the manuscript. The model and benchmark description mentions subject, judge, relevance-gate, retrieval, and memory configurations, but no tool-rejection protocol, SDK version, host handler, or comparative result. The claim is therefore unverified from the artifact.
-
-Evidence:
-
-- "The subject model under test is claude-sonnet-4-6 at temperature 0; the judge and relevance gate are claude-haiku-4-5."
-- "The reported validation runs use TF-IDF cosine similarity" and the surrounding configuration descriptions discuss memory retrieval, not tool rejection.
-- No occurrence or section in main.tex specifies an SDK default handler, installed host handler, tool rejection test, or corresponding result.
-
-**Recommendation:** Remove the claim from the evaluated claims, or provide a separate experiment documenting the SDK version/default behavior, installed host handler, test prompts, tool outcomes, and comparison conditions.
-
-### [CLAIM-001] Unsupported claim: The paper's seven-configuration pilot establishes a general mitigation architect
-
-- **Severity:** MAJOR
-- **Category:** claims/unsupported
-- **Location:** paper/v3/main.tex, §5.6, §6, and Conclusion
-- **Confidence:** 0.90
-- **Reported by:** claim-graph
-
-The artifact explicitly disclaims this stronger claim; the supported conclusion is only a small, mechanism-specific pilot observation.
-
-Evidence:
-
-- paper/v3/main.tex, §6: “The ablation motivates constraints, not an efficacy ordering.”
-- paper/v3/main.tex, Conclusion: “They motivate further tests of memory contracts, not a validated general mitigation architecture.”
-- evidence/20260713T191740Z/defects.md, Evidence scope: one model, five repetitions, machine-only adjudication unavailable.
-
-**Recommendation:** Provide evidence for the claim or remove it.
-
-### [EVIDENCE-001] Identifier-reuse/MCP-isolation claim is not evidenced
-
-- **Severity:** MAJOR
-- **Category:** missing evidence
-- **Location:** Artifact-wide; relevant supplied implementation is limited to src/memory_store.py and the listed scenario/evidence files
-- **Confidence:** 0.99
-- **Reported by:** evidence
-
-The intended claim that reusing an identifier overwrites entries in shared mappings but remains isolated across separate MCP instances cannot be evaluated from the supplied artifact. The repository contents contain no MCP implementation, identifier-reuse experiment, or result record establishing this behavior. This is an unverified claim rather than a plausible inference from the memory-contamination benchmark.
-
-Evidence:
-
-- src/memory_store.py contains an in-memory MemoryStore with append-based seed/write-back behavior, but no identifier-keyed shared mapping or MCP-instance isolation experiment.
-- The supplied evidence releases contain contamination scenarios and verdicts, but no table, figure, script, or result file testing identifier reuse across shared versus separate MCP instances.
-- README.md describes the study as a persistent-memory ablation benchmark and does not report an MCP identifier-reuse experiment.
-
-**Recommendation:** Either remove this intended claim from the evaluated claims or provide a separately identified experiment with the identifier semantics, shared/separate instance setup, fixed write order, and persisted results. The narrowest currently supported wording is that no identifier-reuse/MCP-isolation conclusion is established by this artifact.
-
-### [EVIDENCE-003] Manuscript claims the rendered report identifies review rows, but the frozen report does not
-
-- **Severity:** MAJOR
-- **Category:** reproducibility/reporting contradiction
-- **Location:** paper/v3/main.tex, §5.3 “Repeated-evaluation audit and scoring defects”; evidence/20260713T191740Z/validation_report.md, “Flagged for human review”; evidence/20260713T191740Z/defects.md, D8
-- **Confidence:** 0.99
-- **Reported by:** evidence
-
-The manuscript states that the rendered report identifies review rows by repetition and artifact hash. The supplied frozen v0.3 validation report instead lists repeated rows without either field, and the associated defect record explicitly identifies this as D8. Thus the manuscript overstates the state of the supplied reporting artifact.
-
-Evidence:
-
-- paper/v3/main.tex, §5.3: “The rendered report now labels its machine-only and human-consensus tables separately and identifies review rows by repetition and artifact hash.”
-- evidence/20260713T191740Z/validation_report.md, “Flagged for human review”: rows are formatted like “CB-VAL-004 × arm_gate round 1” and omit repetition and artifact hash.
-- evidence/20260713T191740Z/defects.md, D8: “Human-review register omits repetition identifiers” and “the report is ambiguous.”
-
-**Recommendation:** Correct the manuscript to distinguish the frozen report from later planned or generated reporting changes. Do not claim that the supplied rendered report includes repetition/hash identifiers unless the corresponding report artifact is supplied and verified.
-
-### [METHODOLOGY-001] The provenance ablation does not isolate provenance tagging
+### [ADVERSARIAL-004] The seeded-recursion experiment does not test recursive write-back propagation in the same way as the natural recursion experiment
 
 - **Severity:** MAJOR
 - **Category:** experimental design
-- **Location:** paper/v3/main.tex, Section 5.6 'Attribution: what the cells support'; Section 7.1 'Validity statements'; Table 3
-- **Confidence:** 0.99
-- **Reported by:** methodology
-
-The provenance arm changes more than source attribution: its tag exposes source, age, and domain. Therefore the five clean outcomes cannot identify provenance tags as the causal mitigation, especially because the stale age is itself potentially informative. The manuscript acknowledges this confound, but the headline provenance interpretation still presents the tag arm as evidence for the provenance finding.
-
-Evidence:
-
-- paper/v3/main.tex, Section 5.6: 'the provenance tag as implemented carries age and domain metadata ([source: user | age: 200d | domain: personal]), so the provenance arm also resolved staleness because the subject discounted the 200-day-old fact by its visible age.'
-- paper/v3/main.tex, Section 7.1: 'The provenance arm is confounded: its tag emits source, age, and domain together, so its staleness result cannot be attributed to source attribution alone.'
-- paper/v3/main.tex, Table 3: 'provenance tags, raw fidelity, and the governed bundle are each 5/0/0'
-
-**Recommendation:** Report the provenance result explicitly as an effect of a bundled metadata intervention, or provide a pure-factor source-only ablation before attributing the result to provenance tagging.
-
-### [METHODOLOGY-002] The canonical response outcomes have no independent ground-truth resolution for 52 rounds
-
-- **Severity:** MAJOR
-- **Category:** evaluation methodology
-- **Location:** paper/v3/main.tex, Section 5.2 'Repeated-evaluation audit and scoring defects'; Section 7.1; spec/metrics.md, 'Adjudication layer'
-- **Confidence:** 0.99
-- **Reported by:** methodology
-
-The repeated audit excludes 52 of 350 rounds because deterministic and judge verdicts disagree, and the artifact contains no human verdicts. This is correctly disclosed, but it leaves the headline machine-only rates and comparisons potentially sensitive to unresolved cases; assertion versus mention is central to the contamination criterion. The manuscript should not use these rates as if they were validated contamination outcomes.
-
-Evidence:
-
-- paper/v3/main.tex, Section 5.2: 'Fifty-two of the 350 rounds (14.9%) required human review.'
-- paper/v3/main.tex, Section 5.2: 'Neither direction establishes which scorer is correct without independent assessment.'
-- paper/v3/main.tex, Section 5.2: 'the queue ... contains no human verdicts.'
-- spec/metrics.md, 'Adjudication layer': 'Ties and single-adjudicator records remain unresolved; no rate silently mixes machine and human layers.'
-
-**Recommendation:** Present sensitivity bounds or separate resolved and unresolved analyses for every load-bearing comparison, and complete the pre-specified blinded independent adjudication before making response-layer efficacy claims.
-
-### [METHODOLOGY-008] The intended identifier-reuse claim is unsupported by the supplied artifact
-
-- **Severity:** MAJOR
-- **Category:** claim-evidence mismatch
-- **Location:** All supplied files; no corresponding section or scenario present
-- **Confidence:** 0.99
-- **Reported by:** methodology
-
-The intended claim that reusing an identifier overwrites shared mappings but is retained in separate MCP instances has no corresponding scenario, experiment, result table, or discussion in the supplied files. It is therefore unverified and cannot be included as a finding of the paper.
-
-Evidence:
-
-- The supplied scenario files cover semantic drift, provenance collapse, scope bleed, temporal staleness, recursion, summarization loss, and two controls; none tests identifier reuse or MCP-instance retention.
-- paper/v3/main.tex, Section 3 taxonomy: the seven documented classes do not include identifier reuse or MCP mapping semantics.
-- spec/schema.yaml and spec/full-benchmark.plan.yaml: no identifier-reuse or MCP-instance scenario is listed.
-
-**Recommendation:** Remove this claim from the evaluated contribution, or add a dedicated, reproducible experiment with shared versus separate MCP instances and explicit overwrite/retention assertions.
-
-### [METHODOLOGY-009] The intended host-handler rejection claim is unsupported by the supplied artifact
-
-- **Severity:** MAJOR
-- **Category:** claim-evidence mismatch
-- **Location:** All supplied files; no corresponding section or scenario present
-- **Confidence:** 1.00
-- **Reported by:** methodology
-
-The intended claim that model-only tool rejection depends on the installed host handler rather than the SDK default is not evaluated in the manuscript or supplied scenarios. No tool-rejection experiment, host-handler comparison, SDK configuration, or result is present.
-
-Evidence:
-
-- The supplied files contain memory scenarios and memory configurations only; no tool-calling or host-handler scenario is present.
-- paper/v3/main.tex contains no section or result describing model-only tool rejection, installed host handlers, or SDK-default behavior.
-- spec/full-benchmark.plan.yaml lists retrieval backends, models, gates, baselines, and utility oracles, but no tool-rejection experiment.
-- The supplied source files implement memory retrieval, judging, adjudication, and benchmarking, but do not contain a model-only tool rejection experiment or host-handler comparison.
-- tests/test_integration.py and tests/test_ci_workflows.py cover benchmark execution and CI configuration, not SDK-default versus installed-host-handler tool behavior.
-- The supplied paper, paper/v3/main.tex, discusses memory contamination and retrieval gates but makes no evidence-backed tool-handler comparison.
-
-**Recommendation:** Do not state this claim as an evaluated result. Add a controlled comparison of the SDK default and installed host handler, with the same model prompt and explicit rejection outcomes, if the claim is in scope.
-
-### [REPO-CONSISTENCY-001] Reported empirical results cannot be verified from the supplied artifact
-
-- **Severity:** MAJOR
-- **Category:** reproducibility
-- **Location:** paper/v3/main.tex §5.3–§5.5; README.md “Paper and evidence” and “Repository layout”
-- **Confidence:** 0.99
-- **Reported by:** repo-consistency
-
-The manuscript reports headline repeated-audit results, including 350 scored rounds, 52 unresolved rounds, and per-cell outcome distributions, but the supplied files contain neither the referenced evidence directories nor the scenario manifests required to run the harness. README.md claims that frozen evidence is available under evidence/20260713T191740Z and that scenarios are under scenarios/validation/ and scenarios/controls/, but none of those files are included in the supplied artifact. Consequently, the reported results are unverified from the submitted bundle.
-
-Evidence:
-
-- paper/v3/main.tex §5.3: “the latter ran the same nine scenarios and seven configurations five times, producing 350 scored rounds”
-- paper/v3/main.tex Table 5 / §5.3: “The provenance separation persists without flags: provenance tags, raw fidelity, and the governed bundle are each 5/0/0”
-- README.md, “Paper and evidence”: “v0.3 repeated audit (7×9×5) | evidence/20260713T191740Z/”
-- README.md, “Repository layout”: “scenarios/validation/ | 7 hand-authored contamination scenarios” and “evidence/ | Frozen runs cited in publications”
-- Supplied artifact file inventory: no evidence/ directory, no scenarios/validation/ directory, no scenarios/controls/ directory, and no persisted verdicts or run artifacts are provided
-
-**Recommendation:** Supply the exact frozen scenario manifests, raw run artifacts, verdicts, and reports referenced by the manuscript, or restrict the manuscript to implementation-level claims and explicitly mark all numerical results as unavailable in this artifact bundle.
-
-### [REPO-CONSISTENCY-002] The default executable configuration set does not reproduce the manuscript’s seven-configuration experiment
-
-- **Severity:** MAJOR
-- **Category:** configuration mismatch
-- **Location:** paper/v3/main.tex §5; spec/configs.yaml; src/harness.py main()
+- **Location:** paper/v3/main.tex, Section 5.2 'Seeded recursion (CB-VAL-009)'; scenarios/validation/cb-val-009-recursive-seeded.yaml; src/harness.py::run_pair
 - **Confidence:** 0.98
-- **Reported by:** repo-consistency
-
-The manuscript describes the reported ablation as seven configurations, while the supplied configuration file defines eight configurations because arm_gate_preserve_pairs is present. The harness defaults to every key in spec["configs"], so a default invocation runs the experimental eighth arm rather than the manuscript’s seven-arm frozen matrix. No supplied command or configuration pins the reported run to the seven frozen arms.
-
-Evidence:
-
-- paper/v3/main.tex §5: “the run reported here executes nine scenarios ... against seven configurations”
-- spec/configs.yaml: “arm_gate_preserve_pairs” is defined under configs, with the comment “It is not a v0.2 result and must be reported separately”
-- README.md: “The active development configuration also includes an experimental guarded-gate arm ... it is not part of frozen v0.3 evidence”
-- src/harness.py, main(): `config_names = args.config or list(spec["configs"])`, which includes arm_gate_preserve_pairs by default
-
-**Recommendation:** Make the frozen seven-arm configuration explicit in the executable entry point or release configuration, and document the exact command/configuration used for the paper’s results. Keep the experimental arm in a separately named, non-default configuration if it is not part of the evidence release.
-
-### [REPO-CONSISTENCY-003] The identifier-overwrite/MCP claim has no counterpart in the supplied artifact
-
-- **Severity:** MAJOR
-- **Category:** unsupported claim
-- **Location:** Artifact-wide; especially src/memory_store.py and tests/test_memory_store.py
-- **Confidence:** 0.99
-- **Reported by:** repo-consistency
-
-One author-intended claim concerns identifier reuse, overwrite behavior in shared mappings, and retention in separate MCP instances. The supplied manuscript, specifications, source files, and tests contain no MCP implementation, identifier-overwrite experiment, shared-mapping model, or separate-instance test. The claim is therefore unsupported by this artifact and cannot be narrowed to a supported empirical conclusion from the available evidence.
-
-Evidence:
-
-- Author-intended claim: “Under the tested configurations and one fixed write order, reusing an identifier overwrites in the shared mappings and is retained in separate MCP instances.”
-- src/memory_store.py: `MemoryEntry` has `seed_id`, but `MemoryStore.seed()` only appends entries and contains no overwrite or shared-mapping behavior
-- src/memory_store.py: `MemoryStore` is a single in-memory list and has no MCP-instance abstraction
-- tests/test_memory_store.py: tests cover namespacing, TTL, fidelity, tags, write-back, and empty stores, but contain no identifier-reuse or MCP-instance test
-- Supplied artifact file inventory: no MCP adapter, shared mapping implementation, or corresponding experiment/evidence file
-
-**Recommendation:** Remove the claim from the evaluated scope unless the MCP implementation, controlled experiment, and persisted evidence are supplied. If retained, narrow it only to the exact tested implementation and write order supported by those artifacts.
-
-### [REPO-CONSISTENCY-004] The host-handler-dependent model-only tool-rejection claim is unsupported
-
-- **Severity:** MAJOR
-- **Category:** unsupported claim
-- **Location:** Artifact-wide; especially src/llm.py and tests/
-- **Confidence:** 0.99
-- **Reported by:** repo-consistency
-
-The second author-intended claim concerns model-only tool rejection and dependence on an installed host handler rather than the SDK default. The supplied code only wraps Anthropic message calls and implements memory retrieval, gating, judging, and scoring; it contains no tool-rejection experiment, host handler, SDK-default comparison, or tool-call test. The claim is therefore unverified and unsupported by the submitted artifact.
-
-Evidence:
-
-- Author-intended claim: “Model-only tool rejection depends on the installed host handler, not the SDK default.”
-- src/llm.py: `CountingClient.complete()` calls `self.client.messages.create(...)` and has no tool definitions, host-handler logic, or rejection comparison
-- src/retrieval.py and src/harness.py: the implemented model calls concern relevance gating and subject responses, not tool rejection
-- Supplied tests: no test refers to tool rejection, an installed host handler, or an SDK-default behavior
-
-**Recommendation:** Remove the claim from this artifact’s conclusions, or provide the host-handler implementation, SDK-default control, experimental protocol, and persisted results needed to support it.
-
-### [REPRODUCIBILITY-001] Raw per-scenario evidence required for audit and adjudication is missing
-
-- **Severity:** MAJOR
-- **Category:** reproducibility
-- **Location:** README.md, section 'Paper and evidence'; src/adjudication.py, functions `_artifact_index` and `generate_packets`; evidence/20260713T191740Z/; supplied file inventory
-- **Confidence:** 0.99
-- **Reported by:** reproducibility
-
-The manuscript and README say that frozen evidence contains raw prompts, injected memories, gate decisions, responses, and verdicts, and the adjudication code requires per-artifact JSON files to generate blinded packets. Those per-scenario artifact files are not among the supplied files: the evidence directories contain only metadata, reports, defects, verdicts, and the queue. Consequently, an independent researcher cannot inspect the response text or retrieval traces, regenerate the 52 review packets, or verify the judge evidence underlying the headline comparisons.
-
-Evidence:
-
-- README.md: “Each evidence directory contains the raw per-scenario artifacts (prompts, injected memories, gate decisions, responses), `verdicts.json`, `validation_report.md`, and `defects.md`”
-- src/adjudication.py: `_artifact_index` scans `evidence_dir` for files whose names start with `CB-` and reads each artifact's `response` and `scoring` fields
-- evidence/20260713T191740Z/adjudications.json`: 52 pending artifact hashes are queued, but no corresponding `CB-*.json` evidence files are supplied
-- paper/v3/main.tex, §5.3: “Of 350 scored rounds, 52 remain unresolved pending human review.”
-
-**Recommendation:** Include the immutable per-scenario JSON artifacts, or provide an independently verifiable archive containing them, before presenting the results as auditable or seeking human adjudication. Ensure the supplied evidence directory is sufficient for `src.adjudication packets` to run.
-
-### [REPRODUCIBILITY-002] Main experiment cannot be exactly rerun from the environment specification
-
-- **Severity:** MAJOR
-- **Category:** reproducibility
-- **Location:** requirements.txt; docs/REPRODUCTION.md, sections 'Independence' and 'Prerequisites'; evidence/20260713T191740Z/run_meta.json; paper/v3/main.tex, §5.3 and §Discussion/Limitations
-- **Confidence:** 0.98
-- **Reported by:** reproducibility
-
-The main experiment depends on live Anthropic model calls, but the artifact provides only lower-bound dependency constraints and no lockfile, container, exact commit identifier for the frozen runs, or API/model-version snapshot. The reproduction protocol itself asks reviewers to record a commit SHA and exact environment, while the frozen `run_meta.json` records models and sampling parameters but not the commit or installed package versions. Since the paper explicitly reports model-mediated results and acknowledges output variance, this blocks an exact independent rerun of the headline ablation and repeated audit.
-
-Evidence:
-
-- requirements.txt: `anthropic>=0.116`, `PyYAML>=6.0`, `jsonschema>=4.0`, `scikit-learn>=1.3`, and other unpinned lower bounds
-- evidence/20260713T191740Z/run_meta.json: records model names, temperatures, repetitions, and call counts, but no commit SHA, Python version, package versions, or hardware/environment image
-- docs/REPRODUCTION.md: “the reviewer reports the exact commit SHA, environment, commands, elapsed time, outputs, and deviations”
-- paper/v3/main.tex, §Discussion/Limitations, “Temperature~0 sampling reduces but does not remove output variance”
-
-**Recommendation:** Archive the exact commit, Python and library versions, dependency lockfile or container digest, complete commands, and model/API identifiers used for each frozen run. Distinguish artifact reanalysis from live reruns in the paper.
-
-### [REPRODUCIBILITY-005] The intended identifier-overwrite/MCP-instance claim is unsupported in the artifact
-
-- **Severity:** MAJOR
-- **Category:** unsupported_claim
-- **Location:** Artifact-wide; no supporting location supplied
-- **Confidence:** 0.99
-- **Reported by:** reproducibility
-
-The intended claim that reusing an identifier overwrites entries in shared mappings but is retained in separate MCP instances is not stated or tested in the supplied manuscript, scenarios, reports, source files, or evidence records. No MCP implementation, identifier-reuse scenario, or corresponding result is provided. The claim is therefore unverified and cannot be included as an empirical conclusion.
-
-Evidence:
-
-- The supplied manuscript's taxonomy and results sections discuss memory scope, provenance, TTL, gating, raw fidelity, and recursion, but contain no MCP-instance or identifier-overwrite experiment
-- The supplied scenario inventory contains CB-VAL-001 through CB-VAL-009; none is an identifier-reuse or shared-mapping/MCP-instance scenario
-- No supplied source or evidence file defines an MCP instance comparison or reports such a result
-
-**Recommendation:** Remove the claim from the intended claims and conclusions, or add a separately specified and executed experiment with its implementation, commands, artifacts, and results. On the current evidence, no narrower empirical wording is supported.
-
-### [REPRODUCIBILITY-006] The intended host-handler/model-only tool-rejection claim is unsupported in the artifact
-
-- **Severity:** MAJOR
-- **Category:** unsupported_claim
-- **Location:** Artifact-wide; no supporting location supplied
-- **Confidence:** 0.99
-- **Reported by:** reproducibility
-
-The intended claim that model-only tool rejection depends on the installed host handler rather than the SDK default has no supporting experiment or artifact. The supplied code and paper concern memory retrieval, scoring, and adjudication; they do not implement or test tool rejection, host handlers, or SDK defaults. The claim is unverified.
-
-Evidence:
-
-- paper/v3/main.tex: no section, result, scenario, or citation addresses model-only tool rejection or installed host handlers
-- src/: supplied modules cover harness, retrieval, memory store, judging, metrics, and adjudication; no host-handler/tool-rejection implementation is supplied
-- The supplied scenario inventory and evidence reports contain no tool-rejection result
-
-**Recommendation:** Remove the claim unless a separate tool-handling experiment and its reproducible artifacts are supplied. No narrower wording is supported by the current artifact.
-
-### [STATISTICS-001] Intended identifier-overwrite claim is not evidenced in the supplied artifact
-
-- **Severity:** MAJOR
-- **Category:** statistics
-- **Location:** AUTHOR'S INTENDED CLAIMS; src/memory_store.py; paper/v3/main.tex
-- **Confidence:** 0.99
-- **Reported by:** statistics
-
-The intended claim that reusing an identifier overwrites entries in shared mappings but is retained in separate MCP instances is not supported by any reported experiment, sample, run count, variance, statistical comparison, or implementation artifact in the supplied files. The visible memory implementation uses seed IDs and an in-memory list, but no shared-mapping/MCP-instance experiment is described or quantified.
-
-Evidence:
-
-- AUTHOR'S INTENDED CLAIMS: “Under the tested configurations and one fixed write order, reusing an identifier overwrites in the shared mappings and is retained in separate MCP instances.”
-- src/memory_store.py, MemoryStore: entries are stored in `self.entries: list[MemoryEntry]`; no shared-mapping or separate-MCP-instance experiment is present.
-- paper/v3/main.tex, Sections 5–7: the reported experiments concern nine scenarios, seven memory configurations, retrieval, response verdicts, and controls; no identifier-overwrite result is reported.
-
-**Recommendation:** Do not present this as an established quantitative result unless a documented identifier-overwrite experiment with explicit runs, conditions, and outcomes is supplied; otherwise mark it unverified or remove it.
-
-### [STATISTICS-002] Host-handler-dependent tool-rejection claim is not evidenced
-
-- **Severity:** MAJOR
-- **Category:** statistics
-- **Location:** AUTHOR'S INTENDED CLAIMS; paper/v3/main.tex; evidence/20260713T191740Z/validation_report.md
-- **Confidence:** 0.99
-- **Reported by:** statistics
-
-The intended claim that model-only tool rejection depends on the installed host handler rather than the SDK default has no supporting experiment or quantitative evidence in the supplied artifact. The manuscript and evidence focus on memory contamination, retrieval, gates, and scoring; no host-handler comparison or SDK-default baseline is reported.
-
-Evidence:
-
-- AUTHOR'S INTENDED CLAIMS: “Model-only tool rejection depends on the installed host handler, not the SDK default.”
-- paper/v3/main.tex, Abstract and Sections 5–7: reported measurements are memory configurations, contamination verdicts, retrieval assertions, gate calls, and API spend; no tool-rejection or host-handler condition appears.
-- evidence/20260713T191740Z/validation_report.md, Config comparison and Relevance-gate observability: the reported metrics contain contamination, recursion, provenance, staleness, retention, retrieval, and gate-call results, but no tool-rejection measurement.
-
-**Recommendation:** Treat this claim as unverified and do not include it among empirical conclusions without a controlled host-handler-versus-SDK comparison with run counts and outcome definitions.
-
-### [ADVERSARIAL-003] Machine-only rates exclude the disagreements most relevant to the central mitigation conclusions
-
-- **Severity:** MINOR
-- **Category:** scoring validity
-- **Location:** evidence/20260713T191740Z/defects.md, D7 and D9; evidence/20260713T191740Z/validation_report.md, 'Config comparison' and 'Human-adjudicated comparison'; paper/v3/main.tex, abstract and §5.3
-- **Confidence:** 0.97
 - **Reported by:** adversarial
 
-The 52 unresolved rounds are not randomly distributed: they include all 20 staleness comparisons for four configurations and 29 of 35 seeded-recursion rounds. Excluding these rounds from both numerator and denominator means the reported rates cannot establish comparative response-level efficacy for those mechanisms. The manuscript explicitly acknowledges this, so the issue is declared rather than hidden; nevertheless, the abstract and conclusion should not be read as stronger than machine-only, within-case observations.
+The paper calls CB-VAL-009 a seeded-recursion mechanism test, but the contaminated assistant write-back is manually placed in the initial memory seed. This bypasses the causal step central to recursive contamination—an assistant response being generated, written back, and then retrieved. The experiment tests handling of a pre-existing contradictory assistant record and the gate's filtering behavior, not whether the system's own output creates or compounds that record.
 
 Evidence:
 
-- evidence/20260713T191740Z/defects.md, D7: “Fifty-two of the 350 scored rounds resolved to needs_human_review,” including 20 staleness and 29 seeded-recursion disagreements.
-- evidence/20260713T191740Z/validation_report.md, 'Human-adjudicated comparison': “unavailable (adjudications_file_missing); machine verdicts remain authoritative.”
-- paper/v3/main.tex, abstract: “Of 350 scored rounds, 52 remain unresolved pending human review.”
-- paper/v3/main.tex, §5.3: “Neither direction establishes which scorer is correct without independent assessment.”
+- paper/v3/main.tex, Section 5.2: 'the store is seeded directly with an already-contaminated assistant-attributed write-back ... alongside the user-sourced ground truth.'
+- scenarios/validation/cb-val-009-recursive-seeded.yaml: the initial memory_seed contains 'atlas-confirmed-write-back' with source 'assistant'; the scenario has no write_back: true or round2 block.
+- src/harness.py::run_pair: only scenarios with 'write_back' and 'round2' execute the response-to-store transition; CB-VAL-009 therefore has no generated write-back transition.
+- paper/v3/main.tex, Section 3: recursive contamination is defined as 'write-back of assistant output' and later retrieval of that output.
 
-**Recommendation:** Keep the limitation prominent wherever rates are interpreted, avoid ranking arms on the affected response-level mechanisms, and do not present the machine-only rates as validated mitigation efficacy.
+**Recommendation:** Describe CB-VAL-009 narrowly as a seeded contradictory-record/gate-presupposition test. Do not use it as direct evidence that the system's own generated responses cause recursive contamination unless a genuine generated-response write-back experiment is supplied.
 
-### [ADVERSARIAL-004] The frozen run metadata does not conform to the current run-metadata schema
+### [ADVERSARIAL-005] The released correction bundle and the manuscript's evidence lineage are not present in the supplied artifact
 
-- **Severity:** MINOR
-- **Category:** reproducibility
-- **Location:** spec/run-meta.schema.yaml; evidence/20260713T191740Z/run_meta.json; evidence/20260713T191740Z/defects.md, D10
-- **Confidence:** 0.95
+- **Severity:** MAJOR
+- **Category:** artifact consistency
+- **Location:** README.md, evidence table; paper/v3/main.tex, Table 1 and Section 5.3; supplied file inventory
+- **Confidence:** 0.99
 - **Reported by:** adversarial
 
-The current schema requires harness_call_counts, harness_total_calls, judge_total_calls, pipeline_call_counts, and pipeline_total_calls. The supplied v0.3 run_meta.json provides only the legacy call_counts and total_calls fields plus repetitions. This weakens the claimed machine-readable provenance and leaves the 485-versus-660 call accounting dependent on later report logic rather than the frozen metadata itself.
+The README and manuscript refer to a v0.3.1 correction bundle and cite it as part of the evidence lineage, but the supplied file inventory contains no evidence/20260713T191740Z/corrections/ directory or correction file. This prevents verification of the stated call reconciliation and makes the claimed release lineage internally incomplete.
 
 Evidence:
 
-- spec/run-meta.schema.yaml, top-level required fields: harness_call_counts, harness_total_calls, judge_total_calls, pipeline_call_counts, and pipeline_total_calls.
-- evidence/20260713T191740Z/run_meta.json: contains “call_counts”: {“subject”: 350, “gate”: 135} and “total_calls”: 485, but not the newer required fields.
-- evidence/20260713T191740Z/defects.md, D10: persisted counts are 350 subject, 135 gate, and 175 judge, totaling 660, while run_meta.json reports only 485 harness calls.
+- README.md, evidence table: v0.3.1 is backed by 'evidence/20260713T191740Z/corrections/' and described as an append-only 660-call reconciliation.
+- paper/v3/main.tex, Table 'Evidence lineage': v0.3.1 corrections are listed as an evidence release backing call reconciliation and review-queue metadata.
+- evidence/20260713T191740Z/defects.md, D9: 'No adjudications file accompanies the frozen evidence'; D10 records the 660-call total as a correction to the 485-call run metadata.
+- The supplied files under evidence/20260713T191740Z include no corrections/ directory or call-count-v1.json file.
 
-**Recommendation:** Publish a versioned, schema-valid metadata correction alongside the frozen release, explicitly preserving the legacy file and documenting which metadata layer is authoritative.
+**Recommendation:** Include the referenced correction files in the frozen release and verify their hashes, or remove the v0.3.1 lineage and correction claims from the manuscript and README.
 
-### [ARCHIVAL-003] The bibliography required to resolve the paper's citations is absent from the supplied artifact
+### [ARCHIVAL-001] Frozen evidence artifacts are not included in the supplied artifact
 
-- **Severity:** MINOR
-- **Category:** citation metadata
-- **Location:** paper/v3/main.tex, bibliography declarations and cited sections; provided file list
-- **Confidence:** 0.99
+- **Severity:** MAJOR
+- **Category:** archival and reproducibility
+- **Location:** README.md, “Paper and evidence”; paper/v3/main.tex, Sections 5.1, 5.3, and 5.4
+- **Confidence:** 0.98
 - **Reported by:** archival
 
-The manuscript invokes a BibTeX bibliography file named \`references\`, but no references.bib file is included in the supplied files. Consequently, cited works cannot be unambiguously identified from this artifact alone, even though the manuscript uses citation keys throughout.
+The paper's central numerical and trace-based results depend on frozen evidence directories that are referenced but not present among the supplied files. The README states that the evidence directories contain raw prompts, injected memories, gate decisions, responses, verdicts, and validation reports, while the supplied artifact contains only metadata, documentation, and the manuscript. Consequently, a reader of this artifact cannot independently recompute the headline results or inspect the logged gate decisions.
 
 Evidence:
 
-- paper/v3/main.tex, end of document: “\bibliographystyle{plain}” and “\bibliography{references}”
-- paper/v3/main.tex, Related Work section: citations such as “\cite{chen2024agentpoison}”, “\cite{dong2025minja}”, and “\cite{weng2026harness}” appear without bibliographic entries in the supplied files.
-- Provided file list contains no \`references.bib\` or rendered reference list.
+- README.md: “Each evidence directory contains the raw per-scenario artifacts (prompts, injected memories, gate decisions, responses), `verdicts.json`, `validation_report.md`, and `defects.md`” — but no `evidence/` files are among the supplied files.
+- paper/v3/main.tex, Section 5.1: “Complete run artifacts are published at `evidence/20260713T084130Z` ... Every number in this section is recomputable from those artifacts.”
+- paper/v3/main.tex, Section 5.4: “The v0.2 gate failure is traceable in the gate's own logged decisions.”
 
-**Recommendation:** Include the bibliography source or a rendered reference list with complete titles, authors, venues, and persistent identifiers where available.
+**Recommendation:** Distribute the frozen evidence artifacts with the archival release, or provide a persistent archive link and exact file manifest/hashes for every evidence release used by the paper. Do not rely solely on the mutable repository path.
 
-### [ARCHIVAL-004] Repository and code licensing metadata are internally ambiguous
+### [ARCHIVAL-002] Evidence tags are named but not bound to immutable commit or archive contents
 
-- **Severity:** MINOR
-- **Category:** licensing
-- **Location:** CITATION.cff; LICENSING.md; README.md, License section
-- **Confidence:** 0.94
-- **Reported by:** archival
-
-CITATION.cff declares CC-BY-4.0 without distinguishing the licensed object, while LICENSING.md states that code is Apache-2.0 and manuscript, figures, data, and evidence are CC-BY-4.0. A reader using CITATION.cff alone could interpret CC-BY-4.0 as the repository-code licence, creating ambiguity about code reuse.
-
-Evidence:
-
-- CITATION.cff: “repository-code: https://github.com/arananet/contam-bench” followed by “license: CC-BY-4.0”.
-- LICENSING.md: “Code — harness, scripts, tests and any software in this repository: Apache-2.0” and “Content — the manuscript, figures, data and evidence records: CC-BY-4.0.”
-- README.md, License section: “Apache 2.0 (LICENSE)” without separately identifying the manuscript/data licence.
-
-**Recommendation:** Clarify in CITATION.cff and repository documentation that Apache-2.0 applies to code and CC-BY-4.0 applies to paper, figures, data, and evidence, or provide object-specific licence metadata.
-
-### [ARCHIVAL-005] Author affiliation metadata is not provided
-
-- **Severity:** MINOR
-- **Category:** citation metadata
-- **Location:** CITATION.cff; paper/v3/main.tex, title and author block
+- **Severity:** MAJOR
+- **Category:** reference immutability
+- **Location:** README.md, “Quick start” and “Paper and evidence”; docs/REPRODUCTION.md, “Prerequisites” and “What to compare”; paper/v3/main.tex, Table 2 and Section 5.3
 - **Confidence:** 0.96
 - **Reported by:** archival
 
-The sole author is identified by name and ORCID, but neither CITATION.cff nor the manuscript supplies an affiliation. This does not prevent retrieval, but it weakens unambiguous author disambiguation and citation metadata completeness.
+The paper identifies evidence releases by Git tags such as `v0.2-ablation` and `v0.3-repeated-ablation`, but it does not record the commit SHA, archive checksum, or DOI/version relation for those exact releases. The reproduction protocol instructs reviewers to clone the repository and inspect `HEAD`, while the manuscript and README repeatedly point to a bare GitHub repository or repository-relative paths. A tag or default branch can change after review, so the version containing the reported numbers is not unambiguously recoverable from the supplied artifact.
 
 Evidence:
 
-- CITATION.cff lists only “family-names: Arana”, “given-names: Eduardo”, and an ORCID.
-- paper/v3/main.tex: “\author{Eduardo Arana}” with no affiliation declaration.
+- README.md: “This repository is archived on Zenodo with the following DOI: 10.5281/zenodo.22859806” but no mapping is given from that DOI to the v0.2, v0.3, or v0.3.1 evidence contents.
+- paper/v3/main.tex, Table `tab:lineage`: the evidence releases are identified by tags `v0.2-ablation`, `v0.3-repeated-ablation`, and `v0.3.1-evidence-corrections`, without commit SHAs or archive checksums.
+- docs/REPRODUCTION.md, “Prerequisites”: `git clone https://github.com/arananet/contam-bench.git` followed by `git rev-parse HEAD`; this checks the checkout obtained by the reviewer, not the exact commit used for the paper’s results.
 
-**Recommendation:** Add the author's affiliation and, where appropriate, persistent institutional identifiers to the citation metadata.
+**Recommendation:** Record the exact commit SHA and archive checksum for each evidence release in the manuscript and archival metadata. Ensure the DOI resolves to an immutable archive containing those exact versions, and cite the version-specific DOI or SWHID where available.
+
+### [ARCHIVAL-006] The seeded-recursion claim is reported from manuscript descriptions, but the underlying trace is unavailable here
+
+- **Severity:** MAJOR
+- **Category:** claim verification
+- **Location:** paper/v3/main.tex, Section 5.6, “The gate amplified seeded recursion”; README.md, “Paper and evidence”
+- **Confidence:** 0.97
+- **Reported by:** archival
+
+The manuscript gives a detailed account of the gate retaining the contaminated write-back and discarding premise-denying context, and appropriately limits the generalization. However, the supplied artifact does not include the cited gate logs or per-round evidence, so the central trace-based observation cannot be independently checked from the provided document package.
+
+Evidence:
+
+- paper/v3/main.tex, Section 5.6: the gate allegedly kept “confirms Atlas launch timing ... directly answers the query” and discarded context because it “explicitly states the launch date is tentative and not confirmed.”
+- paper/v3/main.tex, Section 5.6: “this relevance gate as implemented retained the contaminated write-back and discarded the contradicting user context.”
+- README.md: the relevant gate decisions are said to reside in `evidence/20260713T191740Z/`, which is not among the supplied files.
+
+**Recommendation:** Include the exact gate-decision records and corresponding response artifacts, with immutable hashes, in the archival evidence package. Preserve the current narrow scope: one seeded-recursion scenario and one implementation, not relevance gates generally.
+
+### [CITATIONS-001] Repeated-audit denominator is mathematically inconsistent
+
+- **Severity:** MAJOR
+- **Category:** internal consistency / evidence accounting
+- **Location:** paper/v3/main.tex, Section 4.2 'Repeated-evaluation audit and scoring defects', and abstract
+- **Confidence:** 0.99
+- **Reported by:** citations
+
+The manuscript states that the v0.3 audit used nine scenarios, seven configurations, and five repetitions, which implies 315 scenario-configuration repetitions, not 350. It nevertheless repeatedly calls the total 350 scored rounds and uses that number for the 52/350 unresolved fraction. The 350 subject calls can plausibly include extra recursive rounds, but those are not the same as scored scenario-configuration rounds as written.
+
+Evidence:
+
+- Abstract: “Of 350 scored rounds, 52 remain unresolved pending human review.”
+- Section 4.2: “the latter ran the same nine scenarios and seven configurations five times, producing 350 scored rounds”
+- Section 4.2: “The repeated audit used 660 API calls: 350 subject calls, 135 gate calls, and 175 judge calls.”
+- Section 4.2, Table 4: the audit is described as repeated across seven configurations and five repetitions.
+
+**Recommendation:** Reconcile the accounting by distinguishing scenario-configuration cells, scored rounds, and extra recursive subject calls; state the exact denominator for the 52 unresolved cases and recompute the reported percentage.
+
+### [CITATIONS-002] Headline empirical results depend on artifacts not included in the supplied document
+
+- **Severity:** MAJOR
+- **Category:** reproducibility / evidence
+- **Location:** paper/v3/main.tex, Section 4 'Ablation Study', footnote to the ablation description; Sections 4.2 and 4.4
+- **Confidence:** 0.99
+- **Reported by:** citations
+
+The paper's central results rely on external JSON run artifacts, logs, hashes, and review queues, but the supplied files contain only the manuscript and bibliography. Consequently, the reported table entries, gate decisions, provenance outcomes, and 52-case review count cannot be independently checked from the provided artifact. The manuscript acknowledges that the external releases exist, but an external URL or repository claim is not evidence contained in this submission.
+
+Evidence:
+
+- Section 4: “Complete run artifacts are published at evidence/20260713T084130Z in the benchmark repository... Every number in this section is recomputable from those artifacts.”
+- Section 4.2: “The v0.3 evidence now includes a separately versioned queue for all 52 unresolved artifact rounds, but it contains no human verdicts.”
+- Section 4.4: “The v0.2 gate failure is traceable in the gate's own logged decisions.”
+- The supplied file list contains only paper/v3/main.tex and paper/v3/references.bib; no evidence directory, JSON artifacts, logs, code, manifests, or review queue is supplied.
+
+**Recommendation:** Provide the immutable evidence releases and the code/manifests needed to regenerate Tables 1–4, or explicitly label the reported empirical values as claims verified only by an external repository rather than by the submitted artifact.
+
+### [EVIDENCE-001] The six-mechanism degradation claim exceeds the observed response-layer evidence
+
+- **Severity:** MAJOR
+- **Category:** claims
+- **Location:** paper/v3/main.tex, Abstract; §3 taxonomy; §5.3 repeated audit; Conclusion
+- **Confidence:** 0.97
+- **Reported by:** evidence
+
+The manuscript presents six mechanisms as mechanisms through which ordinary memory behavior can degrade later responses, but the supplied response verdicts directly show degradation only for selected cases. Semantic drift and summarization-loss responses are clean across the reported configurations, and natural recursion has no observed contamination or compounding because round 1 was clean. Thus the evidence supports six operationalized, falsifiable candidate mechanisms, not six demonstrated degradation mechanisms.
+
+Evidence:
+
+- paper/v3/main.tex, Abstract: “We contribute a taxonomy of six mechanisms: semantic drift, provenance collapse, scope bleed, temporal staleness, recursive compounding, and summarization loss.”
+- evidence/20260713T191740Z/validation_report.md, Config comparison: `compounding_factor_natural` is `null (round1_clean)` for every configuration.
+- evidence/20260713T191740Z/validation_report.md, Per-scenario verdicts: all CB-VAL-001 semantic-drift rounds and all CB-VAL-006 summarization-loss rounds are machine-resolved `clean`.
+- paper/v3/main.tex, §5.3: “Natural recursive compounding was not observed” and “The summarization probe has no utility oracle.”
+
+**Recommendation:** Narrow the headline claim to: “We define six candidate mechanisms and operationalize each with a falsifiable scenario criterion; this pilot directly observes contamination in only a subset of those cases.”
+
+### [METHODOLOGY-001] Primary experimental evidence is absent from the supplied artifact
+
+- **Severity:** MAJOR
+- **Category:** reproducibility
+- **Location:** paper/v3/main.tex, Section 4, footnote and Sections 4.1–4.4; files listed in the artifact manifest
+- **Confidence:** 0.99
+- **Reported by:** methodology
+
+The paper reports results from v0.2 and v0.3 evidence releases, but the supplied files contain no persisted responses, retrieval traces, verdict JSON, run metadata, or reports from those releases. Consequently, the reported five-repetition outcomes, API-call totals, 52 unresolved rounds, and retrieval assertions cannot be independently checked from this artifact. The paper's central empirical claims therefore remain unverified in the supplied submission.
+
+Evidence:
+
+- The paper states that complete artifacts are at `evidence/20260713T084130Z` and that every number is recomputable from those artifacts (Section 4, footnote), but no `evidence/` files are among the supplied files.
+- The paper states that the repeated audit is published at `evidence/20260713T191740Z` and reports 350 rounds, 52 reviews, and Tables 4–5 (Section 4.2), but those run artifacts are not supplied.
+- `spec/metrics.md` requires metrics to be computed from `runs/<timestamp>/*.json`, yet no `runs/` artifacts are provided.
+
+**Recommendation:** Provide the immutable v0.2/v0.3/v0.3.1 run artifacts, including raw prompts, injected memories, responses, retrieval assertions, judge outputs, verdicts, hashes, and run metadata; otherwise label the numerical results and derived claims as unverified and restrict the conclusions to the scenario specifications and methodological proposal.
+
+### [REPO-CONSISTENCY-002] The submitted implementation cannot execute the reported benchmark without missing scenario data
+
+- **Severity:** MAJOR
+- **Category:** missing implementation
+- **Location:** src/harness.py, load_scenarios and VALIDATION_SCENARIO_GLOBS; README.md, “Repository layout”; paper/v3/main.tex, §4 and §5
+- **Confidence:** 0.99
+- **Reported by:** repo-consistency
+
+The harness implementation discovers scenarios only from scenarios/validation/*.yaml and scenarios/controls/*.yaml, validates them, and then runs the benchmark. Those manifests are not supplied. Thus, although source code for the pipeline is present, the benchmark described in the paper cannot be run from this artifact and the manuscript's claims about nine hand-authored scenarios have no supplied implementation counterpart.
+
+Evidence:
+
+- src/harness.py: VALIDATION_SCENARIO_GLOBS is defined as scenarios/validation/*.yaml and scenarios/controls/*.yaml; load_scenarios iterates those paths and validates each manifest.
+- src/harness.py: main calls load_scenarios(args.scenario) before generating any artifacts.
+- README.md, repository layout: “scenarios/validation/ | 7 hand-authored contamination scenarios” and “scenarios/controls/ | 2 control scenarios.”
+- paper/v3/main.tex §4: “The ablation of Section~\ref{sec:results} adds a ninth, seeded-recursion scenario, yielding nine scenarios against seven memory configurations.”
+- tests/test_schema.py: asserts that the on-disk inventory is exactly CB-VAL-001..009 and scans scenarios/*/*.yaml; no such files are in the supplied artifact.
+
+**Recommendation:** Include the nine validation/control manifests used for the reported runs, including their expected patterns, retrieval assertions, and scoring rules. If they are intentionally excluded, state that the supplied artifact is code-only and withdraw execution-based claims.
+
+### [REPO-CONSISTENCY-003] The provenance, retrieval, and presupposition-capture findings are empirical claims without supplied traces
+
+- **Severity:** MAJOR
+- **Category:** unsupported claim
+- **Location:** paper/v3/main.tex, Abstract; §5.3; §5.4; §5.5; README.md, “Paper and evidence”
+- **Confidence:** 0.98
+- **Reported by:** repo-consistency
+
+The manuscript appropriately acknowledges unresolved scorer disagreements and limitations, but it still asserts specific repeated outcomes and a logged gate failure. The supplied artifact contains only generic retrieval and scoring code plus unit tests; it does not contain the claimed per-scenario gate decisions, subject responses, verdicts, or 52-round review queue. The code demonstrates that such traces could be generated, not that the reported observations occurred.
+
+Evidence:
+
+- Manuscript abstract: “On the provenance probe, tags and raw fidelity each yielded five machine-resolved clean outcomes” and “logged seeded-recursion failure illustrates how relevance filtering can discard context that denies a query's premise.”
+- Manuscript §5.3: “Fifty-two of the 350 rounds (14.9%) required human review” and “The provenance separation persists without flags.”
+- Manuscript §5.5: “The v0.2 gate failure is traceable in the gate's own logged decisions,” followed by quoted gate decisions and the subject's response.
+- src/retrieval.py: implements generic gate calls and records gate decisions in returned runtime structures, but no frozen run trace is supplied.
+- src/metrics.py: reads persisted CB-VAL-*.json artifacts and verdicts; no such evidence files are supplied.
+- README.md: says the correction bundle contains “52 pending rounds, 0 human adjudications, 0 consensuses,” but the referenced correction bundle and queue are absent from the supplied artifact.
+
+**Recommendation:** Provide the exact gate-decision logs, responses, verdicts, artifact hashes, and pending review queue used for these statements. Until then, narrow the claims to “the implementation supports logging and scoring of these outcomes” and “the proposed failure mode is illustrated by the code/test fixture,” not observed benchmark findings.
+
+### [REPRODUCIBILITY-001] Headline results cannot be independently reproduced from the supplied artifact
+
+- **Severity:** MAJOR
+- **Category:** reproducibility
+- **Location:** README.md, “Paper and evidence” and “Usage”; evidence/20260713T191740Z/run_meta.json; evidence/20260713T191740Z/verdicts.json; requirements.txt; docs/REPRODUCTION.md, “Prerequisites” and “What to compare”
+- **Confidence:** 0.99
+- **Reported by:** reproducibility
+
+The repository provides commands for rerunning the live pipeline, but the supplied evidence does not include the raw per-scenario JSON artifacts, prompts, injected memories, gate decisions, or responses that produced the reported rates. The README claims that each evidence directory contains these artifacts, but the supplied file inventory contains only run metadata, reports, verdicts, defects, and the adjudication queue. In addition, requirements.txt uses unpinned lower bounds and no lockfile, container, exact commit, or complete environment capture is supplied. Consequently, an independent researcher cannot reproduce or audit the reported response-layer rates, the 52 disputed rounds, or the gate finding from the artifact alone.
+
+Evidence:
+
+- README.md: “Each evidence directory contains the raw per-scenario artifacts (prompts, injected memory, gate decisions, responses), verdicts.json, validation_report.md, and defects.md” (the supplied evidence file list contains no such per-scenario artifact files).
+- README.md: the live reproduction commands require API credentials and create new runs, while the saved evidence is described as auditable but is not supplied with the raw artifacts.
+- requirements.txt: dependencies are specified only as lower bounds, e.g. “anthropic>=0.116”, “scikit-learn>=1.3”, and “pytest>=8.0”.
+- evidence/20260713T191740Z/run_meta.json: records model names and call counts but no commit SHA, package versions, operating system, hardware, or random seed.
+- docs/REPRODUCTION.md: “A different result on a different commit is not a reproduction discrepancy by itself,” but no tested commit is recorded in the frozen run metadata.
+
+**Recommendation:** Supply the frozen raw artifacts referenced by README.md, including every response, prompt, injected memory, retrieval trace, and gate decision; record the exact commit, Python and dependency versions, model identifiers, configuration hashes, and any relevant seeds; and provide a lockfile or container for the reported release. Until then, restrict reproducibility claims to recomputation of the supplied verdict aggregates.
+
+### [REPRODUCIBILITY-002] The six-mechanism degradation claim exceeds the demonstrated evidence
+
+- **Severity:** MAJOR
+- **Category:** claim_scope
+- **Location:** paper/v3/main.tex, Abstract; Sections 3, 5.3, 5.5, and Conclusion; evidence/20260713T191740Z/validation_report.md
+- **Confidence:** 0.97
+- **Reported by:** reproducibility
+
+The taxonomy and manifests define six candidate mechanisms, but the supplied results do not demonstrate response degradation for all six. The repeated audit reports clean outcomes for semantic drift and summarization loss across configurations, and the natural recursive scenario has a null compounding metric because round 1 was clean. Thus the evidence supports a taxonomy and case-specific probes, not the broader claim that ordinary memory behavior was shown to degrade later responses through six distinct mechanisms.
+
+Evidence:
+
+- paper/v3/main.tex, Abstract: “ordinary memory-system behavior, can degrade later responses through six distinct mechanisms” is presented as the study framing.
+- paper/v3/main.tex, Section 5.3: “The natural recursion scenario (CB-VAL-005) ... reliably does not, yielding a null compounding factor.”
+- paper/v3/main.tex, Section 5.3: “The summarization probe has no utility oracle, so it cannot establish a utility gain from raw fidelity.”
+- evidence/20260713T191740Z/validation_report.md, Config comparison: CB-VAL-001 semantic drift is clean for all listed configurations; CB-VAL-006 summarization loss is clean for all listed configurations; compounding_factor_natural is null with reason “round1_clean” for every configuration.
+- paper/v3/main.tex, Conclusion: “Natural recursive compounding was not observed.”
+
+**Recommendation:** Narrow the claim to: “We define six candidate mechanisms and obtain case-specific retrieval or response evidence for some of them; this pilot does not establish that all six degrade responses.” Treat semantic drift as a retrieval-layer observation, and describe summarization loss and natural recursion as unvalidated or null-result probes.
+
+### [STATISTICS-001] Main ablation rates lack uncertainty estimates across configurations
+
+- **Severity:** MAJOR
+- **Category:** statistics
+- **Location:** paper/v3/main.tex, §5.3 and Table repeated; evidence/20260713T191740Z/validation_report.md, Config comparison
+- **Confidence:** 0.96
+- **Reported by:** statistics
+
+The manuscript reports configuration-level contamination rates and repeated outcome counts, but the main comparison does not provide confidence intervals, standard deviations, or another uncertainty summary for most configurations. The five repetitions are shown for selected cells, while the headline configuration table reports single aggregate rates such as 0.0333, 0.08, and 0.3333. This makes the apparent improvements difficult to assess statistically, especially after excluding 52 unresolved rounds.
+
+Evidence:
+
+- paper/v3/main.tex, §5.3: “Table~\ref{tab:repeated} reports repeated outcome distributions for the load-bearing cells.”
+- paper/v3/main.tex, Table repeated: cells are reported as “clean/contaminated/flagged across five repetitions,” but no confidence intervals or dispersion estimates are reported for the configuration-level rates.
+- evidence/20260713T191740Z/validation_report.md, Config comparison: contamination_rate is reported as single values such as `arm_gate 0.1304`, `arm_provenance 0.0333`, `arm_raw 0.08`, `governed 0.0333`, and `naive 0.3333`.
+- paper/v3/main.tex, §5.3: “Fifty-two of the 350 rounds (14.9\%) required human review” and those rounds “are excluded from machine-only rates.”
+
+**Recommendation:** Report numerator, denominator, and an uncertainty interval for every headline configuration rate, or restrict the claims to the displayed per-cell counts and explicitly label all aggregate rates as descriptive pilot summaries. Do not describe the rates as general mitigation improvements without this qualification.
+
+### [ADVERSARIAL-003] Most load-bearing response comparisons remain unresolved and machine-only
+
+- **Severity:** MINOR
+- **Category:** scoring validity
+- **Location:** paper/v3/main.tex, Sections 5.3, 5.4, 5.5; evidence/20260713T191740Z/defects.md D7-D9; evidence/20260713T191740Z/validation_report.md
+- **Confidence:** 0.99
+- **Reported by:** adversarial
+
+The repeated audit leaves 52 of 350 rounds unresolved, including every staleness comparator outside provenance/TTL/governed and most seeded-recursion cells. These unresolved rounds are excluded from both numerator and denominator, so the reported rates are conditional on scorer agreement and cannot support complete comparative conclusions for those mechanisms. The manuscript acknowledges this, but still uses the pilot to motivate mitigation conclusions and describes some cells as clean comparators despite their unresolved status.
+
+Evidence:
+
+- evidence/20260713T191740Z/defects.md, D7: 'Fifty-two of the 350 scored rounds resolved to needs_human_review' and 'the run has no human-adjudicated comparison.'
+- evidence/20260713T191740Z/validation_report.md, Human-adjudicated comparison: 'unavailable (adjudications_file_missing); machine verdicts remain authoritative.'
+- evidence/20260713T191740Z/validation_report.md, Config comparison: staleness_rate is null for arm_gate, arm_namespace, arm_raw, and naive.
+- paper/v3/main.tex, Section 5.3: 'Neither direction establishes which scorer is correct without independent assessment.'
+- evidence/20260713T191740Z/adjudications.json: 'adjudications': [] and 52 entries with status 'pending'.
+
+**Recommendation:** Treat all affected comparisons as unresolved rather than as clean/contaminated outcomes, and avoid ranking controls using cells with substantial pending fractions. Complete independent blinded adjudication before making response-layer mitigation claims.
+
+### [ARCHIVAL-003] Code licence is referenced but the licence file is not present in the supplied artifact
+
+- **Severity:** MINOR
+- **Category:** licensing
+- **Location:** LICENSING.md; README.md, “License”; CITATION.cff
+- **Confidence:** 0.97
+- **Reported by:** archival
+
+The licensing policy claims that code is Apache-2.0 and points to `LICENSE`, but `LICENSE` is not among the supplied files. The README also labels the repository “License: Apache 2.0,” while the CFF uses CC-BY-4.0 and LICENSING.md assigns CC-BY-4.0 to manuscript, figures, data, and evidence. The intended separation is stated, but the actual code licence grant cannot be verified from the supplied artifact.
+
+Evidence:
+
+- LICENSING.md: “Code — harness, scripts, tests and any software in this repository: Apache-2.0. See [`LICENSE`](LICENSE).”
+- README.md: “## License [Apache 2.0](LICENSE)”
+- The supplied file list contains no `LICENSE` file.
+
+**Recommendation:** Include the complete Apache-2.0 `LICENSE` file in the archival artifact and retain explicit, separate licence notices for code, paper, data, figures, and evidence.
+
+### [ARCHIVAL-004] The broad six-mechanism claim is supported only as a bounded pilot demonstration
+
+- **Severity:** MINOR
+- **Category:** claim scope
+- **Location:** paper/v3/main.tex, Abstract; Sections 3, 5.5, and 6
+- **Confidence:** 0.96
+- **Reported by:** archival
+
+The manuscript presents six mechanisms with falsifiable criteria, but the empirical design uses one hand-authored probe per mechanism, one subject model, TF-IDF retrieval, and unresolved scoring disagreements. The evidence therefore supports operationalization and observations in the tested cases, not the broader implication that ordinary memory-system behavior generally degrades later responses through six distinct mechanisms.
+
+Evidence:
+
+- Abstract: “We contribute a taxonomy of six mechanisms” and describe the nine-scenario pilot.
+- paper/v3/main.tex, Section 6, “Validity statements”: “One subject model cannot establish model-independent behavior ... Rates from one probe per mechanism are mechanism demonstrations with stated resolved counts, not population estimates.”
+- paper/v3/main.tex, Section 6, “Scale”: “one probe per class ... designed to validate the pipeline and isolate mechanisms.”
+
+**Recommendation:** State the claim as: “We operationalize six candidate mechanisms and observe bounded demonstrations of them in the tested scenarios,” rather than implying general degradation across ordinary memory systems.
+
+### [ARCHIVAL-005] The provenance-preservation interpretation is confounded by bundled metadata
+
+- **Severity:** MINOR
+- **Category:** claim interpretation
+- **Location:** paper/v3/main.tex, Section 5.5, paragraph beginning “The off-diagonal cells”; Section 6, “Validity statements”
+- **Confidence:** 0.99
+- **Reported by:** archival
+
+The five clean outcomes for the provenance-tag and raw-fidelity arms are directly reported, but the interpretation that they preserve source information lost during summarization is not isolated experimentally. The manuscript explicitly acknowledges that the provenance tag also exposes age and domain, and that raw and tagged conditions are alternative interventions on the same case.
+
+Evidence:
+
+- paper/v3/main.tex, Section 5.3: “provenance tags, raw fidelity, and the governed bundle are each 5/0/0.”
+- paper/v3/main.tex, Section 5.5: “the provenance tag as implemented carries age and domain metadata ... so the provenance arm also resolved staleness because the subject discounted the 200-day-old fact by its visible age.”
+- paper/v3/main.tex, Section 5.5: “This is consistent with loss of source information during summarization in this scenario, but does not establish summarization as the principal cause of provenance collapse generally.”
+
+**Recommendation:** Retain the narrow case-specific wording: “Both interventions produced five machine-resolved clean outcomes in this probe, consistent with—but not isolating—a source-information explanation.” Avoid attributing the result to summarization loss without a pure-factor provenance ablation.
 
 ### [CHECK-CITABILITY-001] Missing from the artifact: a DOI for the archived work
 
@@ -1152,274 +832,293 @@ Evidence:
 
 **Recommendation:** Add a data or code availability statement.
 
-### [CITATIONS-005] Several prior-work assertions are uncited or only weakly sourced
+### [CITATIONS-003] The six-mechanism empirical claim is supported only unevenly across mechanisms
 
 - **Severity:** MINOR
-- **Category:** citation support
-- **Location:** paper/v3/main.tex, Sections 2 and 7
-- **Confidence:** 0.94
+- **Category:** claim scope / experimental support
+- **Location:** paper/v3/main.tex, Sections 3, 4.3, 4.4, 5 'Discussion and Limitations', and Conclusion
+- **Confidence:** 0.97
 - **Reported by:** citations
 
-The manuscript makes claims about prior work without attaching a citation, or uses a single source to support a broader plural/general claim. These are distinct from whether the listed references exist; the supplied files do not establish that the references are fabricated, but the cited support is incomplete for the attached assertions.
+The taxonomy and falsifiable criteria are documented, but the validation evidence does not establish response degradation for all six mechanisms. Semantic drift has clean response verdicts in every configuration; the staleness response comparison is flagged; summarization has no declared utility oracle; and natural recursion has a null compounding factor. Thus the evidence supports a taxonomy and case-specific retrieval or failure demonstrations, not a demonstrated six-mechanism degradation result.
 
 Evidence:
 
-- "subsequent work has extended the attack surface" in the 'Adversarial memory poisoning' paragraph has no citation attached.
-- "Complementary diagnosis work finds most memory failures stem from irrelevant retrieval rather than memory construction" in 'Measurement of non-adversarial memory risk' has no citation attached.
-- "follow-on work quantifies a passage's distracting effect as a graded severity measure" in 'Retrieval noise and context failure' has no citation attached.
-- "Production platforms are converging on the same controls from the deployment side" is a plural/general claim, but the paragraph cites only Anthropic documentation.
+- Section 3: “Six classes are tested in the validation run; a seventh is documented as experimental.”
+- Section 4.3: “Response scoring nevertheless resolved clean across configurations” for semantic drift.
+- Section 4.3: “Staleness remains retrieval-layer evidence because its response-layer comparators are flagged.”
+- Section 4.3: “The summarization probe has no utility oracle, so it cannot establish a utility gain from raw fidelity.”
+- Section 4.5: “The natural-recursion compounding factor is again null.”
+- Conclusion: “This pilot operationalizes six proposed mechanisms ... in a small, auditable scenario suite.”
 
-**Recommendation:** Add citations for each specific prior-work or empirical assertion, or narrow the wording to what the cited source directly supports. For the production-platform statement, cite the additional platforms or state that the observation concerns Anthropic's documented platform only.
+**Recommendation:** Use the narrower claim that the study operationalizes six proposed mechanisms and demonstrates selected retrieval-layer or case-specific effects; do not imply that all six were empirically shown to degrade responses. The manuscript already states most of this limitation, so this is primarily a claim-status clarification.
 
-### [CLAIM-002] Unsupported claim: The rendered v3 report identifies unresolved review rows by repetition and artif
-
-- **Severity:** MINOR
-- **Category:** claims/unsupported
-- **Location:** paper/v3/main.tex, §5.3; evidence/20260713T191740Z/validation_report.md, “Flagged for human review”
-- **Confidence:** 0.90
-- **Reported by:** claim-graph
-
-The manuscript statement is contradicted by the supplied frozen report and defect record.
-
-Evidence:
-
-- paper/v3/main.tex, §5.3 makes the claim explicitly.
-- evidence/20260713T191740Z/validation_report.md lists rows without repetition or artifact hash.
-- evidence/20260713T191740Z/defects.md, D8 explicitly records the omission and ambiguity.
-
-**Recommendation:** Provide evidence for the claim or remove it.
-
-### [EVIDENCE-004] Causal explanation for raw fidelity preserving provenance is only partially supported
+### [CITATIONS-004] Several prior-work assertions have no citation attached
 
 - **Severity:** MINOR
-- **Category:** causal attribution
-- **Location:** paper/v3/main.tex, §5.4 “Attribution: what the cells support”; scenarios/validation/cb-val-002-provenance-collapse.yaml; evidence/20260713T191740Z/validation_report.md, repeated outcomes
-- **Confidence:** 0.94
-- **Reported by:** evidence
-
-The evidence supports clean machine-resolved outcomes for the raw-fidelity arm and preserves the full source sentence in raw storage, but it does not establish that loss during summarization caused the provenance failures or that raw fidelity generally preserves provenance. The paper mostly acknowledges this limitation, so the problem is limited to the residual causal implication rather than the descriptive result.
-
-Evidence:
-
-- paper/v3/main.tex, §5.4: “raw fidelity can preserve provenance in-band” and “This is consistent with loss of source information during summarization in this scenario, but does not establish summarization as the principal cause of provenance collapse generally.”
-- evidence/20260713T191740Z/validation_report.md, Config comparison: arm_raw has provenance_error_rate 0.0; §Per-scenario verdicts show clean outcomes for the raw arm.
-- scenarios/validation/cb-val-002-provenance-collapse.yaml: the raw content explicitly says “The assistant suggested...” while the summarized content omits that source detail.
-
-**Recommendation:** Retain the result as a case-specific association and avoid causal wording beyond “the raw representation retained source information in this scenario.” A pure-factor summarization/provenance experiment is needed for a causal claim.
-
-### [EVIDENCE-005] Machine-only results remain unresolved for 52 rounds, limiting response-layer comparisons
-
-- **Severity:** MINOR
-- **Category:** scoring validity
-- **Location:** paper/v3/main.tex, abstract and §5.3/§6; evidence/20260713T191740Z/defects.md, D7 and D9; evidence/20260713T191740Z/adjudications.json
-- **Confidence:** 0.99
-- **Reported by:** evidence
-
-The manuscript correctly reports that 52 of 350 rounds remain unresolved and excludes them from machine-only rates. This is an explicit limitation rather than an undisclosed defect, but it materially limits the staleness and seeded-recursion response-layer comparisons and prevents human-consensus claims.
-
-Evidence:
-
-- paper/v3/main.tex abstract: “Of 350 scored rounds, 52 remain unresolved pending human review.”
-- paper/v3/main.tex, §5.3: “Neither direction establishes which scorer is correct without independent assessment.”
-- evidence/20260713T191740Z/defects.md, D7: “Fifty-two of the 350 scored rounds ... resolved to needs_human_review.”
-- evidence/20260713T191740Z/adjudications.json: adjudications is an empty list and all 52 queue entries have status “pending.”
-
-**Recommendation:** No change is required to the stated limitation; preserve the machine-only qualifier and avoid using the unresolved cells as confirmed response-layer comparisons or human-validated rates.
-
-### [METHODOLOGY-003] The pilot cannot support model-independent mitigation conclusions
-
-- **Severity:** MINOR
-- **Category:** external validity
-- **Location:** paper/v3/main.tex, Section 3 'Models and determinism'; Section 7.1; Conclusion
+- **Category:** citation completeness
+- **Location:** paper/v3/main.tex, Section 2 'Related Work'
 - **Confidence:** 0.98
-- **Reported by:** methodology
+- **Reported by:** citations
 
-All reported subject-model results use one subject model. This is especially consequential for model-mediated relevance gating, recursive behavior, and judge-sensitive response outcomes. The manuscript states this limitation, so the finding is declared rather than a newly hidden defect, but any general mitigation or mechanism claim must remain explicitly model-conditional.
-
-Evidence:
-
-- paper/v3/main.tex, Section 3: 'The subject model under test is claude-sonnet-4-6 at temperature 0.'
-- paper/v3/main.tex, Section 7.1: 'One subject model cannot establish model-independent behavior.'
-- paper/v3/main.tex, Conclusion: 'One subject model ... restrict these findings to the evaluated conditions.'
-
-**Recommendation:** Keep all claims conditional on claude-sonnet-4-6 and do not describe the controls as generally effective until the planned cross-model experiment is executed.
-
-### [METHODOLOGY-004] TF-IDF retrieval is an unvalidated substitution for the claimed retrieval design space
-
-- **Severity:** MINOR
-- **Category:** methodology
-- **Location:** paper/v3/main.tex, Section 3 'Models and determinism'; Section 7 'Similarity substitution'; spec/configs.yaml
-- **Confidence:** 0.99
-- **Reported by:** methodology
-
-The pilot evaluates only TF-IDF cosine retrieval, while the taxonomy and benchmark motivation discuss lexical or embedding similarity more broadly. Learned-embedding retrieval is implemented only for future work and has no reported result. The limitation is explicitly declared, so the result is not evidence about learned-embedding behavior.
+The manuscript makes claims about prior work without attaching a citation, making the source and evidentiary basis unclear. This concerns citation existence/completeness, not a determination that the listed references are unreal.
 
 Evidence:
 
-- paper/v3/main.tex, Section 3: 'The reported validation runs use TF-IDF cosine similarity ... this paper reports no learned-embedding result.'
-- paper/v3/main.tex, Section 7: 'TF-IDF cosine similarity differs from learned embeddings ... it has not been run as part of the evidence release.'
-- spec/configs.yaml: 'similarity: tfidf-cosine (scikit-learn TfidfVectorizer)'
+- Section 2, paragraph 'Measurement of non-adversarial memory risk': “Complementary diagnosis work finds most memory failures stem from irrelevant retrieval rather than memory construction.” No citation follows this sentence.
+- The same paragraph: “follow-on work quantifies a passage's distracting effect as a graded severity measure.” No citation follows this claim.
+- Section 2, paragraph 'Adversarial memory poisoning': “subsequent work has extended the attack surface.” No citation is supplied for the subsequent work.
 
-**Recommendation:** Restrict retrieval conclusions to the TF-IDF condition and report the learned-embedding condition before generalizing semantic-drift or gate behavior.
+**Recommendation:** Attach the specific references supporting each assertion, or remove/rephrase the assertions as observations not attributed to prior work.
 
-### [METHODOLOGY-005] The mitigation comparison lacks external production baselines
+### [CITATIONS-005] Reference support and resolvability cannot be verified from the supplied files alone
 
 - **Severity:** MINOR
-- **Category:** baselines
-- **Location:** paper/v3/main.tex, Section 5 'Ablation Study'; Section 7.2 'Future-work contract'
+- **Category:** citation verification
+- **Location:** paper/v3/main.tex, Sections 2, 3, and 6; paper/v3/references.bib
+- **Confidence:** 0.90
+- **Reported by:** citations
+
+The bibliography contains plausible entries and arXiv identifiers, but the supplied artifact provides no retrieved reference metadata, full texts, or verification record. Therefore claims attributed to specific papers—such as Wang et al.'s “memory laundering,” STOP's degradation with weak models, and Anthropic's exact memory-store capabilities—remain unverified from the artifact alone. This is a verification limitation, not an allegation of fabrication.
+
+Evidence:
+
+- Section 2: “Wang et al. demonstrate memory laundering...” citing \cite{wang2026state}.
+- Section 3: “the STOP experiments showed ... degraded them with weak ones” citing \cite{zelikman2023stop}.
+- Section 6: Anthropic's managed stores are said to ship “per-user and per-team store scoping ... immutable memory versions with audit trails” citing \cite{anthropic2026memory}.
+- references.bib contains only bibliographic records and URLs; it does not contain the cited works' text or verification results.
+
+**Recommendation:** Verify each reference against its canonical publication or documentation source and ensure the cited source actually supports the attached claim; otherwise narrow the claim or provide a more appropriate citation.
+
+### [EVIDENCE-002] The provenance causal interpretation is only partially supported by one confounded probe
+
+- **Severity:** MINOR
+- **Category:** claims
+- **Location:** paper/v3/main.tex, Abstract; §5.5 “Attribution: what the cells support”; §3 provenance taxonomy
+- **Confidence:** 0.95
+- **Reported by:** evidence
+
+Five clean machine-resolved outcomes for the provenance-tag and raw-fidelity arms are supported. The stronger interpretation that this demonstrates source information was lost during summarization is not established: the raw and summarized stores differ in more than one aspect of the comparison, the provenance tag bundles source, age, and domain, and only one hand-authored provenance scenario is used. The manuscript acknowledges these limitations, but the abstract still foregrounds the causal interpretation.
+
+Evidence:
+
+- paper/v3/main.tex, §5.3: “the provenance tags, raw fidelity, and the governed bundle are each 5/0/0.”
+- evidence/20260713T191740Z/validation_report.md, Config comparison: `provenance_error_rate` is `0.0` for `arm_provenance`, `arm_raw`, and `governed`, while it is `1.0` for `naive`, `arm_namespace`, `arm_ttl`, and `arm_gate`.
+- paper/v3/main.tex, §5.5: “the provenance tag as implemented carries age and domain metadata ... so the provenance arm also resolved staleness because the subject discounted the 200-day-old fact.”
+- paper/v3/main.tex, §5.5: “The two arms are alternative interventions on the same case, not independent replications of that explanation.”
+
+**Recommendation:** Retain the observed-outcome claim, but state the interpretation as a case-specific hypothesis: “These outcomes are consistent with source information being unavailable in the summarized representation; the study does not isolate summarization loss as the cause.”
+
+### [EVIDENCE-003] The paper’s mitigation language must remain case-specific, not general efficacy evidence
+
+- **Severity:** MINOR
+- **Category:** claims
+- **Location:** paper/v3/main.tex, Abstract; §5.6 “The gate amplified seeded recursion”; §6 architecture; Conclusion
+- **Confidence:** 0.93
+- **Reported by:** evidence
+
+The evidence supports targeted retrieval effects for namespacing and TTL and a single observed gate failure, but it does not support a general mitigation ranking or model-independent efficacy claim. The manuscript mostly states this limitation correctly, yet the architecture and abstract framing could still be read as validating the proposed mitigation architecture.
+
+Evidence:
+
+- evidence/20260713T191740Z/validation_report.md, Retrieval assertions: namespacing passes CB-VAL-003 in `5/5` repetitions and TTL passes CB-VAL-004 in `5/5`; response-layer staleness is `null` for several configurations because probes need human review.
+- evidence/20260713T191740Z/defects.md, D7: “Fifty-two of the 350 scored rounds ... resolved to `needs_human_review`” and “the run has no human-adjudicated comparison.”
+- paper/v3/main.tex, §5.6: “The other arms are entirely flagged on that probe, so they cannot be treated as clean comparators or used to rank gate harm.”
+- paper/v3/main.tex, §6: “The ablation motivates constraints, not an efficacy ordering.”
+- paper/v3/main.tex, Conclusion: “They motivate further tests of memory contracts, not a validated general mitigation architecture.”
+
+**Recommendation:** Keep mitigation conclusions explicitly limited to the tested scenarios, configurations, model, and retrieval backend; avoid wording that implies general efficacy or a validated architecture.
+
+### [METHODOLOGY-002] The validation design cannot support general claims about six mechanisms or mitigation efficacy
+
+- **Severity:** MINOR
+- **Category:** experimental-design
+- **Location:** paper/v3/main.tex, Sections 3, 4.1, 4.3, and Discussion/Validity statements
 - **Confidence:** 0.97
 - **Reported by:** methodology
 
-The study compares naive, governed, and five single-control arms, but does not compare production memory systems or established memory implementations. Such baselines are relevant to the architectural claim that the proposed contracts are useful or preferable. The paper explicitly defers Mem0, Zep, and Letta to future work, so this is a declared scope limitation rather than an unacknowledged omission.
+Each contamination mechanism is represented by only one hand-authored validation scenario, evaluated with one subject model and one retrieval backend. This can demonstrate case-specific behavior, but cannot establish that the mechanisms are distinct or broadly characteristic, nor that the controls are generally effective. The manuscript explicitly narrows the study to mechanism demonstrations, so this is a declared limitation rather than a contradiction, but the abstract and contribution language should remain consistently case-specific.
 
 Evidence:
 
-- paper/v3/main.tex, Section 5: 'a mechanism-isolation experiment on a small hand-authored corpus ... not as a utility frontier.'
-- paper/v3/main.tex, Section 7.2: 'It will use ... production-default baselines (for example Mem0, Zep, and Letta).'
-- paper/v3/main.tex, Section 6: 'This paper therefore reports a pilot control comparison, not an independent evaluation of that proposal.'
+- The taxonomy says that six classes are tested in the validation run, with one validation scenario listed for each class (Section 3 and `spec/taxonomy.md`).
+- The manuscript states: “Rates from one probe per mechanism are mechanism demonstrations with stated resolved counts, not population estimates” (Discussion, Validity statements).
+- The manuscript states: “The subject model under test is `claude-sonnet-4-6`” and that the validation runs use TF-IDF cosine similarity (Section 3.3).
+- The conclusion limits findings to “the evaluated conditions” and calls for broader scenarios and cross-model evaluation.
 
-**Recommendation:** Keep the contribution framed as an internal mechanism-isolation pilot and avoid comparative claims about production memory systems until those baselines are run under the same tasks and scoring protocol.
+**Recommendation:** Keep all headline claims explicitly bounded to the named scenarios, subject model, and TF-IDF condition; avoid wording that implies six established, general mechanisms or model-independent mitigation efficacy.
 
-### [METHODOLOGY-006] The full-benchmark manifests are not approved and omit the required utility oracle
-
-- **Severity:** MINOR
-- **Category:** experimental design
-- **Location:** spec/full-benchmark-candidates.yaml; docs/SCENARIO_REVIEW.md; scenarios/full-benchmark/cb-full-sd-01.yaml through cb-full-sd-c05.yaml and paired controls
-- **Confidence:** 0.99
-- **Reported by:** methodology
-
-The supplied full-benchmark candidates registry is empty, so none of the listed full-benchmark scenarios has human approval. In addition, the five supplied semantic-drift probe/control manifests contain no expected.utility.must_include_patterns, despite the review checklist requiring a deterministic utility oracle. Consequently, the full benchmark is a plan or candidate set, not executed evidence capable of supporting utility or full-benchmark claims.
-
-Evidence:
-
-- spec/full-benchmark-candidates.yaml: 'candidates: []'
-- docs/SCENARIO_REVIEW.md, Review checklist item 6: 'A deterministic expected.utility.must_include_patterns oracle measures whether the answer still performs the task.'
-- scenarios/full-benchmark/cb-full-sd-01.yaml: the expected block contains 'relevant', 'retrieval', and 'forbidden_content', but no 'utility' block.
-- paper/v3/main.tex, Section 7.2: 'the remaining manifests ... and authorized execution are not results and are not used by any claim in this paper.'
-
-**Recommendation:** Do not present the full-benchmark candidate manifests as results; obtain individual human approvals and add task-specific utility oracles before executing or reporting the successor study.
-
-### [METHODOLOGY-007] Utility is not measured for the pilot summarization claim
+### [METHODOLOGY-003] Canonical contamination scoring does not reliably measure asserted contamination
 
 - **Severity:** MINOR
 - **Category:** metrics
-- **Location:** paper/v3/main.tex, Section 5.5 'The two-layer dissociation persists'; scenarios/validation/cb-val-006-summarization-loss.yaml; spec/metrics.md, 'Utility layer'
+- **Location:** paper/v3/main.tex, Sections 3.4, 4.2, 4.5, and Discussion/Validity statements; spec/metrics.md, Verdict resolution
 - **Confidence:** 0.99
 - **Reported by:** methodology
 
-The manuscript discusses raw fidelity as preserving information and includes a summarization-loss scenario, but no scenario declares a utility oracle in the supplied validation manifests. Therefore clean contamination verdicts cannot establish that the answer performed the underlying task or that raw fidelity improved utility.
+The primary deterministic scorer matches forbidden regexes against response text, so it detects mention rather than whether the model asserted the contaminated proposition. Judge disagreement is converted to unresolved status and excluded from rates. This leaves 52 of 350 audit rounds excluded and prevents the reported machine-only rates from serving as validated estimates of contamination. The manuscript acknowledges this limitation, but the provenance, staleness, and seeded-recursion headline results should be presented as machine-resolved case outcomes rather than validated contamination rates.
 
 Evidence:
 
-- paper/v3/main.tex, Section 5.5: 'the utility layer for summarization ... is null in this corpus because no utility oracle has yet been declared.'
-- scenarios/validation/cb-val-006-summarization-loss.yaml: the expected block defines relevant_memories and forbidden_content but no utility.must_include_patterns.
-- spec/metrics.md, 'Utility layer': 'If no scenario declares a utility oracle, the report states null ... rather than inferring utility from a clean contamination verdict.'
+- The scoring rule says that a regex match yields `contaminated`, while no match yields provisional `clean`; disagreement becomes `needs_human_review` and is excluded from both numerator and denominator (Section 3.4).
+- The paper reports 52 of 350 rounds requiring human review and states that no human verdicts are available (Section 4.2).
+- The manuscript explicitly says: “Regex scoring detects mention, not assertion” and that the correction bundle records “0 adjudications and 0 two-adjudicator consensuses” (Discussion, Validity statements).
+- `spec/metrics.md` confirms that all `needs_human_review` artifacts are excluded from rates.
 
-**Recommendation:** Treat the summarization result as response contamination evidence only and avoid utility-preservation claims until a declared task-specific oracle is evaluated.
+**Recommendation:** Report the relevant results as canonical machine-only outcomes with unresolved exclusions, and do not describe them as validated contamination rates until the specified blinded independent adjudication is completed. Preserve the assertion-aware tier as a separate analysis rather than treating clean regex outcomes as ground truth.
 
-### [METHODOLOGY-010] The provenance conclusion should be narrowed to the tested scenario and machine-resolved tier
+### [METHODOLOGY-004] The provenance result is confounded by bundled metadata and raw-text availability
 
 - **Severity:** MINOR
-- **Category:** claim scope
-- **Location:** paper/v3/main.tex, Abstract; Section 5.6; Conclusion
+- **Category:** experimental-design
+- **Location:** paper/v3/main.tex, Section 4.5 and Discussion/Validity statements; spec/configs.yaml, arm_provenance and arm_raw
+- **Confidence:** 0.99
+- **Reported by:** methodology
+
+The provenance-tag arm changes source, age, and domain metadata together, and the raw-fidelity arm retains the sentence explicitly identifying the assistant as the source. Therefore the five clean outcomes in those arms cannot isolate provenance tagging as the causal intervention or establish that summarization alone caused provenance collapse. The paper identifies this confound, so it is a declared limitation; nevertheless, the abstract's wording should not imply an isolated provenance or summarization effect.
+
+Evidence:
+
+- The paper states that the provenance tag carries `source`, `age`, and `domain` together and calls this “an implementation confound” (Section 4.5).
+- The paper states that raw fidelity retains the sentence “the assistant suggested that Maria could try...” and that the two arms are alternative interventions on the same case (Section 4.5).
+- `spec/configs.yaml` defines `arm_provenance` by changing provenance to tagged while retaining summarized fidelity, and `arm_raw` by changing fidelity to raw while retaining untagged provenance.
+- The manuscript's validity statements say: “The provenance arm is confounded: its tag emits source, age, and domain together.”
+
+**Recommendation:** Describe the result narrowly as a case-specific association under bundled interventions. Do not attribute the effect uniquely to source tags or summarization loss; use the planned pure-factor provenance arms before making that causal claim.
+
+### [METHODOLOGY-005] The proposed contradiction-preservation safeguard has no efficacy evaluation
+
+- **Severity:** MINOR
+- **Category:** controls-and-ablations
+- **Location:** paper/v3/main.tex, Section 4.6 and Conclusion; spec/configs.yaml, arm_gate_preserve_pairs; spec/gate-family.yaml
+- **Confidence:** 0.99
+- **Reported by:** methodology
+
+The manuscript proposes preserving contradiction pairs after relevance filtering, but the supplied configuration marks this arm as a next-run experiment and the paper reports no dedicated repeated evaluation. The seeded-recursion observation supports a failure mode of the tested gate implementation, not efficacy of the proposed safeguard. The manuscript correctly states this limitation, so the safeguard must remain a proposal rather than a mitigation result.
+
+Evidence:
+
+- The paper states: “The contract is implemented and unit-tested, but has not yet been evaluated in a dedicated repeated run, so it is a safeguard proposal rather than an efficacy result” (Section 4.6).
+- `spec/configs.yaml` labels `arm_gate_preserve_pairs` as “Next-run experimental” and “not a v0.2 result.”
+- `spec/gate-family.yaml` defines the contradiction-pair test as a future gate-family fixture requiring both memories to remain after gating.
+
+**Recommendation:** Keep contradiction preservation explicitly labeled as untested design rationale. Do not include it among demonstrated mitigation controls until the required repeated gate-family experiment is run and reported.
+
+### [REPO-CONSISTENCY-004] The full-benchmark plan is explicitly not an executed result and cannot support broader validation claims
+
+- **Severity:** MINOR
+- **Category:** scope
+- **Location:** spec/full-benchmark.plan.yaml; spec/full-benchmark-candidates.yaml; src/full_benchmark.py; tests/test_adjudication.py
 - **Confidence:** 0.97
-- **Reported by:** methodology
+- **Reported by:** repo-consistency
 
-The evidence supports five machine-resolved clean outcomes for the provenance arm in one hand-authored scenario, but not general preservation of provenance. The manuscript largely acknowledges this, yet the abstract and conclusion can still be read as attributing the result to tags as a general control despite the bundled metadata confound and unresolved scorer tier.
+The manuscript generally labels the full benchmark as future work, and the supplied plan confirms that it is not executable evidence: the plan sets max_api_calls to 0, the candidate registry is empty, and the dry-run tests expect missing probes, controls, approvals, and utility oracles. Any interpretation of the planned 60-probe benchmark as completed evidence would be unsupported; this is a scope boundary rather than a contradiction in the current conclusion.
 
 Evidence:
 
-- Abstract: 'On the provenance probe, tags and raw fidelity each yielded five machine-resolved clean outcomes.'
-- paper/v3/main.tex, Section 5.6: 'This supports the provenance finding in the machine-resolved tier, but does not substitute for the pending blinded human adjudications.'
-- paper/v3/main.tex, Section 5.6: 'The two arms are alternative interventions on the same case, not independent replications.'
+- spec/full-benchmark.plan.yaml: execution.max_api_calls is 0 and lists planned models, backends, baselines, and scenarios.
+- spec/full-benchmark-candidates.yaml: “candidates: []” and states that human approval is required before execution.
+- src/full_benchmark.py: main rejects API execution with “API execution is not implemented; inspect the dry-run coverage and estimate first.”
+- tests/test_adjudication.py, test_full_benchmark_plan_dry_run: expects ready_for_execution to be False, 25 missing probes, 25 missing controls, 60 missing approvals, and zero utility oracles.
+- paper/v3/main.tex §6, Future-work contract: explicitly says the remaining manifests and authorized execution “are not results and are not used by any claim in this paper.”
 
-**Recommendation:** Use wording limited to 'in this provenance scenario, the bundled tagged-metadata and raw-fidelity conditions produced five machine-resolved clean outcomes'; do not generalize to provenance tagging efficacy.
+**Recommendation:** Retain the explicit future-work qualification and ensure no abstract, conclusion, README summary, or generated report presents the planned full benchmark as executed evidence.
 
-### [REPRODUCIBILITY-003] API call accounting is inconsistent across the frozen metadata and manuscript
+### [REPRODUCIBILITY-003] The presupposition-capture gate claim is not auditable from the supplied files
 
 - **Severity:** MINOR
-- **Category:** internal_consistency
-- **Location:** evidence/20260713T191740Z/run_meta.json; evidence/20260713T191740Z/validation_report.md, section 'API spend'; paper/v3/main.tex, §5.3; README.md, evidence table
-- **Confidence:** 0.99
+- **Category:** evidence
+- **Location:** paper/v3/main.tex, Section 5.5; evidence/20260713T084130Z/defects.md, “Gate amplification”; evidence/20260713T191740Z/validation_report.md, “Retrieval assertions” and “Relevance-gate observability”
+- **Confidence:** 0.95
 - **Reported by:** reproducibility
 
-The v0.3 frozen run metadata reports 485 total calls (350 subject plus 135 gate), while the validation report and manuscript report 660 calls after adding 175 judge calls. The manuscript says a correction bundle reconciles this, but the supplied artifact does not include the referenced correction bundle. Thus the recorded cost/provenance cannot be independently reconciled from the supplied files, although the result values themselves are not necessarily invalid.
+The paper attributes the seeded-recursion failure to logged gate decisions that retained the assistant write-back and discarded the premise-denying user context. The supplied v0.2 and v0.3 files contain aggregate reports and verdicts, but no per-artifact response or gate-decision JSON. The aggregate v0.3 report establishes that the gate retrieval assertion failed on CB-VAL-009 in five repetitions, but it does not independently expose the quoted gate rationales or the corresponding subject responses.
 
 Evidence:
 
-- evidence/20260713T191740Z/run_meta.json: `"total_calls": 485` with subject 350 and gate 135
-- evidence/20260713T191740Z/validation_report.md: “**total API calls: 660** (budget: a few hundred)” and judge calls 175
-- paper/v3/main.tex, §5.3: “The repeated audit used 660 API calls: 350 subject calls, 135 gate calls, and 175 judge calls.”
-- README.md: references `evidence/20260713T191740Z/corrections/`, but that directory is not among the supplied files
-- report/FINAL-AUDIT.md: says the correction bundle exists and is append-only, but no correction file is supplied
+- paper/v3/main.tex, Section 5.5: “The gate's own logged decisions” supposedly state that the contaminated write-back was relevant and the user ground truth was irrelevant.
+- evidence/20260713T084130Z/defects.md: reports the quoted gate rationales, but is an authored defect report rather than the underlying gate artifact.
+- evidence/20260713T191740Z/validation_report.md: CB-VAL-009 × arm_gate has `must_include_seed_ids=False` and `must_preserve_conflict_pair=False` for all five repetitions, but the supplied file does not include the underlying decision records or responses.
+- README.md: says raw prompts, injected memories, gate decisions, and responses are in each evidence directory, but those files are absent from the supplied artifact inventory.
 
-**Recommendation:** Supply the correction record and make the distinction between harness calls, judge calls, and reconciled pipeline calls explicit in every frozen metadata file and report.
+**Recommendation:** Either include the underlying gate-decision and response artifacts or narrow the result to the auditable statement that the gate's retrieval assertions failed for all five seeded-recursion repetitions and that four of five response verdicts were machine-resolved contaminated, with one unresolved.
 
-### [REPRODUCIBILITY-004] The manuscript's statement about corrected review-row identifiers is not supported by the supplied report
+### [REPRODUCIBILITY-004] The causal interpretation of raw fidelity preserving provenance is not established
 
 - **Severity:** MINOR
-- **Category:** internal_consistency
-- **Location:** paper/v3/main.tex, §5.3; evidence/20260713T191740Z/validation_report.md, section 'Flagged for human review'; evidence/20260713T191740Z/defects.md, D8
-- **Confidence:** 0.99
+- **Category:** causal_inference
+- **Location:** paper/v3/main.tex, Abstract; Section 5.4 “Attribution: what the cells support”; evidence/20260713T191740Z/validation_report.md, Config comparison
+- **Confidence:** 0.93
 - **Reported by:** reproducibility
 
-The manuscript states that the rendered report identifies review rows by repetition and artifact hash, but the supplied v0.3 validation report's flagged-review section repeats only scenario, configuration, and round. The accompanying defect record explicitly identifies this as D8. The JSON verdicts do contain repetition and artifact hashes, so the issue is report-level ambiguity rather than loss of all underlying information.
+The five clean machine-resolved outcomes for arm_raw and arm_provenance support a case-specific association, but they do not establish that provenance information was lost specifically because of summarization. The manuscript itself acknowledges that the two interventions are alternative interventions on the same case and that the provenance tag bundles source, age, and domain. The wording “consistent with” is appropriately cautious, but the intended claim as stated is stronger than the evidence if read causally.
 
 Evidence:
 
-- paper/v3/main.tex, §5.3: “The rendered report now labels its machine-only and human-consensus tables separately and identifies review rows by repetition and artifact hash.”
-- evidence/20260713T191740Z/validation_report.md, 'Flagged for human review': entries such as `CB-VAL-004 × arm_gate round 1` are repeated without repetition or artifact hash
-- evidence/20260713T191740Z/defects.md, D8: “Human-review register omits repetition identifiers” and says the rendered register is ambiguous
+- paper/v3/main.tex, Abstract: “tags and raw fidelity each yielded five machine-resolved clean outcomes, consistent with preserving source information that was lost during summarization in this case.”
+- paper/v3/main.tex, Section 5.4: “The two arms are alternative interventions on the same case, not independent replications of that explanation.”
+- paper/v3/main.tex, Section 5.4: “The provenance tag as implemented carries age and domain metadata ... The tag bundles three annotations.”
+- evidence/20260713T191740Z/validation_report.md, Config comparison: `provenance_error_rate` is 0.0 for arm_provenance and arm_raw, while provenance and staleness scoring also contain unresolved cases elsewhere.
 
-**Recommendation:** Either provide the corrected report actually referenced by the manuscript or revise the statement to describe the supplied report accurately.
+**Recommendation:** Use the narrower wording: “In this scenario, raw fidelity and provenance tags each produced five machine-resolved clean outcomes; the raw-fidelity result is compatible with, but does not identify, summarization as the cause of the provenance error.”
 
-### [STATISTICS-003] Repeated comparisons have very small effective experimental support and no inferential test
+### [STATISTICS-002] No formal statistical comparison supports mitigation or configuration-ranking claims
 
 - **Severity:** MINOR
 - **Category:** statistics
-- **Location:** paper/v3/main.tex, Sections 5.3–5.5 and Discussion; evidence/20260713T191740Z/run_meta.json; evidence/20260713T191740Z/defects.md
-- **Confidence:** 0.96
+- **Location:** paper/v3/main.tex, §5.1 Table matrix and §5.3–§5.5
+- **Confidence:** 0.91
 - **Reported by:** statistics
 
-The main repeated audit has five repetitions per scenario/configuration cell, but all repetitions reuse the same nine hand-authored scenarios and one subject model. The manuscript reports outcome counts and one confidence-interval example, but does not report uncertainty for the main configuration rates or perform statistical tests/effect-size analysis for the broader comparisons. This limits claims such as mitigation separation to descriptive, case-specific observations rather than general comparative evidence.
+The manuscript compares configurations and uses language such as “governed cleaner than naive,” but does not apply a paired comparison, randomization test, or other statistical procedure, nor does it report a standardized effect size for the repeated cells. With only one hand-authored probe per mechanism, formal population inference would be weak, but the comparison should either be explicitly case-level/descriptive or supported by an appropriate pre-specified analysis in a larger study.
 
 Evidence:
 
-- evidence/20260713T191740Z/run_meta.json: `"repetitions": 5` and one subject model, `claude-sonnet-4-6`.
-- paper/v3/main.tex, Section 5.3: “the latter ran the same nine scenarios and seven configurations five times, producing 350 scored rounds.”
-- paper/v3/main.tex, Section 5.4: “The corresponding contamination proportions are 4/5 ... and 0/5 ...; these intervals are descriptive at validation scale, not population estimates.”
-- paper/v3/main.tex, Discussion, Validity statements: “Repeated calls do not add scenario diversity” and “One subject model cannot establish model-independent behavior.”
-- evidence/20260713T191740Z/defects.md, D7: “Fifty-two of the 350 scored rounds ... resolved to `needs_human_review`,” and “the run has no human-adjudicated comparison.”
+- paper/v3/main.tex, §5.1 Table matrix caption: “Acceptance check: governed < naive on semantic_drift and scope_bleed.”
+- paper/v3/main.tex, §5.3: “This supports the provenance finding in the machine-resolved tier, but does not substitute for the pending blinded human adjudications.”
+- paper/v3/main.tex, §5.4: “This case motivates the design proposal ... [but] is a safeguard proposal rather than an efficacy result.”
+- paper/v3/main.tex, §5.3: “The corresponding contamination proportions are 4/5 ... and 0/5 ...; these intervals are descriptive at validation scale, not population estimates.”
 
-**Recommendation:** Keep the conclusions explicitly descriptive and case-specific; report uncertainty for every headline rate or provide a clear rationale for omitting it, and avoid language implying statistically established superiority or general efficacy.
+**Recommendation:** Keep configuration comparisons explicitly descriptive and case-specific, or pre-specify paired tests and effect sizes for the successor study. Avoid ranking controls or claiming efficacy beyond the observed scenarios.
+
+### [STATISTICS-003] Replication count does not provide independent scenario-level replication
+
+- **Severity:** MINOR
+- **Category:** statistics
+- **Location:** paper/v3/main.tex, Abstract and §6.1 Validity statements
+- **Confidence:** 0.99
+- **Reported by:** statistics
+
+The five repetitions are repeated model calls for the same scenario/configuration cells, not independent scenarios or subject models. Consequently, the apparent five-trial support cannot establish robustness across prompts, models, or deployments. The artifact already declares this limitation at an appropriate strength; it should remain adjacent to the repeated-rate claims and not be diluted by the abstract’s improvement wording.
+
+Evidence:
+
+- paper/v3/main.tex, Abstract: “These are within-scenario observations, not estimates of real-world prevalence or model-independent mitigation efficacy.”
+- paper/v3/main.tex, §6.1: “One subject model cannot establish model-independent behavior ... Rates from one probe per mechanism are mechanism demonstrations with stated resolved counts, not population estimates.”
+- paper/v3/main.tex, §6.1: “Temperature~0 reduces but does not remove output variance, observed directly within this run on byte-identical prompts.”
+- report/FINAL-AUDIT.md, Scientific readiness: “Repeated calls do not add scenario diversity.”
+
+**Recommendation:** Retain the declared limitation and use narrow wording such as “in five repetitions of this scenario under this model/backend,” rather than implying independent replication or general efficacy.
 
 ## Recommended changes
 
-- **ADVERSARIAL-001** — Supply the exact frozen CB-*.json artifacts, or remove claims that the headline response-level results can be independently audited from this release. (files: README.md, 'Paper and evidence' and 'Usage'; evidence/20260713T191740Z/verdicts.json; paper/v3/main.tex, §4 'CONTAM-Bench' and §5.3)
-- **ADVERSARIAL-002** — Either provide the corrected report and its provenance, or revise the manuscript to describe the supplied report as ambiguous and retain D8 as an active limitation. (files: paper/v3/main.tex, §5.3; evidence/20260713T191740Z/validation_report.md, 'Flagged for human review'; evidence/20260713T191740Z/defects.md, D8; report/FINAL-AUDIT.md)
-- **ARCHIVAL-001** — Record the exact commit SHA for every evidence release used by the paper and archive each release independently with a version-specific DOI or Software Heritage identifier. State explicitly which DOI resolves to which release and paper version. (files: paper/v3/main.tex, Section 5 and Table 2 (Evidence lineage); README.md, 'Paper and evidence' and 'Citation' sections)
-- **ARCHIVAL-002** — Include or independently archive the exact evidence releases, including raw artifacts, verdicts, reports, correction bundle, and review queue, and link them using immutable version-specific identifiers. If the artifact package intentionally omits them, label the supplied package as manuscript-only rather than reproducible evidence. (files: Provided file list; README.md, 'Paper and evidence' section; paper/v3/main.tex, Table 2 and Sections 5.1–5.3)
-- **CITATIONS-001** — Reconcile the scenario, configuration, repetition, and API-call counts against the persisted run manifest, and correct the denominator, percentages, and call accounting. If additional rounds were included, identify them explicitly and explain why they are not represented by the stated nine-by-seven-by-five design. (files: paper/v3/main.tex, Section 4.4 'Repeated-evaluation audit and scoring defects'; Table 3 caption and surrounding text)
-- **CITATIONS-002** — Provide the exact evidence release or a complete archival supplement containing the manifests, raw model and judge artifacts, retrieval traces, scoring outputs, review queue, and file hashes, or label the reported results as externally hosted and not independently verifiable from this artifact. (files: paper/v3/main.tex, Section 4 'Ablation Study', footnote to the first paragraph; Sections 4.4 and 8.1 'Reproducibility')
-- **CITATIONS-003** — Remove this claim from the paper or add a separately specified and evidenced experiment covering the fixed write order, shared mappings, separate MCP instances, and the observed identifier behavior. (files: paper/v3/main.tex, Sections 3–4 and 7; no identifier-reuse or MCP experiment is specified)
-- **CITATIONS-004** — Remove the claim from the evaluated claims, or provide a separate experiment documenting the SDK version/default behavior, installed host handler, test prompts, tool outcomes, and comparison conditions. (files: paper/v3/main.tex, Section 4.3 'Models and determinism'; no tool-rejection experiment elsewhere in the manuscript)
-- **CLAIM-001** — Provide evidence for the claim or remove it. (files: paper/v3/main.tex, §5.6, §6, and Conclusion)
-- **EVIDENCE-001** — Either remove this intended claim from the evaluated claims or provide a separately identified experiment with the identifier semantics, shared/separate instance setup, fixed write order, and persisted results. The narrowest currently supported wording is that no identifier-reuse/MCP-isolation conclusion is established by this artifact. (files: Artifact-wide; relevant supplied implementation is limited to src/memory_store.py and the listed scenario/evidence files)
-- **EVIDENCE-003** — Correct the manuscript to distinguish the frozen report from later planned or generated reporting changes. Do not claim that the supplied rendered report includes repetition/hash identifiers unless the corresponding report artifact is supplied and verified. (files: paper/v3/main.tex, §5.3 “Repeated-evaluation audit and scoring defects”; evidence/20260713T191740Z/validation_report.md, “Flagged for human review”; evidence/20260713T191740Z/defects.md, D8)
-- **METHODOLOGY-001** — Report the provenance result explicitly as an effect of a bundled metadata intervention, or provide a pure-factor source-only ablation before attributing the result to provenance tagging. (files: paper/v3/main.tex, Section 5.6 'Attribution: what the cells support'; Section 7.1 'Validity statements'; Table 3)
-- **METHODOLOGY-002** — Present sensitivity bounds or separate resolved and unresolved analyses for every load-bearing comparison, and complete the pre-specified blinded independent adjudication before making response-layer efficacy claims. (files: paper/v3/main.tex, Section 5.2 'Repeated-evaluation audit and scoring defects'; Section 7.1; spec/metrics.md, 'Adjudication layer')
-- **METHODOLOGY-008** — Remove this claim from the evaluated contribution, or add a dedicated, reproducible experiment with shared versus separate MCP instances and explicit overwrite/retention assertions. (files: All supplied files; no corresponding section or scenario present)
-- **METHODOLOGY-009** — Do not state this claim as an evaluated result. Add a controlled comparison of the SDK default and installed host handler, with the same model prompt and explicit rejection outcomes, if the claim is in scope. (files: All supplied files; no corresponding section or scenario present)
-- **REPO-CONSISTENCY-001** — Supply the exact frozen scenario manifests, raw run artifacts, verdicts, and reports referenced by the manuscript, or restrict the manuscript to implementation-level claims and explicitly mark all numerical results as unavailable in this artifact bundle. (files: paper/v3/main.tex §5.3–§5.5; README.md “Paper and evidence” and “Repository layout”)
-- **REPO-CONSISTENCY-002** — Make the frozen seven-arm configuration explicit in the executable entry point or release configuration, and document the exact command/configuration used for the paper’s results. Keep the experimental arm in a separately named, non-default configuration if it is not part of the evidence release. (files: paper/v3/main.tex §5; spec/configs.yaml; src/harness.py main())
-- **REPO-CONSISTENCY-003** — Remove the claim from the evaluated scope unless the MCP implementation, controlled experiment, and persisted evidence are supplied. If retained, narrow it only to the exact tested implementation and write order supported by those artifacts. (files: Artifact-wide; especially src/memory_store.py and tests/test_memory_store.py)
-- **REPO-CONSISTENCY-004** — Remove the claim from this artifact’s conclusions, or provide the host-handler implementation, SDK-default control, experimental protocol, and persisted results needed to support it. (files: Artifact-wide; especially src/llm.py and tests/)
-- **REPRODUCIBILITY-001** — Include the immutable per-scenario JSON artifacts, or provide an independently verifiable archive containing them, before presenting the results as auditable or seeking human adjudication. Ensure the supplied evidence directory is sufficient for `src.adjudication packets` to run. (files: README.md, section 'Paper and evidence'; src/adjudication.py, functions `_artifact_index` and `generate_packets`; evidence/20260713T191740Z/; supplied file inventory)
-- **REPRODUCIBILITY-002** — Archive the exact commit, Python and library versions, dependency lockfile or container digest, complete commands, and model/API identifiers used for each frozen run. Distinguish artifact reanalysis from live reruns in the paper. (files: requirements.txt; docs/REPRODUCTION.md, sections 'Independence' and 'Prerequisites'; evidence/20260713T191740Z/run_meta.json; paper/v3/main.tex, §5.3 and §Discussion/Limitations)
-- **REPRODUCIBILITY-005** — Remove the claim from the intended claims and conclusions, or add a separately specified and executed experiment with its implementation, commands, artifacts, and results. On the current evidence, no narrower empirical wording is supported. (files: Artifact-wide; no supporting location supplied)
-- **REPRODUCIBILITY-006** — Remove the claim unless a separate tool-handling experiment and its reproducible artifacts are supplied. No narrower wording is supported by the current artifact. (files: Artifact-wide; no supporting location supplied)
-- **STATISTICS-001** — Do not present this as an established quantitative result unless a documented identifier-overwrite experiment with explicit runs, conditions, and outcomes is supplied; otherwise mark it unverified or remove it. (files: AUTHOR'S INTENDED CLAIMS; src/memory_store.py; paper/v3/main.tex)
-- **STATISTICS-002** — Treat this claim as unverified and do not include it among empirical conclusions without a controlled host-handler-versus-SDK comparison with run counts and outcome definitions. (files: AUTHOR'S INTENDED CLAIMS; paper/v3/main.tex; evidence/20260713T191740Z/validation_report.md)
+- **ADVERSARIAL-001** — Provide the complete frozen CB-*.json raw artifact files, or remove claims that depend on independently inspecting and recomputing responses, retrievals, and gate decisions. The release should also include a manifest proving that every artifact hash in verdicts.json maps to a supplied file. (files: Files provided; README.md, section 'Paper and evidence'; src/adjudication.py::_artifact_index; src/metrics.py::gate_observability and retrieval scoring)
+- **REPO-CONSISTENCY-001** — Supply the exact frozen evidence directories, scenario manifests, verdicts, reports, and correction/adjudication files referenced by the manuscript, or remove the numerical results and restrict the paper to claims supported by the supplied code and specifications. (files: paper/v3/main.tex, Abstract; §5, Table 1 footnote and §5.3; README.md, “Paper and evidence”)
+- **ADVERSARIAL-002** — Narrow the headline to: the study defines six candidate mechanisms and obtains within-scenario evidence for provenance, scope, and selected retrieval/gate behaviors; it does not empirically establish response degradation for all six mechanisms. (files: paper/v3/main.tex, abstract; Sections 3, 5.2, 5.3, 5.5, and Conclusion)
+- **ADVERSARIAL-004** — Describe CB-VAL-009 narrowly as a seeded contradictory-record/gate-presupposition test. Do not use it as direct evidence that the system's own generated responses cause recursive contamination unless a genuine generated-response write-back experiment is supplied. (files: paper/v3/main.tex, Section 5.2 'Seeded recursion (CB-VAL-009)'; scenarios/validation/cb-val-009-recursive-seeded.yaml; src/harness.py::run_pair)
+- **ADVERSARIAL-005** — Include the referenced correction files in the frozen release and verify their hashes, or remove the v0.3.1 lineage and correction claims from the manuscript and README. (files: README.md, evidence table; paper/v3/main.tex, Table 1 and Section 5.3; supplied file inventory)
+- **ARCHIVAL-001** — Distribute the frozen evidence artifacts with the archival release, or provide a persistent archive link and exact file manifest/hashes for every evidence release used by the paper. Do not rely solely on the mutable repository path. (files: README.md, “Paper and evidence”; paper/v3/main.tex, Sections 5.1, 5.3, and 5.4)
+- **ARCHIVAL-002** — Record the exact commit SHA and archive checksum for each evidence release in the manuscript and archival metadata. Ensure the DOI resolves to an immutable archive containing those exact versions, and cite the version-specific DOI or SWHID where available. (files: README.md, “Quick start” and “Paper and evidence”; docs/REPRODUCTION.md, “Prerequisites” and “What to compare”; paper/v3/main.tex, Table 2 and Section 5.3)
+- **ARCHIVAL-006** — Include the exact gate-decision records and corresponding response artifacts, with immutable hashes, in the archival evidence package. Preserve the current narrow scope: one seeded-recursion scenario and one implementation, not relevance gates generally. (files: paper/v3/main.tex, Section 5.6, “The gate amplified seeded recursion”; README.md, “Paper and evidence”)
+- **CITATIONS-001** — Reconcile the accounting by distinguishing scenario-configuration cells, scored rounds, and extra recursive subject calls; state the exact denominator for the 52 unresolved cases and recompute the reported percentage. (files: paper/v3/main.tex, Section 4.2 'Repeated-evaluation audit and scoring defects', and abstract)
+- **CITATIONS-002** — Provide the immutable evidence releases and the code/manifests needed to regenerate Tables 1–4, or explicitly label the reported empirical values as claims verified only by an external repository rather than by the submitted artifact. (files: paper/v3/main.tex, Section 4 'Ablation Study', footnote to the ablation description; Sections 4.2 and 4.4)
+- **EVIDENCE-001** — Narrow the headline claim to: “We define six candidate mechanisms and operationalize each with a falsifiable scenario criterion; this pilot directly observes contamination in only a subset of those cases.” (files: paper/v3/main.tex, Abstract; §3 taxonomy; §5.3 repeated audit; Conclusion)
+- **METHODOLOGY-001** — Provide the immutable v0.2/v0.3/v0.3.1 run artifacts, including raw prompts, injected memories, responses, retrieval assertions, judge outputs, verdicts, hashes, and run metadata; otherwise label the numerical results and derived claims as unverified and restrict the conclusions to the scenario specifications and methodological proposal. (files: paper/v3/main.tex, Section 4, footnote and Sections 4.1–4.4; files listed in the artifact manifest)
+- **REPO-CONSISTENCY-002** — Include the nine validation/control manifests used for the reported runs, including their expected patterns, retrieval assertions, and scoring rules. If they are intentionally excluded, state that the supplied artifact is code-only and withdraw execution-based claims. (files: src/harness.py, load_scenarios and VALIDATION_SCENARIO_GLOBS; README.md, “Repository layout”; paper/v3/main.tex, §4 and §5)
+- **REPO-CONSISTENCY-003** — Provide the exact gate-decision logs, responses, verdicts, artifact hashes, and pending review queue used for these statements. Until then, narrow the claims to “the implementation supports logging and scoring of these outcomes” and “the proposed failure mode is illustrated by the code/test fixture,” not observed benchmark findings. (files: paper/v3/main.tex, Abstract; §5.3; §5.4; §5.5; README.md, “Paper and evidence”)
+- **REPRODUCIBILITY-001** — Supply the frozen raw artifacts referenced by README.md, including every response, prompt, injected memory, retrieval trace, and gate decision; record the exact commit, Python and dependency versions, model identifiers, configuration hashes, and any relevant seeds; and provide a lockfile or container for the reported release. Until then, restrict reproducibility claims to recomputation of the supplied verdict aggregates. (files: README.md, “Paper and evidence” and “Usage”; evidence/20260713T191740Z/run_meta.json; evidence/20260713T191740Z/verdicts.json; requirements.txt; docs/REPRODUCTION.md, “Prerequisites” and “What to compare”)
+- **REPRODUCIBILITY-002** — Narrow the claim to: “We define six candidate mechanisms and obtain case-specific retrieval or response evidence for some of them; this pilot does not establish that all six degrade responses.” Treat semantic drift as a retrieval-layer observation, and describe summarization loss and natural recursion as unvalidated or null-result probes. (files: paper/v3/main.tex, Abstract; Sections 3, 5.3, 5.5, and Conclusion; evidence/20260713T191740Z/validation_report.md)
+- **STATISTICS-001** — Report numerator, denominator, and an uncertainty interval for every headline configuration rate, or restrict the claims to the displayed per-cell counts and explicitly label all aggregate rates as descriptive pilot summaries. Do not describe the rates as general mitigation improvements without this qualification. (files: paper/v3/main.tex, §5.3 and Table repeated; evidence/20260713T191740Z/validation_report.md, Config comparison)
 
 _Veritas Gate never modifies the artifact it evaluates; these actions are advisory._
 
@@ -1427,20 +1126,20 @@ _Veritas Gate never modifies the artifact it evaluates; these actions are adviso
 
 | Model | Calls | Input tokens | Output tokens | Cost |
 | --- | --- | --- | --- | --- |
-| gpt-5.6-luna | 8 | 863,990 | 27,198 | 1.3520 USD |
-| **Total** | 8 | 863,990 | 27,198 | **1.3520 USD** |
+| gpt-5.6-luna | 8 | 864,982 | 30,521 | 1.3864 USD |
+| **Total** | 8 | 864,982 | 30,521 | **1.3864 USD** |
 
 Cost is estimated from the rates configured when the run happened. It is not a billing record.
 
 ## Evaluation metadata
 
-- Run id: `2026-09-25T191720Z`
+- Run id: `2026-09-25T192432Z`
 - Veritas version: 0.1.0
 - Profile: scientific-paper (version 1)
 - Artifact: contam-bench (document)
-- Artifact commit: bd4e96bca76f6d6b34e2255f4063785b9c9cf29a
-- Started: 2026-09-25T19:17:20.342925+00:00
-- Finished: 2026-09-25T19:21:54.796707+00:00
+- Artifact commit: 858ce8c1cec77481b1c719a4d8298ced414e19c8
+- Started: 2026-09-25T19:24:32.492718+00:00
+- Finished: 2026-09-25T19:29:49.628511+00:00
 
 ### Models
 

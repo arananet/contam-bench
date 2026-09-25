@@ -1,0 +1,93 @@
+{
+  "judge": "methodology",
+  "status": "fail",
+  "summary": "The manuscript is unusually explicit about its scope, unresolved scoring cases, single-model design, TF-IDF substitution, and future work. The pilot supports case-specific retrieval and machine-scored observations, but important causal and reproducibility limitations remain, especially the absence of matched no-memory baselines and insufficient detail to reproduce TF-IDF retrieval and prompting exactly.",
+  "findings": [
+    {
+      "id": "METHODOLOGY-001",
+      "title": "The main experiment lacks enough implementation detail for independent reproduction",
+      "severity": "major",
+      "category": "reproducibility",
+      "description": "The manuscript identifies the subject, judge, gate, temperature, retrieval family, and k, but does not specify the TF-IDF preprocessing/vectorization configuration, tie-breaking and ranking behavior, prompt templates, API/model revision identifiers, or exact memory-block construction. These details can affect which memories are retrieved and how responses are scored. The supplied artifact also contains no implementation files or run artifacts from which these choices can be recovered. This is material because the paper presents repeated-cell outcomes and claims that every number is recomputable.",
+      "location": "paper/v3/main.tex, Sections 4.3 \u201cModels and determinism\u201d and 5 \u201cAblation Study\u201d; spec/configs.yaml, models and retrieval sections",
+      "evidence": [
+        "paper/v3/main.tex, Section 4.3: \u201cThe reported validation runs use TF-IDF cosine similarity\u201d and \u201cclaude-sonnet-4-6 at temperature 0\u201d; it does not specify vectorizer preprocessing or ranking details.",
+        "spec/configs.yaml: `similarity: tfidf-cosine (scikit-learn TfidfVectorizer)` and `k: 4`, without tokenizer, normalization, vocabulary, tie-breaking, or version information.",
+        "paper/v3/main.tex, Section 5: \u201cEvery number in this section is recomputable from those artifacts,\u201d but the supplied files do not include the implementation or the cited evidence releases."
+      ],
+      "recommendation": "Report the exact retrieval implementation and versions, vectorizer/tokenization/normalization settings, tie-breaking, prompt templates, memory serialization, API/model revision identifiers, and provide the code or a complete executable release corresponding to the cited evidence tags.",
+      "confidence": 0.91,
+      "source": "methodology",
+      "disposition": "artifact",
+      "original_severity": null
+    },
+    {
+      "id": "METHODOLOGY-002",
+      "title": "There is no matched no-memory baseline for the contamination probes",
+      "severity": "minor",
+      "category": "experimental-design",
+      "description": "The pilot includes an empty-memory control, but it uses a different meal-planning task and is not a counterfactual version of any of the six contamination probes. Consequently, the design cannot directly establish the excess error caused by injecting each probe's memory relative to the same task without memory, nor can it quantify a contamination-versus-retention trade-off for those tasks. The manuscript acknowledges the need for broader paired controls in future work, so this limits the current pilot rather than contradicting its case-specific observations.",
+      "location": "paper/v3/main.tex, Sections 4.1 \u201cScenarios,\u201d 5.4 \u201cControls, retention, and remaining defects,\u201d and Discussion \u201cFuture-work contract\u201d; scenarios/controls/cb-val-008-control-empty-memory.yaml",
+      "evidence": [
+        "paper/v3/main.tex, Section 4.1: the empty-store control asks \u201cWhat's a good way to structure a weekly meal plan?\u201d, whereas the contamination probes use unrelated tasks such as dinner menus, preferences, renovations, locations, and launch status.",
+        "scenarios/controls/cb-val-008-control-empty-memory.yaml: `memory_seed: []` with probe query `What's a good way to structure a weekly meal plan?`; it is not a matched no-memory version of CB-VAL-001 through CB-VAL-006.",
+        "paper/v3/main.tex, Discussion, \u201cFuture-work contract\u201d: the next experiment will use \u201cpaired relevant-memory controls\u201d and a contamination-versus-retention frontier."
+      ],
+      "recommendation": "Describe the current controls strictly as pipeline and retention controls, not as no-memory counterfactuals; for causal attribution, add matched no-memory conditions for each probe and paired relevant-memory tasks before making broader memory-induced degradation or trade-off claims.",
+      "confidence": 0.94,
+      "source": "methodology",
+      "disposition": "declared",
+      "original_severity": null
+    },
+    {
+      "id": "METHODOLOGY-003",
+      "title": "The response contamination metric can leave undetected false negatives after unresolved cases are excluded",
+      "severity": "minor",
+      "category": "metrics",
+      "description": "Canonical scoring treats absence of a forbidden regex match plus a confirming judge result as clean. The manuscript explicitly documents that regexes detect mentions rather than assertions and that 52 disagreements are unresolved, but it does not establish sensitivity for cases in which a contaminated answer uses paraphrases or avoids the listed strings. Excluding disagreements prevents forced labels, but does not validate the remaining clean outcomes as uncontaminated. Therefore the reported machine-resolved clean rates are scorer-defined outcomes, not validated contamination rates.",
+      "location": "paper/v3/main.tex, Section 4.4 \u201cVerdict resolution and metrics\u201d and Discussion, Section \u201cValidity statements\u201d; spec/metrics.md, \u201cVerdict resolution\u201d",
+      "evidence": [
+        "paper/v3/main.tex, Section 4.4: \u201ca match yields contaminated, otherwise a provisional clean that the LLM judge may confirm\u201d; disagreements are flagged and excluded from rates.",
+        "paper/v3/main.tex, Discussion, \u201cValidity statements\u201d: \u201cRegex scoring detects mention, not assertion\u201d and \u201c52 of 350 rounds disagreed\u201d; the unresolved queue has no human verdicts.",
+        "spec/metrics.md, \u201cVerdict resolution\u201d: deterministic no-match produces provisional `clean`, and only deterministic/judge disagreement becomes `needs_human_review`."
+      ],
+      "recommendation": "Keep the machine-only qualification in all result summaries and avoid calling the resulting proportions validated contamination rates; report assertion-aware sensitivity or blinded adjudication before using clean-rate differences as response-layer evidence.",
+      "confidence": 0.9,
+      "source": "methodology",
+      "disposition": "declared",
+      "original_severity": null
+    },
+    {
+      "id": "METHODOLOGY-004",
+      "title": "The proposed full-benchmark fixtures are not yet approval-ready under the repository's own review criteria",
+      "severity": "minor",
+      "category": "experimental-design",
+      "description": "The supplied full-benchmark manifests are explicitly candidates, and the approval registry is empty. The review checklist requires a deterministic utility oracle, but the supplied CB-FULL-SD probe and control manifests do not declare `expected.utility.must_include_patterns`. Thus these fixtures cannot yet satisfy the stated acceptance checklist or support execution as an approved full benchmark. This does not invalidate the reported pilot, which uses the separate validation scenarios.",
+      "location": "docs/SCENARIO_REVIEW.md; spec/full-benchmark-candidates.yaml; scenarios/full-benchmark/cb-full-sd-01.yaml through cb-full-sd-c05.yaml and paired controls",
+      "evidence": [
+        "docs/SCENARIO_REVIEW.md, checklist item 6: \u201cA deterministic `expected.utility.must_include_patterns` oracle measures whether the answer still performs the task.\u201d",
+        "spec/full-benchmark-candidates.yaml: `candidates: []`, with the comment that existing fixtures remain planning manifests until individually reviewed.",
+        "scenarios/full-benchmark/cb-full-sd-01.yaml: `expected` contains `relevant`, `retrieval`, and `forbidden_content`, but no `utility` object; the same structure appears in the supplied paired controls."
+      ],
+      "recommendation": "Do not present the supplied full-benchmark fixtures as approved or executable evidence; add the required utility oracles, record individual human approvals, and complete the review checklist before using them in a benchmark result.",
+      "confidence": 0.98,
+      "source": "methodology",
+      "disposition": "artifact",
+      "original_severity": null
+    }
+  ],
+  "claims": [],
+  "evidence": [],
+  "metadata": {
+    "judge_version": "1",
+    "model_role": "methodology",
+    "model": "gpt-5.6-luna",
+    "provider": "openai",
+    "usage": {
+      "input_tokens": 29467,
+      "output_tokens": 3586,
+      "total_tokens": 33053,
+      "model": "gpt-5.6-luna"
+    }
+  }
+}

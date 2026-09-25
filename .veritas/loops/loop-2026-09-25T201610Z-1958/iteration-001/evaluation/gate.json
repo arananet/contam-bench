@@ -1,0 +1,29 @@
+{
+  "status": "REVISE",
+  "critical": 0,
+  "major": 9,
+  "minor": 21,
+  "info": 0,
+  "blocking_findings": [
+    "ADVERSARIAL-001",
+    "ADVERSARIAL-002",
+    "ADVERSARIAL-004",
+    "ARCHIVAL-001",
+    "ARCHIVAL-002",
+    "CITATIONS-001",
+    "CLAIM-001",
+    "METHODOLOGY-001",
+    "REPRODUCIBILITY-001"
+  ],
+  "failed_checks": [],
+  "judge_errors": [],
+  "accepted_risks": [],
+  "accepted_findings": [],
+  "stale_accepted_risks": [
+    "category=reproducibility location=evidence/20260713T191740Z"
+  ],
+  "reasons": [
+    "9 major finding(s) exceed the limit of 0.",
+    "1 accepted risk(s) no longer match any finding or have expired: category=reproducibility location=evidence/20260713T191740Z"
+  ]
+}

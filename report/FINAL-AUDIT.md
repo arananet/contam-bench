@@ -15,7 +15,10 @@
 file presence, hashes, and repository contracts, but it does not compare the
 hashes against an independently trusted baseline. It neither reruns the LLM-backed
 pipeline nor establishes that a model would produce the same nondeterministic
-responses today. The report records this limitation explicitly.
+responses today. It does not establish that historical evidence metadata
+conforms to the current `spec/run-meta.schema.yaml`; the supplied v0.3
+metadata uses only the documented compatibility fields. The report records
+these limitations explicitly.
 
 The v0.3.1 correction bundle has no human adjudications or two-adjudicator
 consensus. It must not be used to claim human-adjudicated empirical results.

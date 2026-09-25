@@ -4,8 +4,10 @@ Benign memory contamination: degradation of assistant responses caused by
 persistent memory operating as designed — no adversarial input, no jailbreak,
 no data poisoning. Every class below arises from ordinary usage patterns.
 
-Six classes are tested in the validation run; a seventh (`authority_inflation`)
-is documented but **EXPERIMENTAL** and not yet tested.
+The pilot includes one hand-authored scenario for each of the six proposed
+mechanisms. These scenarios provide mechanism demonstrations rather than
+evidence of prevalence or general mitigation efficacy. A seventh
+(`authority_inflation`) is documented but **EXPERIMENTAL** and not yet tested.
 
 ## 1. `semantic_drift`
 

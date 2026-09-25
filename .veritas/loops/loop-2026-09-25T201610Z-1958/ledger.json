@@ -1,0 +1,634 @@
+[
+  {
+    "id": "F316D806A",
+    "title": "Gate-cost reporting uses incompatible retrieval denominators",
+    "category": "metrics / reporting",
+    "severity": "major",
+    "location": "paper/v3/main.tex, \u00a76 `The two-layer dissociation persists` / \u00a77 gate architecture; evidence/20260713T191740Z/validation_report.md, `Relevance-gate observability`; src/metrics.py, `gate_observability`",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "major"
+    ],
+    "finding_ids": [
+      "ADVERSARIAL-002"
+    ],
+    "blocking": true,
+    "notes": []
+  },
+  {
+    "id": "F45E966CE",
+    "title": "Frozen verdicts are inconsistent with the supplied scenario manifests",
+    "category": "reproducibility / artifact discrepancy",
+    "severity": "major",
+    "location": "scenarios/validation/cb-val-003-scope-bleed.yaml (`scoring.judge.enabled: true`); evidence/20260713T191740Z/verdicts.json, all CB-VAL-003 records; src/judge.py, `score_artifact`; evidence/20260713T191740Z/validation_report.md, `judge_call_counts` and per-scenario verdict table",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "major"
+    ],
+    "finding_ids": [
+      "ADVERSARIAL-001"
+    ],
+    "blocking": true,
+    "notes": []
+  },
+  {
+    "id": "F48F40A2B",
+    "title": "Repeated-audit denominator contradicts the stated experimental design",
+    "category": "internal consistency / reproducibility",
+    "severity": "major",
+    "location": "paper/v3/main.tex, Section 4, paragraphs beginning \u201cTable 1 is the frozen v0.2 single-run ablation\u201d and \u201cFifty-two of the 350 rounds\u201d; Section 4 opening paragraph; Table 4 (tab:repeated)",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "major"
+    ],
+    "finding_ids": [
+      "CITATIONS-001"
+    ],
+    "blocking": true,
+    "notes": []
+  },
+  {
+    "id": "F5F83F65C",
+    "title": "The main experiment lacks enough implementation detail for independent reproduction",
+    "category": "reproducibility",
+    "severity": "major",
+    "location": "paper/v3/main.tex, Sections 4.3 \u201cModels and determinism\u201d and 5 \u201cAblation Study\u201d; spec/configs.yaml, models and retrieval sections",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "major"
+    ],
+    "finding_ids": [
+      "METHODOLOGY-001"
+    ],
+    "blocking": true,
+    "notes": []
+  },
+  {
+    "id": "FCB49611A",
+    "title": "Evidence and code references are not pinned to immutable content outside the mutable Git host",
+    "category": "reference immutability",
+    "severity": "major",
+    "location": "README.md, \u201cPaper and evidence,\u201d \u201cQuick start,\u201d and \u201cCitation\u201d; docs/REPRODUCTION.md, \u00a7\u00a71\u20133; paper/v3/main.tex, \u00a75 footnote and Table 2",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "major"
+    ],
+    "finding_ids": [
+      "ARCHIVAL-002"
+    ],
+    "blocking": true,
+    "notes": []
+  },
+  {
+    "id": "FCEEEA27B",
+    "title": "Unsupported claim: The pilot establishes a general mitigation architecture or a general mitigation ",
+    "category": "claims/unsupported",
+    "severity": "major",
+    "location": "paper/v3/main.tex, \u00a75.5, \u00a76, Discussion, and Conclusion",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "major"
+    ],
+    "finding_ids": [
+      "CLAIM-001"
+    ],
+    "blocking": true,
+    "notes": []
+  },
+  {
+    "id": "FDCD231B8",
+    "title": "The DOI is not demonstrably the version containing the reported results",
+    "category": "identity and archival",
+    "severity": "major",
+    "location": "CITATION.cff; README.md, \u201cPaper and evidence\u201d and \u201cCitation\u201d; paper/v3/main.tex, \u00a75 and Table 2",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "major"
+    ],
+    "finding_ids": [
+      "ARCHIVAL-001"
+    ],
+    "blocking": true,
+    "notes": []
+  },
+  {
+    "id": "FE07321E4",
+    "title": "The headline response-level scope result is based on a brittle lexical detector in the supplied evidence",
+    "category": "measurement validity",
+    "severity": "major",
+    "location": "paper/v3/main.tex, \u00a75.5 `Attribution: what the cells support`; evidence/20260713T191740Z/verdicts.json, CB-VAL-003 records; evidence/20260713T191740Z/defects.md, D6; scenarios/validation/cb-val-003-scope-bleed.yaml",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "major"
+    ],
+    "finding_ids": [
+      "ADVERSARIAL-004"
+    ],
+    "blocking": true,
+    "notes": []
+  },
+  {
+    "id": "FEC9141B6",
+    "title": "Main experiment is not reproducible from a pinned environment or revision",
+    "category": "reproducibility",
+    "severity": "major",
+    "location": "requirements.txt; docs/REPRODUCTION.md \u00a7Prerequisites and \u00a72; paper/v3/main.tex \u00a7Models and determinism and \u00a7Discussion and Limitations, Reproducibility",
+    "status": "HUMAN_REVIEW",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "major"
+    ],
+    "finding_ids": [
+      "REPRODUCIBILITY-001"
+    ],
+    "blocking": true,
+    "notes": [
+      "requires a human decision before it can be repaired"
+    ]
+  },
+  {
+    "id": "F084C7ED1",
+    "title": "The response contamination metric can leave undetected false negatives after unresolved cases are excluded",
+    "category": "metrics",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, Section 4.4 \u201cVerdict resolution and metrics\u201d and Discussion, Section \u201cValidity statements\u201d; spec/metrics.md, \u201cVerdict resolution\u201d",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "METHODOLOGY-003"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F1D2372E8",
+    "title": "Missing from the artifact: a DOI for the archived work",
+    "category": "check/citability",
+    "severity": "minor",
+    "location": "paper/v3/main.tex",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "CHECK-CITABILITY-001"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F25A8F83E",
+    "title": "No formal statistical comparison or effect-size framework for mitigation claims",
+    "category": "statistical testing",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, abstract; \u00a75.3; \u00a75.5; Table 'Repeated v0.3 outcome distributions'",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "STATISTICS-002"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F3B1FF23F",
+    "title": "The CFF license field is ambiguous relative to the repository's split licensing",
+    "category": "licensing",
+    "severity": "minor",
+    "location": "CITATION.cff; LICENSING.md; README.md, \u201cLicense\u201d",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "ARCHIVAL-003"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F3C717B2C",
+    "title": "The proposed full-benchmark fixtures are not yet approval-ready under the repository's own review criteria",
+    "category": "experimental-design",
+    "severity": "minor",
+    "location": "docs/SCENARIO_REVIEW.md; spec/full-benchmark-candidates.yaml; scenarios/full-benchmark/cb-full-sd-01.yaml through cb-full-sd-c05.yaml and paired controls",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "METHODOLOGY-004"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F42B90F11",
+    "title": "Very small and non-independent effective sample for mechanism-level rates",
+    "category": "sample size",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, \u00a72 'Validity statements' and \u00a77 'Scale'; evidence/20260713T191740Z/defects.md, 'Evidence scope'",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "STATISTICS-003"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F6D3FD817",
+    "title": "Several prior-work claims lack citations",
+    "category": "citation completeness",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, Section 2 (Related Work), paragraphs \u201cAdversarial memory poisoning,\u201d \u201cMeasurement of non-adversarial memory risk,\u201d and \u201cRetrieval noise and context failure\u201d",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "CITATIONS-002"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F702BF2E4",
+    "title": "The intended claim that the pilot exercises only a subset of the six mechanisms is contradicted by the artifact",
+    "category": "scope/claim precision",
+    "severity": "minor",
+    "location": "AUTHOR'S INTENDED CLAIMS; paper/v3/main.tex, \u00a73; tests/test_schema.py:test_v02_scenario_inventory; spec/taxonomy.md",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "EVIDENCE-001"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F79CB1EFD",
+    "title": "The supplied source cannot be rebuilt or its bibliography checked from the listed files",
+    "category": "citation metadata",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, document ending; supplied file list",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "ARCHIVAL-004"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F7B3D119A",
+    "title": "The v0.2 matrix contains single-run cell results",
+    "category": "run count",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, \u00a75 'Ablation Study', Table 'The ablation matrix' and Table 'Evidence lineage'",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "STATISTICS-005"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F888AB19B",
+    "title": "Supplied repeated-run metadata does not conform to the repository's declared run-metadata schema",
+    "category": "provenance",
+    "severity": "minor",
+    "location": "spec/run-meta.schema.yaml; evidence/20260713T191740Z/run_meta.json; report/FINAL-AUDIT.md \u00a7Verified repository checks",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "REPRODUCIBILITY-002"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F90225D9B",
+    "title": "There is no matched no-memory baseline for the contamination probes",
+    "category": "experimental-design",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, Sections 4.1 \u201cScenarios,\u201d 5.4 \u201cControls, retention, and remaining defects,\u201d and Discussion \u201cFuture-work contract\u201d; scenarios/controls/cb-val-008-control-empty-memory.yaml",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "METHODOLOGY-002"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F90CE4682",
+    "title": "The provenance-arm confound limits attribution of the reported provenance effect",
+    "category": "experimental design / attribution",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, Section 4, subsection \u201cAttribution: what the cells support\u201d; Section 6, subsection \u201cValidity statements\u201d",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "CITATIONS-003"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F975727C9",
+    "title": "Learned-embedding condition is described as implemented but is not integrated into the benchmark execution path",
+    "category": "implementation mismatch",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, \u00a74.3 'Models and determinism' and \u00a77 'Similarity substitution'; src/retrieval.py, functions top_k_embeddings/local_embedder/retrieve; src/full_benchmark.py, main(); spec/full-benchmark.plan.yaml",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "REPO-CONSISTENCY-002"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "F9EE2724A",
+    "title": "Missing from the artifact: a data or code availability statement",
+    "category": "check/citability",
+    "severity": "minor",
+    "location": "paper/v3/main.tex",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "CHECK-CITABILITY-002"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "FAE24EC9A",
+    "title": "The taxonomy is supported as a conceptual framework, but empirical support is uneven and should not be phrased as validation of every mechanism",
+    "category": "claims/evidence alignment",
+    "severity": "minor",
+    "location": "AUTHOR'S INTENDED CLAIMS; paper/v3/main.tex, \u00a7\u00a73, 5.3, 5.5, Discussion; evidence/20260713T191740Z/validation_report.md",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "EVIDENCE-002"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "FB29EC4AF",
+    "title": "The provenance ablation does not isolate provenance",
+    "category": "experimental design / confounding",
+    "severity": "minor",
+    "location": "spec/configs.yaml, `arm_provenance`; paper/v3/main.tex, \u00a75.5 `Attribution: what the cells support`; evidence/20260713T084130Z/defects.md, D5",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "ADVERSARIAL-003"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "FB9BF2A2F",
+    "title": "Most repeated comparisons lack uncertainty estimates",
+    "category": "variance reporting",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, \u00a75.3 'Repeated-evaluation audit and scoring defects' and \u00a75.5 'Attribution: what the cells support'; Table 'Repeated v0.3 outcome distributions'",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "STATISTICS-001"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "FBD8E1079",
+    "title": "Unresolved rounds materially limit several aggregate rates",
+    "category": "missing observations",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, abstract; \u00a75.3; \u00a76.1 'Validity statements'; evidence/20260713T191740Z/validation_report.md, 'Human-adjudicated comparison' and config comparison table",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "STATISTICS-004"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "FCD04FBDE",
+    "title": "Reported empirical results cannot be independently verified from the supplied artifact",
+    "category": "evidence/reproducibility",
+    "severity": "minor",
+    "location": "paper/v3/main.tex, \u00a75.3 'Repeated-evaluation audit and scoring defects'; README.md, 'Paper and evidence'",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "REPO-CONSISTENCY-001"
+    ],
+    "blocking": false,
+    "notes": []
+  },
+  {
+    "id": "FFCFB7C6E",
+    "title": "Fifty-two disputed rounds remain unavailable for independent ground-truth scoring",
+    "category": "scoring-validity",
+    "severity": "minor",
+    "location": "evidence/20260713T191740Z/validation_report.md \u00a7Human-adjudicated comparison and \u00a7Flagged for human review; evidence/20260713T191740Z/adjudications.json; paper/v3/main.tex \u00a7Repeated-evaluation audit and scoring defects",
+    "status": "OPEN",
+    "first_seen_iteration": 1,
+    "last_seen_iteration": 1,
+    "seen_in_iterations": [
+      1
+    ],
+    "severity_history": [
+      "minor"
+    ],
+    "finding_ids": [
+      "REPRODUCIBILITY-003"
+    ],
+    "blocking": false,
+    "notes": []
+  }
+]
