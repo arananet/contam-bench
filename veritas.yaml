@@ -89,12 +89,17 @@ pricing:
     claude-sonnet-5: {input_per_million: 3.0, output_per_million: 15.0}
     gpt-5.6-luna: {input_per_million: 1.25, output_per_million: 10.0}
 
-#gate:
-#  accepted_risks:
+gate:
+  accepted_risks:
+    - category: reproducibility
+      location: evidence/20260713T191740Z
+      reason: "Per-repetition artifacts exceed the review token budget; aggregates are supplied and the raw files are archived."
 
 thesis:
-  - "Under the tested configurations and one fixed write order, reusing an identifier overwrites in the shared mappings and is retained in separate MCP instances."
-  - "Model-only tool rejection depends on the installed host handler, not the SDK default."
+  - "Ordinary memory-system behaviour, with no attacker or poisoned record, can degrade later responses through six distinct mechanisms, each with a falsifiable contamination criterion: semantic drift, provenance collapse, scope bleed, temporal staleness, recursive compounding and summarization loss."
+  - "In a nine-scenario pilot with one subject model and TF-IDF retrieval, scoped namespaces excluded cross-domain distractors and TTL decay excluded the stale fact on the targeted probes in all five repetitions."
+  - "On the provenance probe, provenance tags and raw fidelity each yielded five machine-resolved clean outcomes, consistent with preserving source information lost during summarization in that case."
+  - "In a seeded-recursion case, logged relevance-gate decisions discarded premise-denying context while retaining a contaminated write-back (presupposition capture); contradiction preservation is proposed as a safeguard whose efficacy is untested."
 
 # Nothing executes unless it is listed here.
 execution:
