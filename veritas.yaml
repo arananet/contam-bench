@@ -35,8 +35,11 @@ artifact:
     - evidence/20260713T084130Z/run_meta.json
 
 judge_paths:
-  citations: [paper/v3/main.tex, paper/v3/references.bib]
-  archival:  [paper/v3/main.tex, README.md, CITATION.cff, LICENSING.md, docs/REPRODUCTION.md]
+  citations:       [paper/v3/main.tex, paper/v3/references.bib]
+  archival:        [paper/v3/main.tex, README.md, CITATION.cff, LICENSING.md, docs/REPRODUCTION.md]
+  methodology:     [paper/v3/main.tex, spec, scenarios, docs/SCENARIO_REVIEW.md]
+  repo-consistency: [paper/v3/main.tex, src, tests, spec, README.md]
+  # statistics, evidence, reproducibility y adversarial: todo, incluido verdicts.json
 
 # Secrets never live here. Only environment variable names and model ids do.
 # Copy .env.example from the Veritas repository and set the values there.
