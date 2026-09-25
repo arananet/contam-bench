@@ -1,0 +1,126 @@
+version: 1
+
+profile: scientific-paper
+
+artifact:
+  paths:
+    # The paper
+    - paper/v3/main.tex
+    - paper/v3/references.bib
+    - README.md
+    - CITATION.cff
+    - LICENSING.md
+    # What it measured and how
+    - spec
+    - src
+    - scenarios
+    - tests
+    - requirements.txt
+    - scripts/reproducibility_report.py
+    - docs/REPRODUCTION.md
+    - docs/ADJUDICATION.md
+    - docs/SCENARIO_REVIEW.md
+    - docs/REVIEWER_GUIDE.md
+    - report/FINAL-AUDIT.md
+    - report/SCORING-AUDIT.md
+    # The two runs the paper cites: aggregates only, not the per-repetition files
+    - evidence/20260713T191740Z/validation_report.md
+    - evidence/20260713T191740Z/verdicts.json
+    - evidence/20260713T191740Z/adjudications.json
+    - evidence/20260713T191740Z/defects.md
+    - evidence/20260713T191740Z/run_meta.json
+    - evidence/20260713T084130Z/validation_report.md
+    - evidence/20260713T084130Z/verdicts.json
+    - evidence/20260713T084130Z/defects.md
+    - evidence/20260713T084130Z/run_meta.json
+
+judge_paths:
+  citations: [paper/v3/main.tex, paper/v3/references.bib]
+  archival:  [paper/v3/main.tex, README.md, CITATION.cff, LICENSING.md, docs/REPRODUCTION.md]
+
+# Secrets never live here. Only environment variable names and model ids do.
+# Copy .env.example from the Veritas repository and set the values there.
+models:
+  default:
+    provider: ${VERITAS_DEFAULT_PROVIDER:-anthropic}
+    model: ${VERITAS_DEFAULT_MODEL}
+    tls_verify: ${VERITAS_TLS_VERIFY:-true}
+
+  # A different vendor on purpose, so one model's blind spots do not decide the
+  # outcome. Point it at the default provider if you only have one key.
+  adversarial:
+    provider: ${VERITAS_ADVERSARIAL_PROVIDER:-openai}
+    model: ${VERITAS_ADVERSARIAL_MODEL}
+    tls_verify: ${VERITAS_TLS_VERIFY:-true}
+
+  # Consolidates the other judges' results. Optional: without it the meta
+  # review still runs, deterministically, and only the narrative summary is lost.
+  meta:
+    provider: ${VERITAS_META_PROVIDER:-google}
+    model: ${VERITAS_META_MODEL}
+    tls_verify: ${VERITAS_TLS_VERIFY:-true}
+
+metadata:
+  title: "Benign Memory Contamination in LLM Agents: A Taxonomy, Benchmark, and Contract-Level Mitigations"
+  repository: https://github.com/arananet/contam-bench
+  doi: 10.5281/zenodo.22859806
+
+checks:
+  citability:
+    type: content-patterns
+    enabled: true
+    target: paper/v3/main.tex
+    severity_on_failure: minor
+    required_patterns:
+      - pattern: '10\.\d{4,}/'
+        description: a DOI for the archived work
+      - pattern: '(?i)data availability|availability statement|code availability'
+        description: a data or code availability statement
+    forbidden_patterns:
+      - pattern: '(?i)(github|gitlab)\.com/\S+/(blob|tree)/(main|master)/'
+        description: a link to a mutable branch instead of a pinned commit or tag
+
+pricing:
+  currency: USD
+  rates:
+    claude-sonnet-5: {input_per_million: 3.0, output_per_million: 15.0}
+    gpt-5.6-luna: {input_per_million: 1.25, output_per_million: 10.0}
+
+#gate:
+#  accepted_risks:
+
+thesis:
+  - "Under the tested configurations and one fixed write order, reusing an identifier overwrites in the shared mappings and is retained in separate MCP instances."
+  - "Model-only tool rejection depends on the installed host handler, not the SDK default."
+
+# Nothing executes unless it is listed here.
+execution:
+  allow: []
+
+workspace:
+  mode: snapshot          # Codex trabaja sobre una copia, no sobre tu árbol
+
+loop:
+  enabled: true
+  max_iterations: 3
+
+concurrency: 1
+
+repair:
+  mode: autopilot
+  agent:
+    provider: generic-cli
+    command:
+      - sh
+      - -c
+      - 'codex exec --approve-for-me -C {workspace} "$(cat {prompt_file})"'
+    env_passthrough: [OPENAI_API_KEY]
+    timeout: 1800
+  permissions:
+    documentation: true
+    source_code: true
+    tests: true
+    experiments: false
+    datasets: false
+    scientific_claims: false
+    methodology: false

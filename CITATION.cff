@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: If you use this work, please cite it using the metadata below.
+title: 'Benign Memory Contamination in LLM Agents: A Taxonomy, Benchmark, and Contract-Level
+  Mitigations'
+authors:
+- family-names: Arana
+  given-names: Eduardo
+  orcid: https://orcid.org/0009-0000-6435-6872
+repository-code: https://github.com/arananet/contam-bench
+license: CC-BY-4.0
+doi: 10.5281/zenodo.22859806
