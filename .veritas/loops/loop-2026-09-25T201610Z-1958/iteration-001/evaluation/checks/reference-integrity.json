@@ -1,8 +1,0 @@
-{
-  "check": "reference-integrity",
-  "status": "skipped",
-  "summary": "no documents configured to check",
-  "findings": [],
-  "duration_seconds": 0.0,
-  "metadata": {}
-}

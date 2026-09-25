@@ -32,9 +32,9 @@ identical outputs from new model calls:
 
 | Run | Evidence | Tag | Backs |
 |---|---|---|---|
-| v0.3.1 evidence corrections | [`correction bundle`](evidence/20260713T191740Z/corrections/) and [`pending review queue`](evidence/20260713T191740Z/adjudications.json) | `v0.3.1-evidence-corrections` | Append-only 660-call reconciliation; 52 pending rounds, 0 human adjudications, 0 consensuses |
-| v0.3 repeated audit (7×9×5) | [`evidence/20260713T191740Z/`](evidence/20260713T191740Z/) | `v0.3-repeated-ablation` | Paper §5.3 (repeated audit), §5.5 (gate finding) |
-| v0.2 ablation (7×9) | [`evidence/20260713T084130Z/`](evidence/20260713T084130Z/) | `v0.2-ablation` | Paper §5 (ablation matrix, gate finding) |
+| v0.3.1 evidence corrections | [`correction bundle`](evidence/20260713T191740Z/corrections/) and [`pending review queue`](evidence/20260713T191740Z/adjudications.json) | `v0.3.1-evidence-corrections` | 52 pending rounds, 0 human adjudications, 0 consensuses; frozen metadata records 485 subject-plus-gate calls and no reported judge-call total |
+| v0.3 repeated audit (7×9×5) | [`evidence/20260713T191740Z/`](evidence/20260713T191740Z/) | `v0.3-repeated-ablation` | Paper §5 primary repeated audit and gate finding |
+| v0.2 ablation (7×9) | [`evidence/20260713T084130Z/`](evidence/20260713T084130Z/) | `v0.2-ablation` | Paper Appendix A, superseded historical matrix |
 | v0.1.1 validation (2×8) | [`evidence/20260710T143558Z/`](evidence/20260710T143558Z/) | `v0.1.1-validation` | Prior validation run |
 
 Each evidence directory contains the raw per-scenario artifacts (prompts,
@@ -44,8 +44,9 @@ versioned adjudication or resolution layers when present.
 
 The original v0.3 `validation_report.md` is preserved as a frozen machine-only
 record and therefore still reports that adjudications were absent. The v0.3.1
-append-only correction bundle provides the reconciled 660-call report and a
-52-round pending review queue. It contains no human adjudication records and
+append-only correction bundle provides a 52-round pending review queue. The
+frozen metadata records 485 subject-plus-gate calls and no reported judge-call
+total. It contains no human adjudication records and
 no two-adjudicator consensus, so it does not strengthen empirical results or
 support a human-adjudicated claim.
 
@@ -78,6 +79,27 @@ make release-check                 # → out/reproducibility-report.json
 # Optional: validate the exact source archive submitted to arXiv
 make arxiv-check
 ```
+
+### Reproduce the paper's repeated audit
+
+Run the seven frozen paper configurations explicitly (the general command
+above uses the current configuration set):
+
+```bash
+python3 -m src.harness \
+  --config naive \
+  --config governed \
+  --config arm_namespace \
+  --config arm_provenance \
+  --config arm_ttl \
+  --config arm_gate \
+  --config arm_raw \
+  --repetitions 5
+python3 -m src.judge runs/<timestamp>
+```
+
+`arm_gate_preserve_pairs` is later work and is not part of the paper's frozen
+repeated audit.
 
 ### Local Embedding Backend
 

@@ -42,7 +42,7 @@ artifact:
 judge_paths:
   citations:        [paper/v3/main.tex, paper/v3/references.bib]
   archival:         [paper/v3/main.tex, README.md, CITATION.cff, LICENSING.md, docs/REPRODUCTION.md]
-  methodology:      [paper/v3/main.tex, spec, scenarios, docs/SCENARIO_REVIEW.md]
+  methodology:      [paper/v3/main.tex, spec, scenarios, src, docs/SCENARIO_REVIEW.md]
   repo-consistency: [paper/v3/main.tex, src, tests, spec, scenarios, README.md]
   # statistics, evidence, adversarial...: sin entrada = leen todo el artefacto
 

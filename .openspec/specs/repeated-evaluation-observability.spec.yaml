@@ -18,6 +18,9 @@ description: >-
 acceptance_criteria:
   - The harness accepts --repetitions K, persists repetition, attempt timestamp,
     and an artifact hash, and writes distinct artifacts for every repetition.
+  - A checked-in generator derives the repeated-audit manuscript table from frozen
+    verdicts, validates the seven frozen configurations and five repetitions, and
+    documents the exact reproduction command without including later configurations.
   - Scenario manifests may declare stable seed IDs and structured retrieval
     assertions; the schema validates them and artifacts persist selected IDs.
   - Retrieval assertions are deterministically evaluated and reported per
@@ -39,6 +42,9 @@ test_plan:
     Run pytest -q. The mocked integration run verifies 9 scenarios x 7 configs
     x requested repetitions, unique artifact names and hashes, retrieval/gate
     observability, machine metrics, and separately loaded adjudications.
+  - >-
+    Run the repeated-audit table generator, verify its checked-in output is
+    unchanged, and run make arxiv-check.
 
 out_of_scope:
   - Rerunning or modifying frozen v0.2 evidence.

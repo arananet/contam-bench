@@ -54,7 +54,8 @@ retaining a contaminated write-back. We call this observed failure
 safeguard whose downstream efficacy remains untested. Of 350 scored rounds,
 52 remain unresolved pending human review. These are within-scenario
 observations, not estimates of real-world prevalence or model-independent
-mitigation efficacy. The benchmark and
+mitigation efficacy. In this pilot, scoped namespaces and TTL decay excluded
+the targeted contamination; generality is untested. The benchmark and
 code are available at \url{https://github.com/arananet/contam-bench}; the
 repository-level archive DOI is \url{https://doi.org/10.5281/zenodo.22859806}.
 \end{abstract}
@@ -340,7 +341,9 @@ public spec.}
 
 \subsection{Models and determinism}
 The subject model under test is \texttt{claude-sonnet-4-6} at temperature~0;
-the judge and relevance gate are \texttt{claude-haiku-4-5}. Subject and
+its maximum response length is 1024 tokens. The frozen run metadata records
+these settings for the reported repeated audit. The judge and relevance gate
+are \texttt{claude-haiku-4-5}. Subject and
 judge are required to differ: a model never judges its own output. The
 reported validation runs use TF-IDF cosine similarity, a documented
 substitution because the public API exposes no embeddings endpoint. The
@@ -349,6 +352,30 @@ successor condition (\texttt{fastembed} with
 \texttt{BAAI/bge-small-en-v1.5}); it is not an executable benchmark
 condition in the supplied retrieval path, and this paper reports no
 learned-embedding result.
+
+\subsection{Retrieval, serialization, and prompt injection details}
+The retrieval implementation in \texttt{src/retrieval.py} instantiates
+\texttt{TfidfVectorizer()} with no explicit arguments; this paper does not
+expand that call into assumed library-default parameter values. It fits the
+vectorizer to the query followed by eligible memory contents, computes cosine
+similarity between the query vector and each memory-content vector, and ranks
+scores in descending order. Ties preserve input order because the indices are
+ranked with Python's stable \texttt{sorted}.
+
+In \texttt{src/memory\_store.py}, raw fidelity stores stripped seed content;
+summarized fidelity stores the stripped hand-authored \texttt{summary} when
+present, otherwise the first sentence of the stripped content. Eligibility is
+filtered first by matching the probe domain when scope is namespaced and then,
+when configured, by whether an entry's age is at most the TTL for its fact
+class. The rendered memory block is \texttt{(no stored memories)} when empty.
+Otherwise, each untagged line is \texttt{- <content>}, while each tagged line
+is \texttt{- [source: <source> | age: <age>d | domain: <domain>] <content>}.
+
+The prompt template is \texttt{SYSTEM\_PROMPT} in \texttt{src/harness.py}.
+It tells the subject that the block contains memories retrieved from previous
+sessions with the user, says to use them when relevant to the request, and
+places the rendered memory block verbatim between \texttt{<memories>} and
+\texttt{</memories>} tags before sending the probe query as the user message.
 
 \subsection{Verdict resolution and metrics}
 \label{sec:metrics}
@@ -395,23 +422,17 @@ with a machine-readable reason:
 \section{Ablation Study}
 \label{sec:results}
 
-Following external review of an earlier draft, the empirical section was
-redesigned from a two-configuration validation into a single-control
-ablation: the run reported here executes nine scenarios (the eight of
-Section~\ref{sec:benchmark} plus a seeded-recursion scenario described
-below) against seven configurations: \texttt{naive}, \texttt{governed},
-and five arms that each add exactly one control to the naive
-baseline.\footnote{Complete run artifacts are published at
-\texttt{evidence/20260713T084130Z} in the benchmark repository, frozen at
-tag \texttt{v0.2-ablation}. Every number in this section is recomputable
-from those artifacts.} We characterize this study honestly: it is a
-mechanism-isolation experiment on a small hand-authored corpus, designed
-to validate the pipeline and attribute effects to individual controls, not as
-a utility frontier. The latter requires the full corpus and is named as
-successor work in Section~\ref{sec:discussion}. The run cost 132 API
-calls (70 subject, 27 gate, 35 judge). The naive and governed
-configuration hashes are unchanged from the prior validation run,
-preserving comparability.
+The primary result is the frozen v0.3 repeated audit: nine scenarios (the
+eight of Section~\ref{sec:benchmark} plus a seeded-recursion scenario
+described below) against seven configurations---\texttt{naive},
+\texttt{governed}, \texttt{arm\_namespace}, \texttt{arm\_provenance},
+\texttt{arm\_ttl}, \texttt{arm\_gate}, and \texttt{arm\_raw}---with five
+repetitions per scenario--configuration cell. Complete artifacts are
+published at \texttt{evidence/20260713T191740Z}, frozen at tag
+\texttt{v0.3-repeated-ablation}. This is a mechanism-isolation pilot on a
+small hand-authored corpus, not a utility frontier or an estimate of
+model-independent efficacy. The historical v0.2 single-run matrix is retained
+only as superseded context in Appendix~\ref{app:v02-matrix}.
 
 \begin{table}[h]
 \centering
@@ -420,13 +441,13 @@ preserving comparability.
 \toprule
 Evidence release & Immutable tag & Backs in this paper \\
 \midrule
-v0.2 ablation & \texttt{v0.2-ablation} & Table~\ref{tab:matrix} single-run matrix \\
-v0.3 repeated audit & \texttt{v0.3-repeated-ablation} & Tables~\ref{tab:repeated} and \ref{tab:retrieval} \\
+v0.2 ablation & \texttt{v0.2-ablation} & Appendix~\ref{app:v02-matrix}, historical single-run matrix \\
+v0.3 repeated audit & \texttt{v0.3-repeated-ablation} & Tables~\ref{tab:repeated-audit} and \ref{tab:retrieval} \\
 v0.3.1 corrections & \texttt{v0.3.1-evidence-corrections} & call reconciliation and review queue \\
 \bottomrule
 \end{tabular}
 \caption{Evidence lineage. Releases are not pooled: v0.2 is the frozen
-single-run mechanism matrix; v0.3 is the repeated machine-resolved audit;
+superseded single-run mechanism matrix; v0.3 is the primary repeated machine-resolved audit;
 v0.3.1 is append-only accounting and adjudication metadata.}
 \label{tab:lineage}
 \end{table}
@@ -443,72 +464,22 @@ old), and the probe asks for the confirmed date. This measures write-back
 propagation of the recursive mechanism, independent of subject-model
 strength.
 
-\subsection{The ablation matrix}
-
-\begin{table}[h]
-\centering
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lccccccc@{}}
-\toprule
-Scenario (class) & \texttt{naive} & \texttt{ns} & \texttt{prov} & \texttt{ttl} & \texttt{gate} & \texttt{raw} & \texttt{gov} \\
-\midrule
-001 drift        & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
-002 provenance   & \(\times\) & \(\times\) & \(\circ\) & \(\times\) & \(\times\) & \(\circ\) & \(\circ\) \\
-003 scope bleed  & \(\times\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
-004 staleness    & r & r & \(\circ\) & \(\circ\) & r & r & \(\circ\) \\
-005 recursion (natural) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
-006 summarization & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
-009 recursion (seeded) & r & r & \(\circ\) & r & \(\boldsymbol{\times}\) & r & r \\
-\midrule
-007 control (retention) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & r \\
-008 control (empty)     & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
-\midrule
-Contamination rate (natural probes) & 2/5 & 1/5 & \textbf{0/6} & 1/6 & 1/5 & 0/5 & 0/6 \\
-Seeded recursion (009), separate & r & r & \textbf{0/1} & r & 1/1 & r & r \\
-\bottomrule
-\end{tabular}
-\caption{Resolved verdicts per scenario and configuration
-(\(\circ\)~clean, \(\times\)~contaminated, r~flagged
-\texttt{needs\_human\_review} and excluded from rates per the metric
-specification). Arms: \texttt{ns}~namespacing, \texttt{prov}~provenance
-tags, \texttt{ttl}~decay, \texttt{gate}~relevance gate,
-\texttt{raw}~raw fidelity; each is \texttt{naive} plus exactly that
-control. Denominator policy (stated, not implied): the contamination rate
-is computed over the six natural probes only; the seeded-recursion
-scenario is reported as its own metric and never merged into the headline
-rate. All rates show resolved counts; flagged artifacts are excluded from
-numerator and denominator.}
-\label{tab:matrix}
-\end{table}
-
-In the frozen v0.2 snapshot, ten artifacts were flagged for manual
-inspection.
-Most were quotation-or-negation cases: the subject \emph{quoted} a
-forbidden claim while debunking it (``the memory says confirmed, but
-nothing has actually been decided''), which fires the deterministic pattern
-even when the response appears substantively clean. The accompanying v0.2
-defect notes record an author's post-hoc assessment, not a blinded,
-independent adjudication under a preregistered rubric. The v0.3 audit below
-therefore replaces any inference from this small historical set with an
-explicit repeated-run accounting of scorer disagreement.
-
 \subsection{Repeated-evaluation audit and scoring defects}
 \label{sec:repeatedaudit}
 
-Table~\ref{tab:matrix} is the frozen v0.2 single-run ablation. We do not
-pool it with the subsequent v0.3 repeated-evaluation audit: the latter ran
-the same nine scenarios and seven configurations five times, which implies
-315 scenario--configuration rounds. The supplied frozen report instead
-records 350 rounds; that discrepancy is unreconciled, so its aggregate count,
-review percentage, and API-call totals are reported machine-record values,
-not recomputable audit totals. The frozen report is published separately at
+The frozen v0.3 repeated-evaluation audit ran the nine scenarios and seven
+configurations five times, for 315
+executions (9 scenarios $\times$ 7 configurations $\times$ 5 repetitions).
+CB-VAL-005 has two scored rounds per execution, so the audit contains 350
+scored rounds: 8 scenarios $\times$ 35 executions plus CB-VAL-005 $\times$
+35 executions $\times$ 2 rounds. The frozen report is published separately at
 \texttt{evidence/20260713T191740Z} under the tag in
 Table~\ref{tab:lineage}. Its purpose is to quantify scorer ambiguity,
 execution cost, and per-cell outcome distributions rather than replace the
 matrix with an unqualified aggregate.
 
-The frozen report records fifty-two of 350 rounds (14.9\%) as requiring human review:
+The frozen report records fifty-two of 350 rounds (14.9\%; Wilson 95\% CI
+[11.5\%, 19.0\%]) as requiring human review:
 three provenance-attribution rounds had a
 deterministic-clean/judge-contaminated disagreement; twenty staleness rounds
 had a deterministic-contaminated/judge-clean disagreement; and twenty-nine
@@ -521,11 +492,11 @@ establishes which scorer is correct without independent assessment. Per the
 scoring contract, these rounds are excluded from machine-only rates;
 agreement on the remaining rounds is not itself ground-truth validation.
 
-Table~\ref{tab:repeated} reports repeated outcome distributions for the
-load-bearing cells. Each entry is clean/contaminated/flagged across five
-repetitions; non-flagged counts are machine-resolved only. The provenance
-separation persists without flags: provenance tags, raw fidelity, and the
-governed bundle are each 5/0/0, while naive is 0/4/1. The three provenance
+Table~\ref{tab:repeated-audit}, generated directly from the frozen resolved
+verdicts, reports every scenario--configuration cell as clean outcomes out of
+five executions. The provenance separation persists: provenance tags, raw
+fidelity, and the governed bundle each have 5/5 clean executions, while naive
+has 0/5. The three provenance
 disagreements occur only in \texttt{arm\_gate} (repetitions 1 and 5) and
 \texttt{naive} (repetition 4), not in the tag, raw, or governed conditions.
 Their artifact hashes are respectively \texttt{12e31cb370551aee},
@@ -533,31 +504,7 @@ Their artifact hashes are respectively \texttt{12e31cb370551aee},
 This supports the provenance finding in the machine-resolved tier, but does
 not substitute for the pending blinded human adjudications.
 
-\begin{table}[p]
-\centering
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-Configuration & 002 provenance & 003 scope & 004 staleness & 009 seeded recursion \\
-\midrule
-naive & 0/4/1 & 1/4/0 & 0/0/5 & 0/0/5 \\
-namespace & 0/5/0 & 5/0/0 & 0/0/5 & 0/0/5 \\
-provenance & 5/0/0 & 4/1/0 & 5/0/0 & 0/2/3 \\
-ttl & 0/5/0 & 2/3/0 & 5/0/0 & 0/0/5 \\
-gate & 0/3/2 & 5/0/0 & 0/0/5 & 0/4/1 \\
-raw & 5/0/0 & 3/2/0 & 0/0/5 & 0/0/5 \\
-governed & 5/0/0 & 5/0/0 & 5/0/0 & 0/0/5 \\
-\bottomrule
-\end{tabular}
-\caption{Repeated v0.3 outcome distributions, reported as
-clean/contaminated/flagged across five repetitions. Flagged means
-\texttt{needs\_human\_review}; all other counts are machine-resolved.
-Except for the scope-bleed pattern-hit intervals stated in the text, these
-within-scenario pilot distributions are unquantified descriptive observations,
-not population estimates.}
-\label{tab:repeated}
-\end{table}
+\input{generated-repeated-audit-table.tex}
 
 The v0.3 evidence now includes a separately versioned queue for all 52
 unresolved artifact rounds, but it contains no human verdicts. Therefore this
@@ -568,11 +515,17 @@ The immutable original report still records the missing-adjudications state;
 the append-only correction bundle and pending queue are identified in
 Table~\ref{tab:lineage}.
 
-The frozen report claims 660 API calls: 350 subject calls, 135 gate calls,
-and 175 judge calls. These call totals are unreconciled with the stated
-nine-by-seven-by-five design and must not be treated as recomputable audit
-accounting. The reported operational cost therefore remains a limitation,
-not a validated aggregate.
+The frozen \texttt{run\_meta.json} records 350 subject calls and 135 gate
+calls, for 485 subject-plus-gate calls. Judge calls are not included in
+\texttt{run\_meta.json}, so this audit does not state a judge-call count.
+
+For CB-VAL-003, the frozen verdicts use scenario hash
+\texttt{d185a5792d0afb20} from commit \texttt{46ab528} (2026-07-13).
+Commit \texttt{06a48e4} (2026-07-14) added only a \texttt{scoring.judge}
+rubric, producing the current hash \texttt{18af49ba7c9f5e75}; the scenario,
+probes, and expected outcomes are unchanged. The frozen verdicts therefore
+refer to the earlier version, and the post-run rubric addition does not
+retroactively create judge verdicts.
 
 \subsection{The two-layer dissociation persists}
 \label{sec:twolayer}
@@ -621,13 +574,13 @@ all configurations resolved clean, while retrieval assertions distinguish the
 candidate sets. For scope bleed, deterministic forbidden-pattern scoring
 recorded one clean and four contaminated naive repetitions and five clean,
 zero contaminated namespacing repetitions, with no flags in either cell. The
-corresponding pattern-hit proportions are 4/5 (exact 95\% Clopper--Pearson
-interval [0.284, 0.995]) and 0/5 ([0.000, 0.522]). They are descriptive
+corresponding pattern-hit proportions are 4/5 (Wilson 95\% CI [37.6\%,
+96.4\%]) and 0/5 (Wilson 95\% CI [0.0\%, 43.4\%]). They are descriptive
 within-scenario pattern observations, not validated response-contamination
 effects: these records have no judge verdicts, and the \texttt{permit
-delays?} pattern can fire on byte-identical prompts. Their binomial
-interpretation assumes independent trials with a fixed outcome probability;
-repeated API calls do not establish that assumption or add scenario diversity.
+delays?} pattern can fire on byte-identical prompts. The five repetitions per
+cell do not establish independence, add scenario diversity, or support
+significance claims.
 Staleness remains
 retrieval-layer evidence because its response-layer comparators are flagged.
 The summarization probe has no utility oracle, so it cannot establish a
@@ -655,10 +608,10 @@ the full benchmark will.
 In the frozen v0.2 single run, the relevance-gate arm was the only
 configuration whose seeded-recursion verdict resolved contaminated, with
 deterministic and judge passes in agreement. This exclusivity does not hold
-in the v0.3 repeated audit: Table~\ref{tab:repeated} shows four contaminated
-and one flagged gate outcome, and two contaminated and three flagged
-provenance-arm outcomes. The other arms are entirely flagged on that probe,
-so they cannot be treated as clean comparators or used to rank gate harm.
+in the v0.3 repeated audit: Table~\ref{tab:repeated-audit} shows no clean
+gate executions and no clean provenance-arm executions on that probe. The
+other arms likewise have no clean executions, so the cells cannot rank gate
+harm or identify clean comparators.
 The v0.2 gate failure is traceable in
 the gate's own logged decisions. Asked for the ``confirmed launch
 date,'' the gate kept the contaminated write-back (``confirms Atlas
@@ -746,10 +699,10 @@ that proposal.
 We use declarative constraints on writing, retrieval, injection, and
 write-back as a design lens for the six mechanisms. The pilot does not
 establish absence of such constraints as their shared or exclusive root cause.
-Each baseline control in Table~\ref{tab:configs} is a contract-level answer
-to a specific class: namespacing answers scope bleed; provenance tags answer
-provenance collapse; decay by fact class answers temporal staleness; and
-raw-fidelity storage preserves the information needed to assess
+Each baseline control in Table~\ref{tab:configs} is designed as a
+contract-level response to a specific class: namespacing targets scope bleed;
+provenance tags target provenance collapse; decay by fact class targets
+temporal staleness; and raw-fidelity storage preserves the information needed to assess
 summarization loss. Relevance gating is not a baseline mitigation: it is an
 optional residual-risk experiment that must obey the contradiction-pair rail
 above before deployment.
@@ -768,22 +721,22 @@ case for tool-using agents: constraints should be first-class specifications
 with explicit runtime enforcement sites and auditable traces~\cite{besanson2026sarc}.
 Memory is the other self-editable surface.
 
-The ablation motivates constraints, not an efficacy ordering. Namespacing,
-provenance tags, TTL decay, and raw fidelity are deterministic in this harness
+The ablation motivates constraints, not an efficacy ordering. In this pilot,
+scoped namespaces and TTL decay excluded the targeted contamination;
+generality is untested. Namespacing, provenance tags, TTL decay, and raw
+fidelity are deterministic in this harness
 and require no additional model calls for their enforcement. They are not
 cost-free: storage, metadata management, and prompt-token costs remain.
 Their observed effects occur at
 different evidence layers and in different classes. Relevance gating is a
 probabilistic filter on the critical path. The repeated audit observed 135
-gate calls over 100 gated retrievals, or 1.35 calls per gated retrieval. The
-same frozen report contains 350 total retrievals, so its all-retrieval mean is
-135/350 = 0.3857 gate calls per retrieval; this is not a gated-retrieval cost.
-Its
+gate calls over 100 gated rounds: 80 gate-configuration calls plus 55
+governed-configuration calls. This is 1.35 gate calls per gated round. Its
 $k{=}4$ worst-case bound is 4{,}000 calls per thousand gated retrievals. No
 batching is used. It is the only control that produced a recall false negative
 in the validation run and active amplification of seeded recursion here
 (Section~\ref{sec:gatefinding}). A deterministic, contract-enforced design
-without a gate is therefore a reasonable baseline recommendation, not a
+without a gate is therefore a candidate baseline for future evaluation, not a
 proven general mitigation ordering; a gate remains an unvalidated
 residual-risk experiment, with logged decisions and mandatory contradiction
 preservation. Relocating a probabilistic filter from the subject model into
@@ -825,17 +778,20 @@ scoring. Those rounds remain unresolved and excluded from machine-only
 rates: the versioned adjudication queue assigns no human verdicts, so this
 paper does not claim a judge-plus-human consensus for them. The correction
 bundle records 0 adjudications and 0 two-adjudicator consensuses. (2)~The
+response-level scope-bleed result relies on a lexical detector that can miss
+paraphrased leakage. It is an upper bound on detection robustness, not a
+measurement of it. (3)~The
 provenance arm is confounded: its tag emits source, age, and domain
 together, so its staleness result cannot be attributed to source
-attribution alone. (3)~TF-IDF is a documented retrieval substitution; nothing here is evidence
-about learned-embedding retrieval behavior. (4)~Temperature~0 reduces but
+attribution alone. (4)~TF-IDF is a documented retrieval substitution; nothing here is evidence
+about learned-embedding retrieval behavior. (5)~Temperature~0 reduces but
 does not remove output variance, observed directly within this run on
-byte-identical prompts. (5)~One subject
+byte-identical prompts. (6)~One subject
 model cannot establish model-independent behavior, for compounding or
 anything else. Rates from one probe per mechanism are mechanism
 demonstrations with stated resolved counts, not population estimates. The
-frozen report's 660 API-call claim is unreconciled with the declared design;
-it is not a recomputable cost total. The review register identifies every flagged artifact by
+frozen \texttt{run\_meta.json} records 485 subject-plus-gate calls; it does
+not include judge calls. The review register identifies every flagged artifact by
 repetition and hash.
 
 \subsection{Future-work contract}
@@ -911,6 +867,13 @@ for.
 
 \paragraph{Reproducibility.} Temperature-0 sampling reduces but does not
 guarantee bit-identical responses across executions of the same prompt.
+To reproduce the paper audit, invoke \texttt{python3 -m src.harness} with
+\texttt{--repetitions 5} and the seven explicit \texttt{--config} values
+\texttt{naive}, \texttt{governed}, \texttt{arm\_namespace},
+\texttt{arm\_provenance}, \texttt{arm\_ttl}, \texttt{arm\_gate}, and
+\texttt{arm\_raw}, then run \texttt{python3 -m src.judge runs/<timestamp>}.
+The README gives the full multi-line command; later work
+\texttt{arm\_gate\_preserve\_pairs} is not part of this paper.
 Deterministic checks and aggregates can be recomputed from persisted
 artifacts and recorded verdicts. LLM judge verdicts are retained as observations,
 not guaranteed outputs of a new judge call. Hash inventories identify file
@@ -931,7 +894,8 @@ This pilot operationalizes a conceptual taxonomy of six proposed mechanisms
 of benign memory contamination through one hand-authored scenario per
 mechanism. These pilot scenarios demonstrate selected case behaviors rather
 than empirically validating each mechanism as a general phenomenon. Within the tested cases,
-namespacing and TTL changed targeted retrieval outcomes, while tags and raw
+scoped namespaces and TTL decay excluded the targeted contamination;
+generality is untested. Tags and raw
 storage yielded clean machine verdicts on the provenance probe. A logged
 seeded-recursion failure illustrates how relevance filtering can discard
 context that denies a query's premise. Natural recursive compounding was
@@ -947,6 +911,51 @@ are needed before stronger claims. The benchmark,
 specifications, and validation scenarios are public at
 \url{https://github.com/arananet/contam-bench}; the repository-level archive
 DOI is \url{https://doi.org/10.5281/zenodo.22859806}.
+
+\appendix
+\section{Superseded v0.2 single-run matrix}
+\label{app:v02-matrix}
+
+This frozen v0.2 matrix is retained only as historical context. It is
+superseded as the paper's primary result by the v0.3 five-repetition audit in
+Table~\ref{tab:repeated-audit}; it is neither pooled with nor used to infer
+the repeated-audit outcomes. Ten v0.2 artifacts were flagged for manual
+inspection. Its defect notes are post-hoc author assessments, not blinded
+independent adjudications.
+
+\begin{table}[h]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+Scenario (class) & \texttt{naive} & \texttt{ns} & \texttt{prov} & \texttt{ttl} & \texttt{gate} & \texttt{raw} & \texttt{gov} \\
+\midrule
+001 drift        & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+002 provenance   & \(\times\) & \(\times\) & \(\circ\) & \(\times\) & \(\times\) & \(\circ\) & \(\circ\) \\
+003 scope bleed  & \(\times\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+004 staleness    & r & r & \(\circ\) & \(\circ\) & r & r & \(\circ\) \\
+005 recursion (natural) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+006 summarization & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+009 recursion (seeded) & r & r & \(\circ\) & r & \(\boldsymbol{\times}\) & r & r \\
+\midrule
+007 control (retention) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & r \\
+008 control (empty)     & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+\midrule
+Contamination rate (natural probes) & 2/5 & 1/5 & \textbf{0/6} & 1/6 & 1/5 & 0/5 & 0/6 \\
+Seeded recursion (009), separate & r & r & \textbf{0/1} & r & 1/1 & r & r \\
+\bottomrule
+\end{tabular}
+\caption{Superseded historical v0.2 single-run resolved verdicts per scenario
+and configuration (\(\circ\)~clean, \(\times\)~contaminated,
+r~flagged \texttt{needs\_human\_review}). Its rates exclude flagged artifacts
+from their numerator and denominator. Their Wilson 95\% intervals are 2/5
+[11.8\%, 76.9\%], 1/5 [3.6\%, 62.4\%], 0/6 [0.0\%, 39.0\%], and 1/6
+[3.0\%, 56.4\%] (with repeated values sharing the same interval); the 1/1
+seeded value has [20.7\%, 100.0\%]. They are retained solely for historical
+context, not as repeated-audit estimates.}
+\label{tab:v02-matrix}
+\end{table}
 
 \bibliographystyle{plain}
 \bibliography{references}

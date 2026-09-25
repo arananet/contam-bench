@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 DIST_DIR="$SCRIPT_DIR/dist"
 ARCHIVE="$DIST_DIR/contam-bench-arxiv-v3.tar.gz"
-REQUIRED=(main.tex references.bib main.bbl)
+REQUIRED=(main.tex references.bib main.bbl generated-repeated-audit-table.tex)
 
 usage() {
   cat <<'EOF'

@@ -1,8 +1,0 @@
-{
-  "check": "repository-structure",
-  "status": "skipped",
-  "summary": "no required_paths configured",
-  "findings": [],
-  "duration_seconds": 0.0,
-  "metadata": {}
-}

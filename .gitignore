@@ -199,3 +199,6 @@ runs/
 !/paper/v3/package-arxiv.sh
 !/paper/v3/check-arxiv.sh
 /stuff/
+
+# Local Veritas evaluation state and detached workspaces.
+.veritas/

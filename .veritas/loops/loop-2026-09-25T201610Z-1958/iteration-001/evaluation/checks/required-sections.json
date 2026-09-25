@@ -1,8 +1,0 @@
-{
-  "check": "required-sections",
-  "status": "pass",
-  "summary": "all 5 sections present",
-  "findings": [],
-  "duration_seconds": 0.003,
-  "metadata": {}
-}

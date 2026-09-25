@@ -25,6 +25,13 @@ consensus. It must not be used to claim human-adjudicated empirical results.
 See `evidence/20260713T191740Z/corrections/` and
 `evidence/20260713T191740Z/adjudications.json`.
 
+For CB-VAL-003, frozen verdicts use scenario hash `d185a5792d0afb20` from
+commit `46ab528` (2026-07-13). Commit `06a48e4` (2026-07-14) added only a
+`scoring.judge` rubric, producing current hash `18af49ba7c9f5e75`; the
+scenario, probes, and expected outcomes are unchanged. The frozen verdicts
+refer to the earlier version, and the post-run rubric addition does not
+retroactively create judge verdicts.
+
 ## Pending independent validation
 
 Independent external reproduction remains pending until an independent
