@@ -102,8 +102,7 @@ gate:
       reason: "Per-repetition artifacts exceed the review token budget; aggregates are supplied and the raw files are archived."
 
 thesis:
-  - "We propose a taxonomy of six mechanisms by which ordinary memory-system behaviour, with no attacker, can degrade later responses, each with a falsifiable contamination criterion. The pilot includes at least one hand-authored scenario per mechanism; it demonstrates that each criterion is operational, not how prevalent any mechanism is."
-
+    - "We propose a taxonomy of six mechanisms by which ordinary memory-system behaviour, with no attacker, can degrade later responses, each with a falsifiable contamination criterion and at least one hand-authored scenario. The taxonomy is a conceptual contribution; the pilot produced contamination outcomes for some mechanisms but not all, and demonstrates neither completeness nor prevalence."
 # Nothing executes unless it is listed here.
 execution:
   allow: []

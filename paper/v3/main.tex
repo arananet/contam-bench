@@ -55,15 +55,24 @@ not utility measurements. In the seeded-recursion case (CB-VAL-009),
 logged relevance-gate decisions discarded premise-denying context while
 retaining a contaminated write-back. We call this observed failure
 \emph{presupposition capture} and propose contradiction preservation as a
-safeguard whose downstream efficacy remains untested. Of 350 scored rounds,
+proposed safeguard; its downstream efficacy was not evaluated. Of 350 scored
+rounds,
 52 remain unresolved pending human review. These are within-scenario
 observations for these nine scenarios, one subject model, and five
 repetitions per cell; they do not estimate real-world prevalence or
 model-independent mitigation efficacy. CB-VAL-009 is a controlled seed for
 recursion, not observed benign behavior; the benign-contamination framing rests
-on the other scenarios. In these evaluated cases, scoped namespaces and TTL
-decay excluded the targeted records from retrieval. Per-scenario outcomes are
-reported without a general ordering among mitigations.
+on the other scenarios. The proposed taxonomy supplies one falsifiable
+criterion and one hand-authored scenario per mechanism, rather than six
+empirically demonstrated mechanisms. Machine-resolved contamination outcomes
+occurred for provenance collapse and scope bleed; CB-VAL-005 had one
+second-round contaminated output but no contaminated first round and therefore
+did not demonstrate natural compounding. Semantic drift and summarization loss
+had only clean machine outcomes, while temporal staleness was clean or
+unresolved.
+In these evaluated cases, scoped namespaces and TTL decay excluded the targeted
+records from retrieval. Per-scenario outcomes are reported without a general
+ordering among mitigations.
 \end{abstract}
 
 \section{Introduction}
@@ -228,7 +237,13 @@ scenario-level operationalization of the proposed criteria, not an empirical
 demonstration of every failure criterion, prevalence, or general mitigation
 efficacy. In particular, the summarization scenario has no utility oracle, and
 recursive write-back propagation is exercised only under controlled seeded
-contamination. A seventh class is documented as
+contamination. In the frozen pilot, machine-resolved contamination outcomes
+occurred for provenance collapse and scope bleed; CB-VAL-005 had one
+second-round contaminated output but no contaminated first-round output, so it
+did not demonstrate natural recursive compounding. Semantic drift and
+summarization loss had only clean machine outcomes, while temporal staleness
+had clean or unresolved outcomes. These scenario outcomes do not empirically
+demonstrate all six proposed mechanisms. A seventh class is documented as
 experimental. Each class is defined by
 (a)~its causal mechanism and (b)~a falsifiable contamination criterion used
 verbatim by the benchmark's judge.
@@ -651,14 +666,11 @@ flagged the conflict and declined.
 
 We call this \emph{presupposition capture}: query-aligned relevance is not
 truth preservation, because a memory affirming a false premise can be more
-responsive to the query than a memory that corrects it. The enforceable rail
-is a retrieval contract: a probabilistic filter may never drop a memory that
-contradicts a retained memory; contradiction sets are retained atomically.
-The contract is described as implemented and unit-tested in the public
-repository, but those implementation and test claims require verification from
-the external repository rather than from the aggregate tables supplied here.
-It has not yet been evaluated in a dedicated repeated run, so it is a
-safeguard proposal rather than an efficacy result.
+responsive to the query than a memory that corrects it. The proposed rail
+would be a retrieval contract: a probabilistic filter would not drop a memory
+that contradicts a retained memory, and contradiction sets would be retained
+atomically. Contradiction preservation is a proposed safeguard; its downstream
+efficacy was not evaluated.
 
 We scope this claim carefully: in this controlled-seed recursion validation
 scenario, this relevance gate as implemented retained the contaminated
@@ -719,7 +731,7 @@ borderline pattern hits are stochastic. The benchmark's reproducibility
 claim attaches to the persisted artifacts, not to re-execution, and the
 full benchmark averages repeated runs.
 
-\section{A Contract-Level Mitigation Architecture}
+\section{A Proposed Contract-Level Mitigation Architecture}
 \label{sec:architecture}
 
 \paragraph{Declaration of interest.} The governed configuration instantiates
@@ -727,16 +739,18 @@ controls from the author's open COGNITION.md proposal. This paper therefore
 reports a pilot control comparison, not an independent evaluation of
 that proposal.
 
-We use declarative constraints on writing, retrieval, injection, and
-write-back as a design lens for the six mechanisms. The pilot does not
-establish absence of such constraints as their shared or exclusive root cause.
+We propose declarative constraints on writing, retrieval, injection, and
+write-back as an architecture motivated by the pilot's six mechanisms. The
+pilot does not establish absence of such constraints as their shared or
+exclusive root cause, nor does it establish general mitigation efficacy.
 Each baseline control in Table~\ref{tab:configs} is designed as a
 contract-level response to a specific class: namespacing targets scope bleed;
 provenance tags target provenance collapse; decay by fact class targets
 temporal staleness; and raw-fidelity storage is intended to retain information
 relevant to assessing summarization loss. Relevance gating is not a baseline mitigation: it is an
-optional residual-risk experiment that must obey the contradiction-pair rail
-above before deployment.
+optional residual-risk experiment for future evaluation. Its proposed
+contradiction-preservation safeguard has not had its downstream efficacy
+evaluated.
 
 The architectural principle is that these controls are \emph{contracts
 external to the mutable store}, not behaviors the store is trusted to
@@ -770,8 +784,9 @@ contaminated write-back while discarding contradicting context
 (Section~\ref{sec:gatefinding}). A deterministic, contract-enforced design
 without a gate is therefore a candidate baseline for future evaluation, not a
 proven general mitigation ordering; a gate remains an unvalidated
-residual-risk experiment, with logged decisions and mandatory contradiction
-preservation. Relocating a probabilistic filter from the subject model into
+residual-risk experiment, with logged decisions and a proposed
+contradiction-preservation safeguard whose downstream efficacy was not
+evaluated. Relocating a probabilistic filter from the subject model into
 the harness makes it auditable, but does not make it deterministic. This
 aligns with the operating-system analogy in that literature: encapsulate
 complex logic behind simple interfaces, and expect configuration and
@@ -816,6 +831,19 @@ demonstrations with stated resolved counts, not population estimates. The
 frozen \texttt{run\_meta.json} records 485 subject-plus-gate calls; it does
 not include judge calls. The supplied frozen review register does not identify
 its flagged rows by repetition and artifact hash.
+
+\paragraph{Mechanism coverage.} The taxonomy is proposed: it defines a
+falsifiable criterion and supplies one hand-authored scenario per mechanism;
+the pilot does not empirically demonstrate all six. The frozen machine
+verdicts contain contaminated outcomes for provenance collapse (17), and for
+scope bleed (10), although scope bleed has no judge verdicts and remains a
+pattern-scoring observation. CB-VAL-005 has one contaminated second-round
+output, but every first-round output was clean, so it does not demonstrate
+natural recursive compounding. Semantic drift (35 clean outcomes) and
+summarization loss (35 clean outcomes) produced no machine-contaminated
+outcomes; temporal staleness produced 15 clean and 20 unresolved outcomes,
+not a machine-contaminated outcome. CB-VAL-009 is a separately seeded
+recursion stress case, not evidence of benign behavior.
 
 \subsection{Future-work contract}
 
@@ -935,8 +963,18 @@ failure in the seeded-recursion case illustrates how relevance filtering can
 discard context that denies a query's premise. Recursive compounding was not
 observed in the unseeded probe. CB-VAL-009 is a controlled seed, not observed
 benign behavior; the benign-contamination claim rests on the other scenarios.
-The proposed contradiction-preservation safeguard has not yet undergone a
-repeated evaluation.
+Contradiction preservation is a proposed safeguard; its downstream efficacy
+was not evaluated.
+
+The proposed taxonomy supplies a falsifiable criterion and one hand-authored
+scenario per mechanism, not an empirical demonstration of all six. The frozen
+pilot produced machine-contaminated outcomes for provenance collapse and
+scope bleed; it produced one contaminated second-round CB-VAL-005 output but
+no contaminated first round, so it did not demonstrate natural recursive
+compounding. Semantic drift and summarization loss had only clean machine
+outcomes, while temporal staleness had clean or unresolved outcomes. These
+mechanism-specific observations, including scope bleed's pattern-only scoring,
+are limited to this pilot.
 
 One subject model, TF-IDF retrieval, limited scenario diversity, bundled
 metadata, and unresolved scoring disagreements restrict these findings to
