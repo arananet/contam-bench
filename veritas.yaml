@@ -95,14 +95,9 @@ pricing:
     claude-sonnet-5: {input_per_million: 3.0, output_per_million: 15.0}
     gpt-5.6-luna: {input_per_million: 1.25, output_per_million: 10.0}
 
-gate:
-  accepted_risks:
-    - category: reproducibility
-      location: evidence/20260713T191740Z
-      reason: "Per-repetition artifacts exceed the review token budget; aggregates are supplied and the raw files are archived."
-
 thesis:
     - "We propose a taxonomy of six mechanisms by which ordinary memory-system behaviour, with no attacker, can degrade later responses, each with a falsifiable contamination criterion and at least one hand-authored scenario. The taxonomy is a conceptual contribution; the pilot produced contamination outcomes for some mechanisms but not all, and demonstrates neither completeness nor prevalence."
+
 # Nothing executes unless it is listed here.
 execution:
   allow: []
