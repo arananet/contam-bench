@@ -455,26 +455,31 @@ described below) against seven configurations---\texttt{naive},
 \texttt{arm\_ttl}, \texttt{arm\_gate}, and \texttt{arm\_raw}---with five
 repetitions per scenario--configuration cell. Complete artifacts are
 published at \texttt{evidence/20260713T191740Z}, frozen at tag
-\texttt{v0.3-repeated-ablation}. This is a mechanism-isolation pilot on a
-small hand-authored corpus, not a utility frontier or an estimate of
-model-independent efficacy. The historical v0.2 single-run matrix is retained
-only as superseded context in Appendix~\ref{app:v02-matrix}.
+\texttt{v0.3-repeated-ablation} (commit
+\texttt{46ab52861b57aefd4e4086fd02b18aee78f74712}). This is a
+mechanism-isolation pilot on a small hand-authored corpus, not a utility
+frontier or an estimate of model-independent efficacy. The historical v0.2
+single-run matrix is retained only as superseded context in
+Appendix~\ref{app:v02-matrix}.
 
 \begin{table}[h]
 \centering
 \small
-\begin{tabular}{@{}lll@{}}
+\begin{tabular}{@{}p{0.20\linewidth}p{0.38\linewidth}p{0.30\linewidth}@{}}
 \toprule
-Evidence release & Immutable tag & Backs in this paper \\
+Evidence release & Immutable release identifier & Backs in this paper \\
 \midrule
-v0.2 ablation & \texttt{v0.2-ablation} & Appendix~\ref{app:v02-matrix}, historical single-run matrix \\
-v0.3 repeated audit & \texttt{v0.3-repeated-ablation} & Tables~\ref{tab:repeated-audit} and \ref{tab:retrieval} \\
-v0.3.1 corrections & \texttt{v0.3.1-evidence-corrections} & call reconciliation and review queue \\
+v0.1.1 validation & \nolinkurl{v0.1.1-validation}\\\nolinkurl{@bba046614de13266245e4569786d189ffc23ebbb} & initial validation release \\
+v0.2 ablation & \nolinkurl{v0.2-ablation}\\\nolinkurl{@7b9b8dfaad37e00c589fe4d202d0dd07de600ae3} & Appendix~\ref{app:v02-matrix}, historical single-run matrix \\
+v0.3 repeated audit & \nolinkurl{v0.3-repeated-ablation}\\\nolinkurl{@46ab52861b57aefd4e4086fd02b18aee78f74712} & Tables~\ref{tab:repeated-audit} and \ref{tab:retrieval} \\
+v0.3.1 corrections & \nolinkurl{v0.3.1-evidence-corrections}\\\nolinkurl{@65cac1009df6cd3a9258c44cae66cf8ef7d34cae} & call reconciliation and review queue \\
+v0.3.2 & \nolinkurl{v0.3.2}\\\nolinkurl{@52126c7f5905bc43e870614630d5de9866d6da16} & current manuscript and reproducibility instructions \\
 \bottomrule
 \end{tabular}
 \caption{Evidence lineage. Releases are not pooled: v0.2 is the frozen
 superseded single-run mechanism matrix; v0.3 is the primary repeated machine-resolved audit;
-v0.3.1 is append-only accounting and adjudication metadata.}
+v0.3.1 is append-only accounting and adjudication metadata; v0.3.2 is the
+current release.}
 \label{tab:lineage}
 \end{table}
 
@@ -560,13 +565,21 @@ The frozen \texttt{run\_meta.json} records 350 subject calls and 135 gate
 calls, for 485 subject-plus-gate calls. Judge calls are not included in
 \texttt{run\_meta.json}, so this audit does not state a judge-call count.
 
-For CB-VAL-003, the frozen verdicts use scenario hash
-\texttt{d185a5792d0afb20} from commit \texttt{46ab528} (2026-07-13).
-Commit \texttt{06a48e4} (2026-07-14) added only a \texttt{scoring.judge}
-rubric, producing the current hash \texttt{18af49ba7c9f5e75}; the scenario,
-probes, and expected outcomes are unchanged. The frozen verdicts therefore
-refer to the earlier version, and the post-run rubric addition does not
-retroactively create judge verdicts.
+For CB-VAL-003, the frozen verdicts were scored against the frozen manifest:
+\begin{center}
+\small\ttfamily
+scenarios/validation/frozen/\\
+cb-val-003-scope-bleed@46ab528.yaml
+\end{center}
+Its scenario hash is \texttt{d185a5792d0afb20}; it belongs to
+\texttt{v0.3-repeated-ablation} commit
+\nolinkurl{46ab52861b57aefd4e4086fd02b18aee78f74712} (2026-07-13). The current
+\nolinkurl{scenarios/validation/cb-val-003-scope-bleed.yaml} is the later
+revision. Commit \texttt{06a48e4} (2026-07-14) added only a
+\texttt{scoring.judge} rubric, producing the current hash
+\texttt{18af49ba7c9f5e75}; the scenario, probes, and expected outcomes are
+unchanged. The frozen verdicts therefore refer to the earlier version, and the
+post-run rubric addition does not retroactively create judge verdicts.
 
 \subsection{The two-layer dissociation persists}
 \label{sec:twolayer}

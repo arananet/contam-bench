@@ -30,7 +30,8 @@ Use Python 3.11 or 3.12 where possible. From a fresh clone:
 ```bash
 git clone https://github.com/arananet/contam-bench.git
 cd contam-bench
-git checkout v0.3.0
+# v0.3.2
+git checkout 52126c7f5905bc43e870614630d5de9866d6da16
 git rev-parse HEAD
 python3 -m venv .venv
 source .venv/bin/activate
@@ -70,6 +71,8 @@ running anything.
 For a live API run, use the smallest slice that exercises the claim:
 
 ```bash
+# v0.3-repeated-ablation
+git checkout 46ab52861b57aefd4e4086fd02b18aee78f74712
 python3 -m src.harness \
   --scenario scenarios/validation/cb-val-001-semantic-drift.yaml \
   --config naive

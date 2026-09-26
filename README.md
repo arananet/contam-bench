@@ -58,7 +58,8 @@ support a human-adjudicated claim.
 # 1. Clone and install
 git clone https://github.com/arananet/contam-bench.git
 cd contam-bench
-git checkout v0.3.0
+# v0.3.2
+git checkout 52126c7f5905bc43e870614630d5de9866d6da16
 bash setup.sh                      # installs OpenSpec git hooks
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -87,6 +88,8 @@ Run the seven frozen paper configurations explicitly (the general command
 above uses the current configuration set):
 
 ```bash
+# v0.3-repeated-ablation
+git checkout 46ab52861b57aefd4e4086fd02b18aee78f74712
 python3 -m src.harness \
   --config naive \
   --config governed \
