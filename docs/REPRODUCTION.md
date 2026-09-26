@@ -30,8 +30,8 @@ Use Python 3.11 or 3.12 where possible. From a fresh clone:
 ```bash
 git clone https://github.com/arananet/contam-bench.git
 cd contam-bench
-# v0.3.2
-git checkout 52126c7f5905bc43e870614630d5de9866d6da16
+# v0.4.0 (Zenodo 10.5281/zenodo.22970417)
+git checkout 79452fc6e21307be7b020f233131108cd3af52ce
 git rev-parse HEAD
 python3 -m venv .venv
 source .venv/bin/activate

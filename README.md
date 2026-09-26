@@ -62,8 +62,8 @@ support a human-adjudicated claim.
 # 1. Clone and install (the repository URL is mutable; record the checked-out commit)
 git clone https://github.com/arananet/contam-bench.git
 cd contam-bench
-# v0.3.2
-git checkout 52126c7f5905bc43e870614630d5de9866d6da16
+# v0.4.0 (Zenodo 10.5281/zenodo.22970417)
+git checkout 79452fc6e21307be7b020f233131108cd3af52ce
 bash setup.sh                      # installs OpenSpec git hooks
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -193,7 +193,11 @@ includes a `roles` block to assign responsibility (`implementer`,
 
 ## Citation
 
-This repository is archived on Zenodo with the following DOI:
+Cite the version the paper reports, v0.4.0:
+[10.5281/zenodo.22970417](https://doi.org/10.5281/zenodo.22970417)
+(commit `79452fc6e21307be7b020f233131108cd3af52ce`).
+
+All versions (concept DOI, resolves to the latest):
 [10.5281/zenodo.22859806](https://doi.org/10.5281/zenodo.22859806)
 
 ## License

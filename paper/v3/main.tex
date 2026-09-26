@@ -479,13 +479,14 @@ v0.1.1 validation & \nolinkurl{v0.1.1-validation}\\\nolinkurl{@bba046614de132662
 v0.2 ablation & \nolinkurl{v0.2-ablation}\\\nolinkurl{@7b9b8dfaad37e00c589fe4d202d0dd07de600ae3} & Appendix~\ref{app:v02-matrix}, historical single-run matrix \\
 v0.3 repeated audit & \nolinkurl{v0.3-repeated-ablation}\\\nolinkurl{@46ab52861b57aefd4e4086fd02b18aee78f74712} & Tables~\ref{tab:repeated-audit} and \ref{tab:retrieval} \\
 v0.3.1 corrections & \nolinkurl{v0.3.1-evidence-corrections}\\\nolinkurl{@65cac1009df6cd3a9258c44cae66cf8ef7d34cae} & call reconciliation and review queue \\
-v0.3.2 & \nolinkurl{v0.3.2}\\\nolinkurl{@52126c7f5905bc43e870614630d5de9866d6da16} & current manuscript and reproducibility instructions \\
+v0.3.2 & \nolinkurl{v0.3.2}\\\nolinkurl{@52126c7f5905bc43e870614630d5de9866d6da16} & reproducibility instructions \\
+v0.4.0 & \nolinkurl{v0.4.0}\\\nolinkurl{@79452fc6e21307be7b020f233131108cd3af52ce}\\DOI \nolinkurl{10.5281/zenodo.22970417} & archived release of this manuscript and evidence \\
 \bottomrule
 \end{tabular}
 \caption{Evidence lineage. Releases are not pooled: v0.2 is the frozen
 superseded single-run mechanism matrix; v0.3 is the primary repeated machine-resolved audit;
-v0.3.1 is append-only accounting and adjudication metadata; v0.3.2 is the
-current release.}
+v0.3.1 is append-only accounting and adjudication metadata; v0.4.0 is the
+Zenodo-archived release (version DOI \nolinkurl{10.5281/zenodo.22970417}).}
 \label{tab:lineage}
 \end{table}
 
@@ -976,15 +977,18 @@ requires the multi-round, citation-count scenario design sketched in the
 public taxonomy.
 
 \section{Data and Code Availability}
+\label{sec:availability}
 
-Code, scenario manifests, and aggregate evidence are available at
-\url{https://github.com/arananet/contam-bench} and archived on Zenodo at
-\url{https://doi.org/10.5281/zenodo.22859806}. The supplied materials do not
-establish a version-specific archive identifier, DOI-to-release mapping, or
-complete hash manifest for the frozen evidence; they therefore do not verify
-which archive contents include its per-repetition raw traces. The named
-repository locations and release commits identify the conditional evidence
-release; new runs are reported separately and do not replace it.
+Code, scenario manifests, generated tables, and aggregate evidence are archived
+on Zenodo as release v0.4.0, version DOI \url{https://doi.org/10.5281/zenodo.22970417}
+(commit \nolinkurl{79452fc6e21307be7b020f233131108cd3af52ce}); the concept DOI
+\url{https://doi.org/10.5281/zenodo.22859806} resolves to the latest version. The
+per-repetition raw traces of the frozen repeated audit are part of the
+archived repository under \texttt{evidence/20260713T191740Z}, first
+committed at \nolinkurl{46ab52861b57aefd4e4086fd02b18aee78f74712}
+(Table~\ref{tab:lineage}). Frozen evidence files are never edited after a run;
+corrections are recorded append-only under
+\texttt{evidence/20260713T191740Z/corrections/} and in this paper.
 
 \section{Conclusion}
 
@@ -1022,19 +1026,11 @@ not a validated general mitigation architecture. Independent assessment of
 scoring, broader scenarios with paired controls, and cross-model evaluation
 are needed before stronger claims. The benchmark,
 specifications, and validation scenarios are public at
-\url{https://github.com/arananet/contam-bench}; the repository-level archive
-DOI is \url{https://doi.org/10.5281/zenodo.22859806}.
+\url{https://github.com/arananet/contam-bench} and archived as v0.4.0
+(\url{https://doi.org/10.5281/zenodo.22970417}).
 
-\paragraph{Code and data availability.} The code, specifications, and
-evidence locations cited in this paper are available in the public repository
-at \url{https://github.com/arananet/contam-bench} and its repository-level
-Zenodo archive DOI above. The supplied paper package includes the generated
-tables, but the version-specific archive identifier, release commit mapping,
-and complete evidence manifest are not established by the materials cited
-here; the raw-trace archive contents and reported aggregates therefore remain
-conditional on the named frozen evidence release. A version-specific immutable
-archive record and complete manifest with paths, releases, and SHA-256 hashes
-are required for independent verification.
+\paragraph{Code and data availability.} See Section~\ref{sec:availability}:
+the archived release is v0.4.0, version DOI \url{https://doi.org/10.5281/zenodo.22970417}.
 
 \appendix
 \section{Superseded v0.2 single-run matrix}

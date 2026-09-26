@@ -521,11 +521,9 @@
 
 ## Relevance-gate observability
 
-- total retrievals (all configurations): 350
-- gated retrievals: 100
+- retrievals: 350
 - observed gate calls: 135
-- mean gate calls per gated retrieval: 1.35 (135 / 100)
-- mean gate calls per all retrievals: 0.3857 (135 / 350; not a gated-retrieval cost)
+- mean gate calls per retrieval: 0.3857
 - maximum observed gate calls per retrieval: 2
 - candidate memories examined: 510
 - upper bound: k calls per retrieval under per-candidate gating; no batching is used.
@@ -604,10 +602,7 @@
 
 ## Pipeline defects found
 
-- This section is superseded by the authoritative defect layer
-  \texttt{defects.md} for this frozen release. That layer records D7--D10,
-  including 52 deterministic/judge disagreements (D7), no accompanying
-  adjudications file (D9), and an exceeded API-call budget target (D10).
+- none recorded during this run (record defects in runs/<ts>/defects.md)
 
 ## API spend
 

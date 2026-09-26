@@ -12,4 +12,11 @@ repository-code: https://github.com/arananet/contam-bench
 # specified in LICENSING.md.
 license: CC-BY-4.0
 doi: 10.5281/zenodo.22859806
-version: 0.3.2
+version: 0.4.0
+identifiers:
+- type: doi
+  value: 10.5281/zenodo.22970417
+  description: Version DOI for release v0.4.0 (the version the paper reports)
+- type: doi
+  value: 10.5281/zenodo.22859806
+  description: Concept DOI (all versions)

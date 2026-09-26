@@ -35,6 +35,9 @@ artifact:
     - evidence/20260713T084130Z/verdicts.json
     - evidence/20260713T084130Z/defects.md
     - evidence/20260713T084130Z/run_meta.json
+  # Frozen evidence: the repair agent may never change these.
+  frozen:
+    - evidence/**
   withheld:
     - evidence/20260713T191740Z/CB-VAL-*
     - evidence/20260713T084130Z/CB-VAL-*
