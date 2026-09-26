@@ -81,11 +81,11 @@ where malicious records are deliberately injected~\cite{chen2024agentpoison,
 dong2025minja}.
 
 The problem is not hypothetical, and it is not confined to consumer
-personalization. Recent survey work on harness engineering argues that the
+personalization. A recent web essay on harness engineering argues that the
 realistic near-term path to recursive self-improvement runs through the
 harness layer, including workflow design, tool orchestration, evaluation, and
 context and memory lifecycle management, rather than direct
-weight modification~\cite{weng2026harness}. That survey explicitly lists
+weight modification~\cite{weng2026harness}. That web essay explicitly lists
 memory and context degradation in long-horizon agent loops as an unresolved
 structural challenge. This paper studies a bounded part of that problem:
 it operationalizes six candidate mechanisms in hand-authored scenarios and
@@ -196,10 +196,10 @@ and measure capability, robustness, and cost; this paper decomposes the
 prescriptive design contracts.
 
 \paragraph{Harness engineering.}
-A recent survey organizes the design space of agent harnesses, including workflow
+A recent web essay organizes the design space of agent harnesses, including workflow
 automation, filesystem-backed memory, sub-agent orchestration, and
 self-improving harness loops such as ACE, Meta-Harness, Self-Harness, and
-the Darwin G\"odel Machine~\cite{weng2026harness, zhang2025dgm}. The survey
+the Darwin G\"odel Machine~\cite{weng2026harness, zhang2025dgm}. The web essay
 treats memory hygiene as an open problem and predicts that harness
 configuration and interface protocols will standardize industry-wide.
 
@@ -223,9 +223,12 @@ over them, which is why it is tested both without a seeded error (does the
 subject generate one?) and with a controlled seeded error (what happens when
 one exists?). CB-VAL-009 is the latter: it is not observed benign behavior and
 does not supply the pilot's benign-contamination evidence. The pilot includes
-one hand-authored scenario for each of the six proposed mechanisms;
-these scenarios provide mechanism demonstrations rather than evidence of
-prevalence or general mitigation efficacy. A seventh class is documented as
+one hand-authored scenario for each of the six proposed mechanisms. This is
+scenario-level operationalization of the proposed criteria, not an empirical
+demonstration of every failure criterion, prevalence, or general mitigation
+efficacy. In particular, the summarization scenario has no utility oracle, and
+recursive write-back propagation is exercised only under controlled seeded
+contamination. A seventh class is documented as
 experimental. Each class is defined by
 (a)~its causal mechanism and (b)~a falsifiable contamination criterion used
 verbatim by the benchmark's judge.
@@ -530,9 +533,11 @@ rate explicit.
 The v0.3 evidence now includes a separately versioned queue for all 52
 unresolved artifact rounds, but it contains no human verdicts. Therefore this
 paper makes no human-consensus claim and does not silently adopt the judge
-verdict. The rendered report now labels its machine-only and human-consensus
-tables separately and identifies review rows by repetition and artifact hash.
-The immutable original report still records the missing-adjudications state;
+verdict. The rendered report labels its machine-only and human-consensus
+tables separately. The supplied frozen report omits repetition identifiers and
+artifact hashes from its review rows; the immutable original report still
+records the missing-adjudications state, and any corrected regenerated report
+is not part of this supplied evidence.
 the append-only correction bundle and pending queue are identified in
 Table~\ref{tab:lineage}.
 
@@ -649,9 +654,11 @@ truth preservation, because a memory affirming a false premise can be more
 responsive to the query than a memory that corrects it. The enforceable rail
 is a retrieval contract: a probabilistic filter may never drop a memory that
 contradicts a retained memory; contradiction sets are retained atomically.
-The contract is implemented and unit-tested, but has not yet been evaluated
-in a dedicated repeated run, so it is a safeguard proposal rather than an
-efficacy result.
+The contract is described as implemented and unit-tested in the public
+repository, but those implementation and test claims require verification from
+the external repository rather than from the aggregate tables supplied here.
+It has not yet been evaluated in a dedicated repeated run, so it is a
+safeguard proposal rather than an efficacy result.
 
 We scope this claim carefully: in this controlled-seed recursion validation
 scenario, this relevance gate as implemented retained the contaminated
@@ -668,8 +675,9 @@ proposal in Section~\ref{sec:architecture}: the three
 deterministic controls (namespacing, tags, decay) showed target-aligned
 retrieval or resolved-response effects in this corpus without extra model
 calls for enforcement; prompt-token and storage costs remain.
-The v0.2 personalization-retention control resolved clean for six of
-seven configurations on that control. This is a clean-outcome observation,
+The v0.2 personalization-retention control had six machine-resolved clean
+outcomes; the governed result was unresolved and excluded from the retention
+rate. This is a clean-outcome observation,
 not a measure of utility or a general ordering of mitigation efficacy. The one
 probabilistic control produced a recall false negative in the validation
 run and discarded premise-denying context in the v0.2 seeded trace. These
@@ -680,10 +688,12 @@ observations motivate a targeted experiment, not a general claim of harm.
 
 In the v0.2 single run, the anti-gaming control executed. With the over-broad pattern
 from the prior run rebound to peanut-as-ingredient, the personalization
-control resolved clean on six of seven configurations. All six
-configurations with a machine-resolved retention result used relevant memory
-correctly; the governed retention control remains flagged and is not counted
-as a resolved success. These are six clean outcomes on this control; they do
+control had six machine-resolved clean outcomes. All six configurations with a
+machine-resolved retention result used relevant memory correctly; the governed
+retention control remains flagged and is not counted as a resolved success.
+Accordingly, the historical table's 1.0 retention value is a rate over the
+six resolved configurations, not a seven-configuration success rate. These
+are six clean outcomes on this control; they do
 not measure broader utility or the contamination--retention trade-off.
 The residual flag (governed) is a
 negation case. The response mentioned a peanut ingredient in order to
@@ -771,20 +781,11 @@ standardization proposal for the memory subsystem specifically: scoping,
 provenance, relevance gating, and decay expressed as first-class elements of
 a declarative memory contract.
 
-Production platforms are converging on the same controls from the
-deployment side. This is a demand signal for memory lifecycle governance, not
-evidence of correctness; only evaluation of the kind attempted here can
-provide that. Anthropic's managed memory stores ship per-user and
-per-team store scoping, read-only versus read-write access modes, and
-immutable memory versions with audit trails~\cite{anthropic2026memory};
-its Dreams feature performs asynchronous memory consolidation, motivated
-explicitly by stores accumulating ``duplicates, contradictions, and stale
-entries'' across sessions~\cite{anthropic2026dreams}. These capabilities address
-memory lifecycle management; they are not evaluated in this pilot. We make no
-comparative claim about their contamination rates or the completeness of their
-safeguards. Consolidation summarizes and rewrites at store scale and may erase
-provenance before retrieval. Its potential benefits and risks should be benchmarked
-against the summarization-loss and provenance mechanisms of
+Production-platform documentation is contextual background rather than
+evidence for this pilot. This paper makes no product-feature or comparative
+claim about external memory systems, their contamination rates, or the
+completeness of their safeguards. Their potential benefits and risks require
+separate verification and matched evaluation against the mechanisms of
 Section~\ref{sec:taxonomy}.
 
 \section{Discussion and Limitations}
@@ -813,8 +814,8 @@ model cannot establish model-independent behavior, for compounding or
 anything else. Rates from one probe per mechanism are mechanism
 demonstrations with stated resolved counts, not population estimates. The
 frozen \texttt{run\_meta.json} records 485 subject-plus-gate calls; it does
-not include judge calls. The review register identifies every flagged artifact by
-repetition and hash.
+not include judge calls. The supplied frozen review register does not identify
+its flagged rows by repetition and artifact hash.
 
 \subsection{Future-work contract}
 
@@ -920,12 +921,13 @@ not replace the archived evidence.
 
 \section{Conclusion}
 
-This pilot operationalizes a conceptual taxonomy of six proposed mechanisms
-of benign memory contamination through one hand-authored scenario per
-mechanism. These pilot scenarios demonstrate selected case behaviors rather
-than empirically validating each mechanism as a general phenomenon. Within
-the nine evaluated scenarios, with one subject model and five repetitions per
-scenario--configuration cell, scoped namespaces and TTL decay excluded the
+This pilot operationalizes a proposed taxonomy of six mechanisms of benign
+memory contamination through one hand-authored pilot scenario per mechanism.
+It specifies scenario-level criteria rather than empirically validating every
+failure mechanism as a general phenomenon: the summarization probe lacks a
+utility oracle, and recursive write-back propagation is evaluated only under
+seeded contamination. Under \texttt{claude-sonnet-4-6} with TF-IDF retrieval
+in these scenarios, scoped namespaces and TTL decay excluded the
 targeted distractor or stale record from retrieval. Response-level outcomes
 are reported separately in Table~\ref{tab:repeated-audit}. Tags and raw storage yielded clean machine verdicts
 on the provenance probe; these verdicts do not measure utility. A logged
@@ -945,6 +947,15 @@ are needed before stronger claims. The benchmark,
 specifications, and validation scenarios are public at
 \url{https://github.com/arananet/contam-bench}; the repository-level archive
 DOI is \url{https://doi.org/10.5281/zenodo.22859806}.
+
+\paragraph{Code and data availability.} The code, specifications, and
+evidence locations cited in this paper are available in the public repository
+at \url{https://github.com/arananet/contam-bench} and its repository-level
+Zenodo archive DOI above. The supplied paper package includes the generated
+tables, but the version-specific archive identifier, release commit mapping,
+and complete evidence manifest are not established by the materials cited
+here; reported aggregates therefore remain conditional on the named frozen
+evidence release.
 
 \appendix
 \section{Superseded v0.2 single-run matrix}
