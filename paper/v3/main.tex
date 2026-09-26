@@ -341,7 +341,10 @@ verifies the pipeline itself induces no artifacts.
 \subsection{Memory design configurations}
 The initial validation compared two bundled configurations across five design
 axes (scope, storage fidelity, retrieval, provenance, decay). The v0.2
-mechanism-isolation study adds five single-control arms to that comparison.
+mechanism-isolation study comprises \texttt{naive} and \texttt{governed},
+plus five single-control arms: \texttt{arm\_namespace},
+\texttt{arm\_provenance}, \texttt{arm\_ttl}, \texttt{arm\_gate}, and
+\texttt{arm\_raw}.
 
 \begin{table}[h]
 \centering
@@ -514,6 +517,14 @@ Table~\ref{tab:lineage}. Its purpose is to quantify scorer ambiguity,
 execution cost, and per-cell outcome distributions rather than replace the
 matrix with an unqualified aggregate.
 
+\paragraph{Erratum on adjudication records.} The frozen
+\texttt{validation\_report.md} includes a ``Human-adjudicated comparison''
+heading, while \texttt{defects.md} records that no human-adjudicated comparison
+exists because its adjudications file is missing. This paper relies on
+\texttt{defects.md} (D7--D10) for the authoritative defect and adjudication
+status, and on \texttt{validation\_report.md} only for the immutable
+machine-verdict results.
+
 The frozen report records fifty-two of 350 rounds (14.9\%) as requiring human
 review:
 three provenance-attribution rounds had a
@@ -627,8 +638,10 @@ observations of a model-mediated decision.}
 
 \subsection{Attribution: what the cells support}
 
-The single-control arms support only the claims their evidence layer can
-bear. On the provenance probe, the tag and raw-fidelity arms each had five
+The five single-control arms (\texttt{arm\_namespace},
+\texttt{arm\_provenance}, \texttt{arm\_ttl}, \texttt{arm\_gate}, and
+\texttt{arm\_raw}) support only the claims their evidence layer can bear. On
+the provenance probe, the tag and raw-fidelity arms each had five
 machine-resolved clean outcomes. Semantic drift remains a response-layer tie:
 all configurations resolved clean, while retrieval assertions distinguish the
 candidate sets. For scope bleed, deterministic forbidden-pattern scoring
@@ -925,9 +938,11 @@ classes, a probabilistic component enters the write path and class
 misassignment becomes a failure mode not yet in the taxonomy; the full
 benchmark must test it.
 
-\paragraph{Toward the frontier.} Seven configuration points, including five
-single-control arms and two bundled configurations, are seven points, not a
-curve. The prescriptive question is how much contamination is
+\paragraph{Toward the frontier.} Seven configuration points---\texttt{naive}
+and \texttt{governed}, plus \texttt{arm\_namespace},
+\texttt{arm\_provenance}, \texttt{arm\_ttl}, \texttt{arm\_gate}, and
+\texttt{arm\_raw}---are seven points, not a curve. The prescriptive question
+is how much contamination is
 bought down per unit of personalization surrendered. That trade-off is a
 frontier, and mapping it (by sweeping control combinations, plotting
 contamination rate against retention, locating the knee) is the successor
