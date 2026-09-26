@@ -30,6 +30,7 @@ Use Python 3.11 or 3.12 where possible. From a fresh clone:
 ```bash
 git clone https://github.com/arananet/contam-bench.git
 cd contam-bench
+git checkout v0.3.0
 git rev-parse HEAD
 python3 -m venv .venv
 source .venv/bin/activate

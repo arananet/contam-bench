@@ -7,6 +7,8 @@ artifact:
     # The paper
     - paper/v3/main.tex
     - paper/v3/references.bib
+    - paper/v3/generated-repeated-audit-table.tex
+    - scripts
     - README.md
     - CITATION.cff
     - LICENSING.md
@@ -32,7 +34,7 @@ artifact:
     - evidence/20260713T084130Z/validation_report.md
     - evidence/20260713T084130Z/verdicts.json
     - evidence/20260713T084130Z/defects.md
-      - evidence/20260713T084130Z/run_meta.json
+    - evidence/20260713T084130Z/run_meta.json
   withheld:
     - evidence/20260713T191740Z/CB-VAL-*
     - evidence/20260713T084130Z/CB-VAL-*

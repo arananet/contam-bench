@@ -58,6 +58,7 @@ support a human-adjudicated claim.
 # 1. Clone and install
 git clone https://github.com/arananet/contam-bench.git
 cd contam-bench
+git checkout v0.3.0
 bash setup.sh                      # installs OpenSpec git hooks
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt

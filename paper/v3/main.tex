@@ -46,16 +46,17 @@ TF-IDF retrieval, followed by five repetitions of each scenario--configuration
 cell. On the targeted probes, the namespacing arm excluded cross-domain
 distractors and the TTL arm excluded the stale fact in all five repetitions.
 On the provenance probe, tags and raw fidelity each yielded five
-machine-resolved clean outcomes, consistent with preserving source information
-that was lost during summarization in this case. In a seeded-recursion case,
+machine-resolved clean outcomes; these are clean response-verdict outcomes,
+not utility measurements. In the seeded-recursion case (CB-VAL-009),
 logged relevance-gate decisions discarded premise-denying context while
 retaining a contaminated write-back. We call this observed failure
 \emph{presupposition capture} and propose contradiction preservation as a
 safeguard whose downstream efficacy remains untested. Of 350 scored rounds,
 52 remain unresolved pending human review. These are within-scenario
-observations, not estimates of real-world prevalence or model-independent
-mitigation efficacy. In this pilot, scoped namespaces and TTL decay excluded
-the targeted contamination; generality is untested. The benchmark and
+observations for these nine scenarios, one subject model, and five
+repetitions per cell; they do not estimate real-world prevalence or
+model-independent mitigation efficacy. In these evaluated cases, scoped
+namespaces and TTL decay excluded the targeted contamination. The benchmark and
 code are available at \url{https://github.com/arananet/contam-bench}; the
 repository-level archive DOI is \url{https://doi.org/10.5281/zenodo.22859806}.
 \end{abstract}
@@ -213,8 +214,9 @@ staleness are \emph{retrieve-time} failures; authority inflation is an
 \emph{inject-time} dynamic; and recursive contamination is a
 \emph{write-back} dynamic that compounds whichever of the others is
 present. Recursion is thus not a peer of the static classes but a loop
-over them, which is why it is tested both naturally (does the subject
-generate the error?) and seeded (what happens when one exists?). The pilot
+over them, which is why it is tested both without a seeded error (does the
+subject generate one?) and with a seeded error (what happens when one
+exists?). The pilot
 includes one hand-authored scenario for each of the six proposed mechanisms;
 these scenarios provide mechanism demonstrations rather than evidence of
 prevalence or general mitigation efficacy. A seventh class is documented as
@@ -411,7 +413,7 @@ with a machine-readable reason:
         nothing to compound, which is the desired outcome.
   \item[Seeded-recursion rate.] Contamination rate for the separately
         reported seeded-recursion scenario. It is never pooled into the
-        natural-probe contamination rate.
+        unseeded-probe contamination rate.
   \item[Personalization retention.] Fraction of control scenarios where the
       subject behaved correctly, using genuinely relevant memory and
         answering normally from an empty store without hallucinating
@@ -452,17 +454,16 @@ v0.3.1 is append-only accounting and adjudication metadata.}
 \label{tab:lineage}
 \end{table}
 
-\paragraph{Seeded recursion (CB-VAL-009).} The natural recursion scenario
+\paragraph{Seeded recursion (CB-VAL-009).} The unseeded recursion scenario
 (CB-VAL-005) measures whether the subject \emph{generates} a round-1
-error; with a strong subject it reliably does not, yielding a null
-compounding factor. This is a model-strength result, not a mechanism test. The
-seeded variant removes that dependence: the store is seeded directly with
+error; it did not do so in these evaluated runs, yielding a null compounding
+factor. Thus, recursive compounding was not observed in the unseeded probe.
+The seeded variant instead places directly in the store
 an already-contaminated assistant-attributed write-back (``launch is
 confirmed\ldots leadership has signed off,'' 2 days old) alongside the
 user-sourced ground truth (``tentative Q4, nothing decided,'' 15 days
 old), and the probe asks for the confirmed date. This measures write-back
-propagation of the recursive mechanism, independent of subject-model
-strength.
+propagation conditional on seeded contamination in this case.
 
 \subsection{Repeated-evaluation audit and scoring defects}
 \label{sec:repeatedaudit}
@@ -501,8 +502,8 @@ disagreements occur only in \texttt{arm\_gate} (repetitions 1 and 5) and
 \texttt{naive} (repetition 4), not in the tag, raw, or governed conditions.
 Their artifact hashes are respectively \texttt{12e31cb370551aee},
 \texttt{d4a2659218ff8d5d}, and \texttt{5e87b7133e0a98a5}.
-This supports the provenance finding in the machine-resolved tier, but does
-not substitute for the pending blinded human adjudications.
+These are machine-resolved provenance-probe outcomes, not a substitute for
+the pending blinded human adjudications.
 
 \input{generated-repeated-audit-table.tex}
 
@@ -586,14 +587,12 @@ retrieval-layer evidence because its response-layer comparators are flagged.
 The summarization probe has no utility oracle, so it cannot establish a
 utility gain from raw fidelity.
 
-The off-diagonal cells motivate two case-specific interpretations. First,
-\emph{raw fidelity can preserve provenance in-band}: the raw store retains
-the sentence ``the assistant suggested that Maria could try\ldots,'' and
-the subject's responses were scored clean with no tags present. This is
-consistent with loss of source information during summarization in this
-scenario, but does not establish summarization as the principal cause of
-provenance collapse generally. The two arms are alternative interventions
-on the same case, not independent replications of that explanation.
+The off-diagonal cells motivate two case-specific observations. First, the
+raw-fidelity arm had five machine-resolved clean response outcomes on the
+provenance probe without tags. This clean-outcome result does not establish a
+utility gain, a causal account of summarization loss, or a general explanation
+of provenance collapse. The two arms are alternative interventions on the same
+case, not independent replications of an explanation.
 Second, an implementation
 confound we report rather than hide: the provenance tag as implemented
 carries age and domain metadata (\texttt{[source: user | age: 200d |
@@ -602,7 +601,7 @@ the subject discounted the 200-day-old fact by its visible age. The tag
 bundles three annotations; a stricter ablation would separate them, and
 the full benchmark will.
 
-\subsection{The gate amplified seeded recursion}
+\subsection{A gate failure in the seeded-recursion case}
 \label{sec:gatefinding}
 
 In the frozen v0.2 single run, the relevance-gate arm was the only
@@ -612,7 +611,7 @@ in the v0.3 repeated audit: Table~\ref{tab:repeated-audit} shows no clean
 gate executions and no clean provenance-arm executions on that probe. The
 other arms likewise have no clean executions, so the cells cannot rank gate
 harm or identify clean comparators.
-The v0.2 gate failure is traceable in
+The v0.2 gate failure in this seeded case is traceable in
 the gate's own logged decisions. Asked for the ``confirmed launch
 date,'' the gate kept the contaminated write-back (``confirms Atlas
 launch timing\ldots directly answers the query'') and discarded the
@@ -648,9 +647,8 @@ deterministic controls (namespacing, tags, decay) showed target-aligned
 retrieval or resolved-response effects in this corpus without extra model
 calls for enforcement; prompt-token and storage costs remain.
 The v0.2 personalization-retention control resolved clean for six of
-seven configurations, showing useful recall on that particular control,
-not general preservation of utility. This is a design rationale, not a
-general ordering of mitigation efficacy. The one
+seven configurations on that control. This is a clean-outcome observation,
+not a measure of utility or a general ordering of mitigation efficacy. The one
 probabilistic control produced a recall false negative in the validation
 run and discarded premise-denying context in the v0.2 seeded trace. These
 observations motivate a targeted experiment, not a general claim of harm.
@@ -663,9 +661,8 @@ from the prior run rebound to peanut-as-ingredient, the personalization
 control resolved clean on six of seven configurations. All six
 configurations with a machine-resolved retention result used relevant memory
 correctly; the governed retention control remains flagged and is not counted
-as a resolved success. This provides evidence against complete memory
-suppression on this control in the six resolved configurations, but does not
-measure broader utility or the contamination--retention trade-off.
+as a resolved success. These are six clean outcomes on this control; they do
+not measure broader utility or the contamination--retention trade-off.
 The residual flag (governed) is a
 negation case. The response mentioned a peanut ingredient in order to
 warn against it, yet remains \texttt{needs\_human\_review} in the frozen
@@ -677,10 +674,11 @@ above. Deterministic patterns remain the first pass for auditability, but
 assertion-versus-mention is precisely where the judge earns its place, and
 the full benchmark will pair patterns with graded rubrics.
 
-Two further honest observations. The natural-recursion compounding
-factor is again null (\texttt{round1\_clean}) across all seven
-configurations, so the seeded scenario now carries the mechanism test,
-which is why it exists. And the borderline scope-bleed pattern
+Two further honest observations. The unseeded-recursion compounding
+factor is null (\texttt{round1\_clean}) across all seven
+configurations: no recursive compounding was observed without seeded
+contamination. The seeded scenario is therefore the only evaluated case
+containing recursive contamination. And the borderline scope-bleed pattern
 (\texttt{permit delays?}) fired under naive but not under three arms
 whose prompts for that scenario are byte-identical to naive's:
 temperature-0 sampling is not bit-reproducible across calls, so
@@ -702,8 +700,8 @@ establish absence of such constraints as their shared or exclusive root cause.
 Each baseline control in Table~\ref{tab:configs} is designed as a
 contract-level response to a specific class: namespacing targets scope bleed;
 provenance tags target provenance collapse; decay by fact class targets
-temporal staleness; and raw-fidelity storage preserves the information needed to assess
-summarization loss. Relevance gating is not a baseline mitigation: it is an
+temporal staleness; and raw-fidelity storage is intended to retain information
+relevant to assessing summarization loss. Relevance gating is not a baseline mitigation: it is an
 optional residual-risk experiment that must obey the contradiction-pair rail
 above before deployment.
 
@@ -721,9 +719,9 @@ case for tool-using agents: constraints should be first-class specifications
 with explicit runtime enforcement sites and auditable traces~\cite{besanson2026sarc}.
 Memory is the other self-editable surface.
 
-The ablation motivates constraints, not an efficacy ordering. In this pilot,
-scoped namespaces and TTL decay excluded the targeted contamination;
-generality is untested. Namespacing, provenance tags, TTL decay, and raw
+The ablation motivates constraints, not an efficacy ordering. In the
+evaluated cases, scoped namespaces and TTL decay excluded the targeted
+contamination. Namespacing, provenance tags, TTL decay, and raw
 fidelity are deterministic in this harness
 and require no additional model calls for their enforcement. They are not
 cost-free: storage, metadata management, and prompt-token costs remain.
@@ -734,7 +732,8 @@ gate calls over 100 gated rounds: 80 gate-configuration calls plus 55
 governed-configuration calls. This is 1.35 gate calls per gated round. Its
 $k{=}4$ worst-case bound is 4{,}000 calls per thousand gated retrievals. No
 batching is used. It is the only control that produced a recall false negative
-in the validation run and active amplification of seeded recursion here
+in the validation run and, in the seeded-recursion trace, retained the
+contaminated write-back while discarding contradicting context
 (Section~\ref{sec:gatefinding}). A deterministic, contract-enforced design
 without a gate is therefore a candidate baseline for future evaluation, not a
 proven general mitigation ordering; a gate remains an unvalidated
@@ -844,9 +843,8 @@ release. The hypothesis that learned embeddings may expose more semantic-drift
 distractors therefore still requires a separately reported experiment; this
 study makes no directional claim.
 
-\paragraph{Single subject model.} Compounding is expected to be
-model-dependent~\cite{zelikman2023stop}; the full benchmark evaluates
-multiple subject models.
+\paragraph{Single subject model.} This study evaluated one subject model;
+the full benchmark evaluates multiple subject models.
 
 \paragraph{TTL classification.} Decay by fact class presupposes a
 classifier that assigns the class at write time, and this paper does not
@@ -882,7 +880,7 @@ the study. Independent external reproduction and blinded human assessment
 remain outstanding.
 
 \paragraph{Future work.} Contamination in self-improving harness loops is
-the natural extension: when a harness curates its own context from its own
+a future extension: when a harness curates its own context from its own
 trajectories, provenance collapse becomes a first-class risk of the
 optimization loop itself. The experimental authority-inflation class
 requires the multi-round, citation-count scenario design sketched in the
@@ -893,14 +891,16 @@ public taxonomy.
 This pilot operationalizes a conceptual taxonomy of six proposed mechanisms
 of benign memory contamination through one hand-authored scenario per
 mechanism. These pilot scenarios demonstrate selected case behaviors rather
-than empirically validating each mechanism as a general phenomenon. Within the tested cases,
-scoped namespaces and TTL decay excluded the targeted contamination;
-generality is untested. Tags and raw
-storage yielded clean machine verdicts on the provenance probe. A logged
-seeded-recursion failure illustrates how relevance filtering can discard
-context that denies a query's premise. Natural recursive compounding was
-not observed, and the proposed contradiction-preservation safeguard has not
-yet undergone a repeated efficacy evaluation.
+than empirically validating each mechanism as a general phenomenon. Within
+the nine evaluated scenarios, with one subject model and five repetitions per
+scenario--configuration cell, scoped namespaces and TTL decay excluded the
+targeted contamination. Tags and raw storage yielded clean machine verdicts
+on the provenance probe; these verdicts do not measure utility. A logged
+failure in the seeded-recursion case illustrates how relevance filtering can
+discard context that denies a query's premise. Recursive compounding was not
+observed in the unseeded probe; the only evaluated case with recursive
+contamination was seeded. The proposed contradiction-preservation safeguard has not
+yet undergone a repeated evaluation.
 
 One subject model, TF-IDF retrieval, limited scenario diversity, bundled
 metadata, and unresolved scoring disagreements restrict these findings to
@@ -935,14 +935,14 @@ Scenario (class) & \texttt{naive} & \texttt{ns} & \texttt{prov} & \texttt{ttl} &
 002 provenance   & \(\times\) & \(\times\) & \(\circ\) & \(\times\) & \(\times\) & \(\circ\) & \(\circ\) \\
 003 scope bleed  & \(\times\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
 004 staleness    & r & r & \(\circ\) & \(\circ\) & r & r & \(\circ\) \\
-005 recursion (natural) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
+005 recursion (unseeded) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
 006 summarization & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
 009 recursion (seeded) & r & r & \(\circ\) & r & \(\boldsymbol{\times}\) & r & r \\
 \midrule
 007 control (retention) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & r \\
 008 control (empty)     & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) & \(\circ\) \\
 \midrule
-Contamination rate (natural probes) & 2/5 & 1/5 & \textbf{0/6} & 1/6 & 1/5 & 0/5 & 0/6 \\
+Contamination rate (unseeded probes) & 2/5 & 1/5 & \textbf{0/6} & 1/6 & 1/5 & 0/5 & 0/6 \\
 Seeded recursion (009), separate & r & r & \textbf{0/1} & r & 1/1 & r & r \\
 \bottomrule
 \end{tabular}
