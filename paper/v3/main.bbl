@@ -12,25 +12,20 @@ James~P. Anderson.
 \newblock Technical Report ESD-TR-73-51, U.S. Air Force Electronic Systems
   Division, 1972.
 
-\bibitem{anthropic2026dreams}
-{Anthropic}.
-\newblock Dreams: Asynchronous memory consolidation.
-\newblock \url{https://platform.claude.com/docs/en/managed-agents/dreams},
-  2026.
-\newblock Claude Platform documentation, accessed July 2026.
-
-\bibitem{anthropic2026memory}
-{Anthropic}.
-\newblock Memory stores.
-\newblock \url{https://platform.claude.com/docs/en/managed-agents/memory},
-  2026.
-\newblock Claude Platform documentation, accessed July 2026.
-
 \bibitem{arana2026cognition}
 Eduardo Arana.
 \newblock {COGNITION.md}: A declarative contract for agentic memory
   architecture.
-\newblock \url{https://github.com/arananet/cognition.md}, 2026.
+\newblock
+  \url{https://github.com/arananet/cognition.md/tree/716d25f7d7260d6f006084f48e4488207ea34a0c},
+  2026.
+\newblock commit 716d25f, accessed 2026-09-26.
+
+\bibitem{besanson2026sarc}
+Gaston Besanson.
+\newblock {SARC}: A governance-by-architecture framework for agentic {AI}
+  systems.
+\newblock {\em arXiv preprint arXiv:2605.07728}, 2026.
 
 \bibitem{breunig2025context}
 Drew Breunig.
@@ -38,6 +33,9 @@ Drew Breunig.
 \newblock
   \url{https://www.dbreunig.com/2025/06/22/how-contexts-fail-and-how-to-fix-them.html},
   2025.
+\newblock Archived at
+  \url{https://web.archive.org/web/20260926014935/https://www.dbreunig.com/2025/06/22/how-contexts-fail-and-how-to-fix-them.html},
+  accessed 2026-09-26.
 
 \bibitem{chen2024agentpoison}
 Zhaorun Chen, Zhen Xiang, Chaowei Xiao, Dawn Song, and Bo~Li.
@@ -90,14 +88,17 @@ Haoran Tan, Zeyu Zhang, Chen Ma, Xu~Chen, Quanyu Dai, and Zhenhua Dong.
   ACL 2025}, 2025.
 
 \bibitem{wang2026state}
-Yian Wang, Agam Goyal, et~al.
+Yian Wang, Agam Goyal, Yuen Chen, and Hari Sundaram.
 \newblock State contamination in memory-augmented {LLM} agents.
 \newblock {\em arXiv preprint arXiv:2605.16746}, 2026.
 
 \bibitem{weng2026harness}
 Lilian Weng.
 \newblock Harness engineering for self-improvement.
-\newblock {\em lilianweng.github.io}, July 2026.
+\newblock Web essay at lilianweng.github.io, July 2026.
+\newblock Archived at
+  \url{https://web.archive.org/web/20260926014916/https://lilianweng.github.io/posts/2026-07-04-harness/},
+  accessed 2026-09-26.
 
 \bibitem{xiong2025experiencefollowing}
 Zidi Xiong, Yuping Lin, Wenya Xie, Pengfei He, Jiliang Tang, Himabindu
