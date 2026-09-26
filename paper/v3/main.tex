@@ -371,6 +371,9 @@ its maximum response length is 1024 tokens. The frozen run metadata records
 these settings for the reported repeated audit. The judge and relevance gate
 are \texttt{claude-haiku-4-5}. Subject and
 judge are required to differ: a model never judges its own output. The
+judge and relevance gate nevertheless use the same Haiku model family, so
+their outputs are not independent validation of either the subject or the
+retrieval policy; this dependence is an additional validity limitation.
 reported validation runs use TF-IDF cosine similarity, a documented
 substitution because the public API exposes no embeddings endpoint. The
 repository contains local ONNX embedding helper code for a planned
@@ -553,8 +556,10 @@ rate explicit.
 The v0.3 evidence now includes a separately versioned queue for all 52
 unresolved artifact rounds, but it contains no human verdicts. Therefore this
 paper makes no human-consensus claim and does not silently adopt the judge
-verdict. The rendered report labels its machine-only and human-consensus
-tables separately. The supplied frozen report omits repetition identifiers and
+verdict. The rendered report records the machine-only comparison and explicitly
+reports human adjudication as unavailable. Its pipeline-defects section is
+superseded by the authoritative \texttt{defects.md} layer for this release,
+which records D7--D10. The supplied frozen report omits repetition identifiers and
 artifact hashes from its review rows; the immutable original report still
 records the missing-adjudications state, and any corrected regenerated report
 is not part of this supplied evidence.
@@ -639,7 +644,8 @@ ordering.
 Staleness remains retrieval-layer evidence because TTL excluded the stale
 record from retrieval while its response-layer comparators are flagged.
 Utility was not measured in this pilot: the summarization probe has no utility
-oracle, so it cannot establish a utility gain from raw fidelity.
+oracle, so clean contamination verdicts cannot establish successful task
+performance, a utility gain from raw fidelity, or harm from summarized storage.
 
 The off-diagonal cells motivate two case-specific observations. First, the
 raw-fidelity arm had five machine-resolved clean response outcomes on the
@@ -677,9 +683,8 @@ the subject then asserted the confirmed launch as fact. Under naive
 retrieval, with both memories present and no filter, the same subject
 flagged the conflict and declined.
 
-We call this \emph{presupposition capture}: query-aligned relevance is not
-truth preservation, because a memory affirming a false premise can be more
-responsive to the query than a memory that corrects it. The proposed rail
+We call this \emph{presupposition capture} for this historical,
+implementation-specific trace. The proposed rail
 would be a retrieval contract: a probabilistic filter would not drop a memory
 that contradicts a retained memory, and contradiction sets would be retained
 atomically. Contradiction preservation is a proposed safeguard; its downstream
@@ -690,12 +695,9 @@ scenario, this relevance gate as implemented retained the contaminated
 write-back and discarded the contradicting user context; this is not observed
 benign behavior, and generalizing to
 relevance gates as a class requires the gate-family scenarios named in
-future work. This suggests a structural risk when relevance is judged against a
-presuppositional query: a relevance filter optimizes for answering the
-question as asked, and a contaminated write-back is often the most
-``relevant'' item in the store for precisely the question it contaminates.
-The gate-family scenarios of the future-work contract
-are intended to test this hypothesis. This case motivates the design
+future work. Whether this behavior recurs for other relevance gates or
+presuppositional queries is a hypothesis for the gate-family scenarios of the
+future-work contract. This case motivates the design
 proposal in Section~\ref{sec:architecture}: the three
 deterministic controls (namespacing, tags, decay) showed target-aligned
 retrieval or resolved-response effects in this corpus without extra model
@@ -781,7 +783,7 @@ Memory is the other self-editable surface.
 
 The ablation motivates constraints, not an efficacy ordering. In the
 evaluated cases, scoped namespaces and TTL decay excluded the targeted
-contamination. Namespacing, provenance tags, TTL decay, and raw
+records from retrieval. Namespacing, provenance tags, TTL decay, and raw
 fidelity are deterministic in this harness
 and require no additional model calls for their enforcement. They are not
 cost-free: storage, metadata management, and prompt-token costs remain.
@@ -820,7 +822,7 @@ Section~\ref{sec:taxonomy}.
 
 \subsection{Validity statements}
 
-Five limits bound what this study can claim, stated as validity
+Six limits bound what this study can claim, stated as validity
 conditions rather than footnotes. (1)~Regex scoring detects
 \emph{mention}, not assertion: quotation, negation, correction, and
 refusal can match a forbidden phrase while being clean. In the v0.3
@@ -843,7 +845,9 @@ anything else. Rates from one probe per mechanism are mechanism
 demonstrations with stated resolved counts, not population estimates. The
 frozen \texttt{run\_meta.json} records 485 subject-plus-gate calls; it does
 not include judge calls. The supplied frozen review register does not identify
-its flagged rows by repetition and artifact hash.
+its flagged rows by repetition and artifact hash. The judge and relevance gate
+also use the same Haiku model family, so their outputs are not independent
+validation of the subject or retrieval policy.
 
 \paragraph{Mechanism coverage.} The taxonomy is proposed: it defines a
 falsifiable criterion and supplies one hand-authored scenario per mechanism;
@@ -913,15 +917,17 @@ the full benchmark evaluates multiple subject models.
 
 \paragraph{TTL classification.} Decay by fact class presupposes a
 classifier that assigns the class at write time, and this paper does not
-specify one. The default for unclassified memories (stable, 365 days) is
+specify one. TTL results are therefore conditional on the oracle-like
+hand-authored fact classes in these scenarios. The default for unclassified memories (stable, 365 days) is
 conservative for recall and anti-conservative for staleness. The axis
 must be named because the two pull opposite ways. If an LLM assigns fact
 classes, a probabilistic component enters the write path and class
 misassignment becomes a failure mode not yet in the taxonomy; the full
 benchmark must test it.
 
-\paragraph{Toward the frontier.} Seven single-control arms are seven
-points, not a curve. The prescriptive question is how much contamination is
+\paragraph{Toward the frontier.} Seven configuration points, including five
+single-control arms and two bundled configurations, are seven points, not a
+curve. The prescriptive question is how much contamination is
 bought down per unit of personalization surrendered. That trade-off is a
 frontier, and mapping it (by sweeping control combinations, plotting
 contamination rate against retention, locating the knee) is the successor
@@ -941,8 +947,11 @@ Deterministic checks and aggregates can be recomputed from persisted
 artifacts and recorded verdicts. LLM judge verdicts are retained as observations,
 not guaranteed outputs of a new judge call. Hash inventories identify file
 contents; they do not validate scoring correctness or independently reproduce
-the study. Independent external reproduction and blinded human assessment
-remain outstanding.
+the study. The current audit is artifact-reproducible, not
+exact-output-reproducible: its frozen metadata lacks the historical interpreter,
+resolved package set or lockfile, OS/container identifier, and provider/API
+model-version metadata. Future evidence releases must archive those items.
+Independent external reproduction and blinded human assessment remain outstanding.
 
 \paragraph{Future work.} Contamination in self-improving harness loops is
 a future extension: when a harness curates its own context from its own
@@ -955,10 +964,12 @@ public taxonomy.
 
 Code, scenario manifests, and aggregate evidence are available at
 \url{https://github.com/arananet/contam-bench} and archived on Zenodo at
-\url{https://doi.org/10.5281/zenodo.22859806}. Per-repetition raw traces are
-included in the archived release. The repository and archive preserve the
-frozen artifacts used for this pilot; new runs are reported separately and do
-not replace the archived evidence.
+\url{https://doi.org/10.5281/zenodo.22859806}. The supplied materials do not
+establish a version-specific archive identifier, DOI-to-release mapping, or
+complete hash manifest for the frozen evidence; they therefore do not verify
+which archive contents include its per-repetition raw traces. The named
+repository locations and release commits identify the conditional evidence
+release; new runs are reported separately and do not replace it.
 
 \section{Conclusion}
 
@@ -972,8 +983,8 @@ in these scenarios, scoped namespaces and TTL decay excluded the
 targeted distractor or stale record from retrieval. Response-level outcomes
 are reported separately in Table~\ref{tab:repeated-audit}. Tags and raw storage yielded clean machine verdicts
 on the provenance probe; these verdicts do not measure utility. A logged
-failure in the seeded-recursion case illustrates how relevance filtering can
-discard context that denies a query's premise. Recursive compounding was not
+failure in the seeded-recursion case records this implementation-specific gate
+discarding context that denies a query's premise. Recursive compounding was not
 observed in the unseeded probe. CB-VAL-009 is a controlled seed, not observed
 benign behavior; the benign-contamination claim rests on the other scenarios.
 Contradiction preservation is a proposed safeguard; its downstream efficacy
@@ -1005,8 +1016,10 @@ at \url{https://github.com/arananet/contam-bench} and its repository-level
 Zenodo archive DOI above. The supplied paper package includes the generated
 tables, but the version-specific archive identifier, release commit mapping,
 and complete evidence manifest are not established by the materials cited
-here; reported aggregates therefore remain conditional on the named frozen
-evidence release.
+here; the raw-trace archive contents and reported aggregates therefore remain
+conditional on the named frozen evidence release. A version-specific immutable
+archive record and complete manifest with paths, releases, and SHA-256 hashes
+are required for independent verification.
 
 \appendix
 \section{Superseded v0.2 single-run matrix}

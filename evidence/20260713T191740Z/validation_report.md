@@ -604,7 +604,10 @@
 
 ## Pipeline defects found
 
-- none recorded during this run (record defects in runs/<ts>/defects.md)
+- This section is superseded by the authoritative defect layer
+  \texttt{defects.md} for this frozen release. That layer records D7--D10,
+  including 52 deterministic/judge disagreements (D7), no accompanying
+  adjudications file (D9), and an exceeded API-call budget target (D10).
 
 ## API spend
 

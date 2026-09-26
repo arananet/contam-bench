@@ -37,10 +37,14 @@ identical outputs from new model calls:
 | v0.2 ablation (7×9) | [`evidence/20260713T084130Z/`](evidence/20260713T084130Z/) | `v0.2-ablation` | Paper Appendix A, superseded historical matrix |
 | v0.1.1 validation (2×8) | [`evidence/20260710T143558Z/`](evidence/20260710T143558Z/) | `v0.1.1-validation` | Prior validation run |
 
-Each evidence directory contains the raw per-scenario artifacts (prompts,
+The repository paths describe the intended raw per-scenario artifacts (prompts,
 injected memories, gate decisions, responses), `verdicts.json`,
 `validation_report.md`, and `defects.md` with authored defect reports and
-versioned adjudication or resolution layers when present.
+versioned adjudication or resolution layers when present. The cited
+repository-level DOI is not mapped by the supplied materials to a specific
+release or complete hash manifest, so archive contents and raw-trace
+availability for a named release remain conditional pending a version-specific
+immutable archive record.
 
 The original v0.3 `validation_report.md` is preserved as a frozen machine-only
 record and therefore still reports that adjudications were absent. The v0.3.1
@@ -55,7 +59,7 @@ support a human-adjudicated claim.
 ## Quick start
 
 ```bash
-# 1. Clone and install
+# 1. Clone and install (the repository URL is mutable; record the checked-out commit)
 git clone https://github.com/arananet/contam-bench.git
 cd contam-bench
 # v0.3.2

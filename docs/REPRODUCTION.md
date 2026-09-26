@@ -45,6 +45,10 @@ reproduction virtual environment (`.venv`, Python 3.13.1). The frozen v0.3
 that produced the frozen experiment. Record your interpreter and `pip freeze`
 alongside every new reproduction attempt.
 
+For a future frozen evidence release, archive the exact interpreter version,
+resolved package set or lockfile, OS/container identifier, and provider/API
+model-version metadata alongside `run_meta.json`.
+
 No API key is needed for the test suite. Running the live harness requires the
 subject and judge credentials described in `SECRETS.md`; never put credentials
 in an issue or artifact upload.
