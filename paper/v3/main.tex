@@ -59,11 +59,11 @@ safeguard whose downstream efficacy remains untested. Of 350 scored rounds,
 52 remain unresolved pending human review. These are within-scenario
 observations for these nine scenarios, one subject model, and five
 repetitions per cell; they do not estimate real-world prevalence or
-model-independent mitigation efficacy. In these evaluated cases, scoped
-namespaces and TTL decay excluded the targeted records from retrieval. The
-benchmark and
-code are available at \url{https://github.com/arananet/contam-bench}; the
-repository-level archive DOI is \url{https://doi.org/10.5281/zenodo.22859806}.
+model-independent mitigation efficacy. CB-VAL-009 is a controlled seed for
+recursion, not observed benign behavior; the benign-contamination framing rests
+on the other scenarios. In these evaluated cases, scoped namespaces and TTL
+decay excluded the targeted records from retrieval. Per-scenario outcomes are
+reported without a general ordering among mitigations.
 \end{abstract}
 
 \section{Introduction}
@@ -220,9 +220,10 @@ staleness are \emph{retrieve-time} failures; authority inflation is an
 \emph{write-back} dynamic that compounds whichever of the others is
 present. Recursion is thus not a peer of the static classes but a loop
 over them, which is why it is tested both without a seeded error (does the
-subject generate one?) and with a seeded error (what happens when one
-exists?). The pilot
-includes one hand-authored scenario for each of the six proposed mechanisms;
+subject generate one?) and with a controlled seeded error (what happens when
+one exists?). CB-VAL-009 is the latter: it is not observed benign behavior and
+does not supply the pilot's benign-contamination evidence. The pilot includes
+one hand-authored scenario for each of the six proposed mechanisms;
 these scenarios provide mechanism demonstrations rather than evidence of
 prevalence or general mitigation efficacy. A seventh class is documented as
 experimental. Each class is defined by
@@ -462,14 +463,16 @@ v0.3.1 is append-only accounting and adjudication metadata.}
 \paragraph{Seeded recursion (CB-VAL-009).} The unseeded recursion scenario
 (CB-VAL-005) measures whether the subject \emph{generates} a round-1
 error; it did not do so in these evaluated runs, yielding a null compounding
-factor. Thus, recursive compounding was not observed in the unseeded probe.
-The seeded variant instead places directly in the store, as a controlled test
-seed rather than an attacker injection,
+factor. Thus, recursive compounding was not observed as benign behavior in the
+unseeded probe. CB-VAL-009 instead places directly in the store, as a
+controlled test seed rather than an attacker injection,
 an already-contaminated assistant-attributed write-back (``launch is
 confirmed\ldots leadership has signed off,'' 2 days old) alongside the
 user-sourced ground truth (``tentative Q4, nothing decided,'' 15 days
 old), and the probe asks for the confirmed date. This measures write-back
-propagation conditional on seeded contamination in this case.
+propagation conditional on seeded contamination in this case; it is not an
+observation of benign behavior. The pilot's benign-contamination claim rests
+on the other scenarios.
 
 \subsection{Repeated-evaluation audit and scoring defects}
 \label{sec:repeatedaudit}
@@ -485,8 +488,8 @@ Table~\ref{tab:lineage}. Its purpose is to quantify scorer ambiguity,
 execution cost, and per-cell outcome distributions rather than replace the
 matrix with an unqualified aggregate.
 
-The frozen report records fifty-two of 350 rounds (14.9\%; Wilson 95\% CI
-[11.5\%, 19.0\%]) as requiring human review:
+The frozen report records fifty-two of 350 rounds (14.9\%) as requiring human
+review:
 three provenance-attribution rounds had a
 deterministic-clean/judge-contaminated disagreement; twenty staleness rounds
 had a deterministic-contaminated/judge-clean disagreement; and twenty-nine
@@ -500,10 +503,12 @@ scoring contract, these rounds are excluded from machine-only rates;
 agreement on the remaining rounds is not itself ground-truth validation.
 
 Table~\ref{tab:repeated-audit}, generated directly from the frozen resolved
-verdicts, reports every scenario--configuration cell as clean outcomes out of
-five executions. The provenance separation persists: provenance tags, raw
-fidelity, and the governed bundle each have 5/5 clean executions, while naive
-has 0/5. The three provenance
+verdicts, reports every scenario--configuration cell as descriptive clean
+outcomes out of five executions. At temperature 0, these repetitions measure
+residual nondeterminism rather than independent Bernoulli sampling variation;
+they do not support confidence intervals or rankings among mitigations. On the
+provenance scenario, tags, raw fidelity, and the governed bundle each have 5/5
+clean executions, while naive has 0/5. The three provenance
 disagreements occur only in \texttt{arm\_gate} (repetitions 1 and 5) and
 \texttt{naive} (repetition 4), not in the tag, raw, or governed conditions.
 Their artifact hashes are respectively \texttt{12e31cb370551aee},
@@ -591,13 +596,13 @@ all configurations resolved clean, while retrieval assertions distinguish the
 candidate sets. For scope bleed, deterministic forbidden-pattern scoring
 recorded one clean and four contaminated naive repetitions and five clean,
 zero contaminated namespacing repetitions, with no flags in either cell. The
-corresponding pattern-hit proportions are 4/5 (Wilson 95\% CI [37.6\%,
-96.4\%]) and 0/5 (Wilson 95\% CI [0.0\%, 43.4\%]). They are descriptive
-within-scenario pattern observations, not validated response-contamination
-effects: these records have no judge verdicts, and the \texttt{permit
-delays?} pattern can fire on byte-identical prompts. The five repetitions per
-cell do not establish independence, add scenario diversity, or support
-significance claims.
+corresponding descriptive pattern-hit counts are 4/5 and 0/5. They are
+within-scenario observations of residual nondeterminism, not independent
+Bernoulli samples or validated response-contamination effects: these records
+have no judge verdicts, and the \texttt{permit delays?} pattern can fire on
+byte-identical prompts. The five repetitions per cell do not add scenario
+diversity, support confidence intervals, or establish a general mitigation
+ordering.
 Staleness remains retrieval-layer evidence because TTL excluded the stale
 record from retrieval while its response-layer comparators are flagged.
 Utility was not measured in this pilot: the summarization probe has no utility
@@ -648,9 +653,10 @@ The contract is implemented and unit-tested, but has not yet been evaluated
 in a dedicated repeated run, so it is a safeguard proposal rather than an
 efficacy result.
 
-We scope this claim carefully: in this seeded-recursion validation
+We scope this claim carefully: in this controlled-seed recursion validation
 scenario, this relevance gate as implemented retained the contaminated
-write-back and discarded the contradicting user context; generalizing to
+write-back and discarded the contradicting user context; this is not observed
+benign behavior, and generalizing to
 relevance gates as a class requires the gate-family scenarios named in
 future work. This suggests a structural risk when relevance is judged against a
 presuppositional query: a relevance filter optimizes for answering the
@@ -693,8 +699,9 @@ the full benchmark will pair patterns with graded rubrics.
 Two further honest observations. The unseeded-recursion compounding
 factor is null (\texttt{round1\_clean}) across all seven
 configurations: no recursive compounding was observed without seeded
-contamination. The seeded scenario is therefore the only evaluated case
-containing recursive contamination. And the borderline scope-bleed pattern
+contamination. The controlled seed is therefore the only evaluated case
+containing recursive contamination; it does not support the benign-behavior
+claim. And the borderline scope-bleed pattern
 (\texttt{permit delays?}) fired under naive but not under three arms
 whose prompts for that scenario are byte-identical to naive's:
 temperature-0 sampling is not bit-reproducible across calls, so
@@ -902,6 +909,15 @@ optimization loop itself. The experimental authority-inflation class
 requires the multi-round, citation-count scenario design sketched in the
 public taxonomy.
 
+\section{Data and Code Availability}
+
+Code, scenario manifests, and aggregate evidence are available at
+\url{https://github.com/arananet/contam-bench} and archived on Zenodo at
+\url{https://doi.org/10.5281/zenodo.22859806}. Per-repetition raw traces are
+included in the archived release. The repository and archive preserve the
+frozen artifacts used for this pilot; new runs are reported separately and do
+not replace the archived evidence.
+
 \section{Conclusion}
 
 This pilot operationalizes a conceptual taxonomy of six proposed mechanisms
@@ -915,9 +931,10 @@ are reported separately in Table~\ref{tab:repeated-audit}. Tags and raw storage 
 on the provenance probe; these verdicts do not measure utility. A logged
 failure in the seeded-recursion case illustrates how relevance filtering can
 discard context that denies a query's premise. Recursive compounding was not
-observed in the unseeded probe; the only evaluated case with recursive
-contamination was seeded. The proposed contradiction-preservation safeguard has not
-yet undergone a repeated evaluation.
+observed in the unseeded probe. CB-VAL-009 is a controlled seed, not observed
+benign behavior; the benign-contamination claim rests on the other scenarios.
+The proposed contradiction-preservation safeguard has not yet undergone a
+repeated evaluation.
 
 One subject model, TF-IDF retrieval, limited scenario diversity, bundled
 metadata, and unresolved scoring disagreements restrict these findings to
@@ -966,11 +983,9 @@ Seeded recursion (009), separate & r & r & \textbf{0/1} & r & 1/1 & r & r \\
 \caption{Superseded historical v0.2 single-run resolved verdicts per scenario
 and configuration (\(\circ\)~clean, \(\times\)~contaminated,
 r~flagged \texttt{needs\_human\_review}). Its rates exclude flagged artifacts
-from their numerator and denominator. Their Wilson 95\% intervals are 2/5
-[11.8\%, 76.9\%], 1/5 [3.6\%, 62.4\%], 0/6 [0.0\%, 39.0\%], and 1/6
-[3.0\%, 56.4\%] (with repeated values sharing the same interval); the 1/1
-seeded value has [20.7\%, 100.0\%]. They are retained solely for historical
-context, not as repeated-audit estimates.}
+from their numerator and denominator. These per-cell counts are retained solely
+for historical context, not as repeated-audit estimates or independent-sampling
+rates.}
 \label{tab:v02-matrix}
 \end{table}
 
