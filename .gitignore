@@ -195,6 +195,7 @@ runs/
 !/paper/v3/main.tex
 !/paper/v3/references.bib
 !/paper/v3/main.bbl
+!/paper/v3/generated-unresolved-sensitivity-table.tex
 !/paper/v3/build-paper.sh
 !/paper/v3/package-arxiv.sh
 !/paper/v3/check-arxiv.sh

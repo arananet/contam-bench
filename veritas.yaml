@@ -42,11 +42,10 @@ artifact:
   withheld_reason: "Per-repetition raw traces, archived with the release; too large to fit the judges' token-per-minute limit. Aggregates are supplied."
 
 judge_paths:
-  citations:        [paper/v3/main.tex, paper/v3/references.bib]
-  archival:         [paper/v3/main.tex, README.md, CITATION.cff, LICENSING.md, docs/REPRODUCTION.md]
-  methodology:      [paper/v3/main.tex, spec, scenarios, src, docs/SCENARIO_REVIEW.md]
-  repo-consistency: [paper/v3/main.tex, src, tests, spec, scenarios, README.md]
-  # statistics, evidence, adversarial...: sin entrada = leen todo el artefacto
+  citations:        [paper/v3/main.tex, paper/v3/generated-repeated-audit-table.tex, paper/v3/references.bib]
+  archival:         [paper/v3/main.tex, paper/v3/generated-repeated-audit-table.tex, paper/v3/references.bib, README.md, CITATION.cff, LICENSING.md, docs/REPRODUCTION.md]
+  methodology:      [paper/v3/main.tex, paper/v3/generated-repeated-audit-table.tex, spec, scenarios, src, docs/SCENARIO_REVIEW.md]
+  repo-consistency: [paper/v3/main.tex, paper/v3/generated-repeated-audit-table.tex, paper/v3/references.bib, src, tests, spec, scenarios, scripts, README.md]
 
 # Secrets never live here. Only environment variable names and model ids do.
 # Copy .env.example from the Veritas repository and set the values there.
@@ -103,7 +102,7 @@ gate:
       reason: "Per-repetition artifacts exceed the review token budget; aggregates are supplied and the raw files are archived."
 
 thesis:
-  - "We propose a taxonomy of six mechanisms by which ordinary memory-system behaviour, with no attacker or poisoned record, could degrade later responses, each with a falsifiable contamination criterion: semantic drift, provenance collapse, scope bleed, temporal staleness, recursive compounding and summarization loss. The pilot exercises a subset of them; the taxonomy is a conceptual contribution, not an empirical result."
+  - "We propose a taxonomy of six mechanisms by which ordinary memory-system behaviour, with no attacker, can degrade later responses, each with a falsifiable contamination criterion. The pilot includes at least one hand-authored scenario per mechanism; it demonstrates that each criterion is operational, not how prevalent any mechanism is."
 
 # Nothing executes unless it is listed here.
 execution:

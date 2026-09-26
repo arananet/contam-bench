@@ -1,0 +1,168 @@
+#!/usr/bin/env python3
+"""Generate unresolved-verdict sensitivity rates from frozen v0.3 verdicts."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+INPUT = ROOT / "evidence/20260713T191740Z/verdicts.json"
+OUTPUT = ROOT / "paper/v3/generated-unresolved-sensitivity-table.tex"
+CONFIGS = (
+    "naive",
+    "governed",
+    "arm_namespace",
+    "arm_provenance",
+    "arm_ttl",
+    "arm_gate",
+    "arm_raw",
+)
+CONFIG_LABELS = {
+    "naive": r"\texttt{naive}",
+    "governed": r"\texttt{governed}",
+    "arm_namespace": r"\texttt{namespace}",
+    "arm_provenance": r"\texttt{provenance}",
+    "arm_ttl": r"\texttt{ttl}",
+    "arm_gate": r"\texttt{gate}",
+    "arm_raw": r"\texttt{raw}",
+}
+METRICS = (
+    ("contamination_rate", "Contamination", "contaminated"),
+    ("provenance_error_rate", "Provenance", "contaminated"),
+    ("staleness_rate", "Staleness", "contaminated"),
+    ("seeded_recursion_rate", "Seeded recursion", "contaminated"),
+    ("personalization_retention", "Retention", "clean"),
+)
+
+
+def fail(message: str) -> None:
+    raise SystemExit(f"error: {message}")
+
+
+def recursion_mode(record: dict) -> str | None:
+    if record.get("contamination_class") != "recursive":
+        return None
+    mode = record.get("recursion_mode")
+    if mode not in {"natural", "seeded"}:
+        fail(f"recursive scenario lacks a valid recursion mode: {record!r}")
+    return mode
+
+
+def metric_records(records: list[dict], name: str) -> list[dict]:
+    if name == "contamination_rate":
+        return [record for record in records
+                if record.get("contamination_class") != "control"
+                and recursion_mode(record) != "seeded"]
+    if name == "provenance_error_rate":
+        return [record for record in records
+                if record.get("contamination_class") == "provenance_collapse"]
+    if name == "staleness_rate":
+        return [record for record in records
+                if record.get("contamination_class") == "temporal_staleness"]
+    if name == "seeded_recursion_rate":
+        return [record for record in records if recursion_mode(record) == "seeded"]
+    if name == "personalization_retention":
+        return [record for record in records
+                if record.get("contamination_class") == "control"]
+    fail(f"unknown metric: {name}")
+
+
+def load_records() -> list[dict]:
+    try:
+        document = json.loads(INPUT.read_text())
+    except (OSError, json.JSONDecodeError) as error:
+        fail(f"cannot read {INPUT}: {error}")
+    records = document.get("verdicts") if isinstance(document, dict) else None
+    if not isinstance(records, list) or len(records) != 315:
+        fail("expected exactly 315 frozen execution verdicts")
+
+    seen = set()
+    for record in records:
+        if not isinstance(record, dict):
+            fail("every verdict record must be an object")
+        key = (record.get("scenario_id"), record.get("config_name"), record.get("repetition"))
+        if key in seen:
+            fail(f"duplicate execution verdict: {key!r}")
+        seen.add(key)
+        if record.get("config_name") not in CONFIGS:
+            fail(f"unexpected config: {record.get('config_name')!r}")
+        if record.get("repetition") not in range(1, 6):
+            fail(f"unexpected repetition: {key!r}")
+        rounds = record.get("rounds")
+        if not isinstance(rounds, list) or not rounds:
+            fail(f"missing rounds: {key!r}")
+        if rounds[-1].get("resolved") not in {
+            "clean", "contaminated", "needs_human_review",
+        }:
+            fail(f"unexpected final verdict: {key!r}")
+        recursion_mode(record)
+    return records
+
+
+def sensitivity_counts(records: list[dict]) -> dict[tuple[str, str], tuple[int, int, int]]:
+    expected_denominators = {
+        "contamination_rate": 30,
+        "provenance_error_rate": 5,
+        "staleness_rate": 5,
+        "seeded_recursion_rate": 5,
+        "personalization_retention": 10,
+    }
+    counts = {}
+    for config in CONFIGS:
+        config_records = [record for record in records if record["config_name"] == config]
+        for name, _, target in METRICS:
+            group = metric_records(config_records, name)
+            if len(group) != expected_denominators[name]:
+                fail(f"unexpected denominator for {config}/{name}: {len(group)}")
+            final = [record["rounds"][-1]["resolved"] for record in group]
+            observed = sum(value == target for value in final)
+            unresolved = sum(value == "needs_human_review" for value in final)
+            counts[(config, name)] = (observed, unresolved, len(final))
+    return counts
+
+
+def format_counts(counts: tuple[int, int, int]) -> str:
+    observed, unresolved, denominator = counts
+    return f"{observed}/{denominator}; {observed + unresolved}/{denominator}"
+
+
+def main() -> None:
+    counts = sensitivity_counts(load_records())
+    lines = [
+        "% Generated by scripts/generate_unresolved_sensitivity_table.py from",
+        "% evidence/20260713T191740Z/verdicts.json; do not hand-edit.",
+        r"\begin{table*}[p]",
+        r"\centering",
+        r"\scriptsize",
+        r"\setlength{\tabcolsep}{3pt}",
+        r"\begin{tabular}{@{}lccccc@{}}",
+        r"\toprule",
+        r"Configuration & contamination & provenance & staleness & seeded recursion & retention \\",
+        r"\midrule",
+    ]
+    for config in CONFIGS:
+        values = [format_counts(counts[(config, name)]) for name, _, _ in METRICS]
+        lines.append(CONFIG_LABELS[config] + " & " + " & ".join(values) + r" \\")
+    lines.extend(
+        [
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\caption{Sensitivity of headline rates to unresolved final-round verdicts.",
+            r"Each cell is \(a/n; b/n\): \(a/n\) counts every",
+            r"\texttt{needs\_human\_review} final round as clean and \(b/n\) counts",
+            r"every such round as contaminated. For retention, clean is the target",
+            r"outcome; for all other columns, contaminated is the target outcome.",
+            r"The contamination column excludes the separately reported seeded-recursion",
+            r"scenario. Counts are generated directly from the frozen verdicts.}",
+            r"\label{tab:unresolved-sensitivity}",
+            r"\end{table*}",
+            "",
+        ]
+    )
+    OUTPUT.write_text("\n".join(lines))
+
+
+if __name__ == "__main__":
+    main()

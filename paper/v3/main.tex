@@ -33,7 +33,9 @@ A Taxonomy, Benchmark, and Contract-Level Mitigations}
 Persistent memory makes LLM assistants persistent collaborators, but it also
 creates an unmanaged input channel into future responses. We study \emph{benign
 memory contamination}: degradation caused by ordinary memory-system behavior,
-without an attacker, jailbreak, or poisoned record. We contribute a taxonomy
+without an attacker, jailbreak, or attacker-poisoned record. The
+seeded-recursion probe uses a controlled contaminated write-back to exercise
+recursion; it does not model an attacker. We contribute a taxonomy
 of six mechanisms: semantic drift, provenance collapse, scope bleed, temporal
 staleness, recursive compounding, and summarization loss. We also introduce
 CONTAM-Bench, an open, spec-driven benchmark evaluated here as a nine-scenario
@@ -44,7 +46,9 @@ class.
 We report an ablation over seven configurations using one subject model and
 TF-IDF retrieval, followed by five repetitions of each scenario--configuration
 cell. On the targeted probes, the namespacing arm excluded cross-domain
-distractors and the TTL arm excluded the stale fact in all five repetitions.
+distractors from retrieval and the TTL arm excluded the stale record from
+retrieval in all five repetitions; response-level outcomes are reported
+separately in the tables.
 On the provenance probe, tags and raw fidelity each yielded five
 machine-resolved clean outcomes; these are clean response-verdict outcomes,
 not utility measurements. In the seeded-recursion case (CB-VAL-009),
@@ -56,7 +60,8 @@ safeguard whose downstream efficacy remains untested. Of 350 scored rounds,
 observations for these nine scenarios, one subject model, and five
 repetitions per cell; they do not estimate real-world prevalence or
 model-independent mitigation efficacy. In these evaluated cases, scoped
-namespaces and TTL decay excluded the targeted contamination. The benchmark and
+namespaces and TTL decay excluded the targeted records from retrieval. The
+benchmark and
 code are available at \url{https://github.com/arananet/contam-bench}; the
 repository-level archive DOI is \url{https://doi.org/10.5281/zenodo.22859806}.
 \end{abstract}
@@ -458,7 +463,8 @@ v0.3.1 is append-only accounting and adjudication metadata.}
 (CB-VAL-005) measures whether the subject \emph{generates} a round-1
 error; it did not do so in these evaluated runs, yielding a null compounding
 factor. Thus, recursive compounding was not observed in the unseeded probe.
-The seeded variant instead places directly in the store
+The seeded variant instead places directly in the store, as a controlled test
+seed rather than an attacker injection,
 an already-contaminated assistant-attributed write-back (``launch is
 confirmed\ldots leadership has signed off,'' 2 days old) alongside the
 user-sourced ground truth (``tentative Q4, nothing decided,'' 15 days
@@ -507,6 +513,15 @@ the pending blinded human adjudications.
 
 \input{generated-repeated-audit-table.tex}
 
+Table~\ref{tab:unresolved-sensitivity} is a generated sensitivity analysis for
+the unresolved disagreements (defects D7--D9). It recomputes every headline
+rate twice from the frozen final-round verdicts: once treating every unresolved
+round as clean and once treating every unresolved round as contaminated. This
+does not adjudicate the disagreements; it makes their effect on each reported
+rate explicit.
+
+\input{generated-unresolved-sensitivity-table.tex}
+
 The v0.3 evidence now includes a separately versioned queue for all 52
 unresolved artifact rounds, but it contains no human verdicts. Therefore this
 paper makes no human-consensus claim and does not silently adopt the judge
@@ -533,7 +548,8 @@ retroactively create judge verdicts.
 
 Retrieval-layer and response-layer outcomes differ on the semantic-drift
 probe. Table~\ref{tab:retrieval} shows that namespacing, gating, and the
-governed bundle excluded its distractors, whereas the other arms did not.
+governed bundle excluded its distractors from retrieval, whereas the other
+arms did not.
 Response scoring nevertheless resolved clean across configurations. This
 case illustrates why retrieval of an irrelevant memory and a contaminated
 response must be measured separately. We therefore report three
@@ -582,10 +598,10 @@ effects: these records have no judge verdicts, and the \texttt{permit
 delays?} pattern can fire on byte-identical prompts. The five repetitions per
 cell do not establish independence, add scenario diversity, or support
 significance claims.
-Staleness remains
-retrieval-layer evidence because its response-layer comparators are flagged.
-The summarization probe has no utility oracle, so it cannot establish a
-utility gain from raw fidelity.
+Staleness remains retrieval-layer evidence because TTL excluded the stale
+record from retrieval while its response-layer comparators are flagged.
+Utility was not measured in this pilot: the summarization probe has no utility
+oracle, so it cannot establish a utility gain from raw fidelity.
 
 The off-diagonal cells motivate two case-specific observations. First, the
 raw-fidelity arm had five machine-resolved clean response outcomes on the
@@ -894,7 +910,8 @@ mechanism. These pilot scenarios demonstrate selected case behaviors rather
 than empirically validating each mechanism as a general phenomenon. Within
 the nine evaluated scenarios, with one subject model and five repetitions per
 scenario--configuration cell, scoped namespaces and TTL decay excluded the
-targeted contamination. Tags and raw storage yielded clean machine verdicts
+targeted distractor or stale record from retrieval. Response-level outcomes
+are reported separately in Table~\ref{tab:repeated-audit}. Tags and raw storage yielded clean machine verdicts
 on the provenance probe; these verdicts do not measure utility. A logged
 failure in the seeded-recursion case illustrates how relevance filtering can
 discard context that denies a query's premise. Recursive compounding was not

@@ -21,6 +21,11 @@ acceptance_criteria:
   - A checked-in generator derives the repeated-audit manuscript table from frozen
     verdicts, validates the seven frozen configurations and five repetitions, and
     documents the exact reproduction command without including later configurations.
+  - A checked-in generator derives a manuscript sensitivity table from frozen
+    verdicts. It reports every headline rate under both explicit assumptions for
+    final-round needs_human_review verdicts (clean and contaminated), preserves
+    the separate seeded-recursion denominator, and rejects an unexpected frozen
+    verdict inventory.
   - Scenario manifests may declare stable seed IDs and structured retrieval
     assertions; the schema validates them and artifacts persist selected IDs.
   - Retrieval assertions are deterministically evaluated and reported per
@@ -45,6 +50,9 @@ test_plan:
   - >-
     Run the repeated-audit table generator, verify its checked-in output is
     unchanged, and run make arxiv-check.
+  - >-
+    Run the unresolved-verdict sensitivity generator and its focused pytest
+    regression test; verify the generated manuscript fragment is unchanged.
 
 out_of_scope:
   - Rerunning or modifying frozen v0.2 evidence.

@@ -21,4 +21,10 @@ def test_arxiv_check_compiles_the_packaged_sources():
 
     assert "arXiv package check passed" in completed.stdout
     with tarfile.open(PAPER_DIR / "dist/contam-bench-arxiv-v3.tar.gz") as archive:
-        assert archive.getnames() == ["main.tex", "references.bib", "main.bbl"]
+        assert archive.getnames() == [
+            "main.tex",
+            "references.bib",
+            "main.bbl",
+            "generated-repeated-audit-table.tex",
+            "generated-unresolved-sensitivity-table.tex",
+        ]

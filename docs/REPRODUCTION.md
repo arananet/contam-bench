@@ -37,6 +37,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+`requirements.txt` pins the package versions from the repository's current
+reproduction virtual environment (`.venv`, Python 3.13.1). The frozen v0.3
+`run_meta.json` does not record the virtual environment or a historical
+`pip freeze`, so these pins are not asserted to reconstruct the environment
+that produced the frozen experiment. Record your interpreter and `pip freeze`
+alongside every new reproduction attempt.
+
 No API key is needed for the test suite. Running the live harness requires the
 subject and judge credentials described in `SECRETS.md`; never put credentials
 in an issue or artifact upload.

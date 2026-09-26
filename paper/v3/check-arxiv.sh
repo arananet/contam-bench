@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ARCHIVE="$SCRIPT_DIR/dist/contam-bench-arxiv-v3.tar.gz"
 WORK_DIR=""
-EXPECTED_FILES=$'main.tex\nreferences.bib\nmain.bbl\ngenerated-repeated-audit-table.tex'
+EXPECTED_FILES=$'main.tex\nreferences.bib\nmain.bbl\ngenerated-repeated-audit-table.tex\ngenerated-unresolved-sensitivity-table.tex'
 
 usage() {
   cat <<'EOF'
